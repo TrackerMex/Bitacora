@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -182,13 +182,13 @@
             onchange="filterByDate()"
             class="p-2 border rounded-lg"
           />
-          <div
-            id="cliente-display"
-            class="text-lg font-semibold text-gray-700 text-center"
-          >
-            Cliente:
-            <span id="cliente-display-name" class="text-gray-900"> N/A </span>
-          </div>
+        </div>
+        <div
+          id="cliente-display"
+          class="text-lg font-semibold text-gray-700 text-center"
+        >
+          Cliente:
+          <span id="cliente-display-name" class="text-gray-900"> N/A </span>
         </div>
         <button
           onclick="exportUpdatedSheet()"
@@ -983,7 +983,7 @@
           ...new Set(
             (filteredDespachosData || [])
               .map((d) => String(d?.cliente || "").trim())
-              .filter(Boolean),
+              .filter(Boolean)
           ),
         ];
 
@@ -1063,7 +1063,7 @@
         const parsed = dayjs(
           s,
           ["YYYY-MM-DD", "YYYY/MM/DD", "DD-MM-YYYY", "DD/MM/YYYY"],
-          true,
+          true
         );
         return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
       }
@@ -1081,7 +1081,7 @@
           const base = dayjs(
             String(dateValue),
             ["DD-MM-YYYY", "DD/MM/YYYY"],
-            true,
+            true
           );
           const m = String(timeValue).match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
           if (base.isValid() && m) {
@@ -1133,7 +1133,7 @@
           { u: "view", p: "read", role: "lector" },
         ];
         const match = CREDENTIALS.find(
-          (c) => c.u === username && c.p === password,
+          (c) => c.u === username && c.p === password
         );
         if (!match) {
           if (errorMessage) {
@@ -1230,7 +1230,7 @@
               .toString()
               .trim()
               .toLowerCase()
-              .replace(/[^a-záéíóúñü\s]/g, ""),
+              .replace(/[^a-záéíóúñü\s]/g, "")
           );
 
           // Mapear tus encabezados exactos:
@@ -1256,7 +1256,7 @@
             headers.forEach((header, i) => {
               const normalizedHeader =
                 Object.keys(headerMap).find(
-                  (key) => header.includes(key) || key.includes(header),
+                  (key) => header.includes(key) || key.includes(header)
                 ) || header;
 
               obj[headerMap[normalizedHeader] || normalizedHeader] =
@@ -1313,7 +1313,7 @@
           if (!Array.isArray(arr)) return new Map();
           const m = new Map();
           arr.forEach((d) =>
-            m.set(`${d.folio}-${d.unidad}-${d.fechaProgramada}`, d),
+            m.set(`${d.folio}-${d.unidad}-${d.fechaProgramada}`, d)
           );
           return m;
         } catch (e) {
@@ -1323,12 +1323,6 @@
 
       function processData(sheetRows) {
         const savedMap = readSavedMap();
-
-        console.log("Total de filas:", sheetRows.length);
-        console.log("Primera fila completa:", sheetRows[0]);
-        console.log("Segunda fila completa:", sheetRows[1]);
-        console.log("Índice 13 (cliente) fila 1:", sheetRows[0]?.[13]);
-        console.log("Índice 13 (cliente) fila 2:", sheetRows[1]?.[13]);
 
         allDespachosData = sheetRows.map((row, idx) => {
           const fechaProg = excelDateToYYYYMMDD(row["fecha"]);
@@ -1344,16 +1338,16 @@
             destino: row["destino"] || "N/A",
             citaSalidaUnidad: parseExcelDateTime(
               row["salida_prog"],
-              row["fecha"],
+              row["fecha"]
             ),
             citaCarga: parseExcelDateTime(row["carga_prog"], row["fecha"]),
             citaSalida: parseExcelDateTime(
               row["salida_carga_prog"],
-              row["fecha"],
+              row["fecha"]
             ),
             citaDescarga: parseExcelDateTime(
               row["descarga_prog"],
-              row["fecha"],
+              row["fecha"]
             ),
             cliente: row["cliente"] || "N/A",
             realSalidaUnidad: "",
@@ -1373,9 +1367,21 @@
           if (savedMap.has(key)) {
             const saved = savedMap.get(key);
             const merged = { ...base, ...saved };
+            // Mantener siempre los datos de Google Sheets (no localStorage)
             merged.folio = base.folio;
             merged.unidad = base.unidad;
             merged.fechaProgramada = base.fechaProgramada;
+            merged.cliente = base.cliente; // ✅ Siempre usar cliente de Google Sheets
+            merged.placas = base.placas;
+            merged.operador = base.operador;
+            merged.telefono = base.telefono;
+            merged.ruta = base.ruta;
+            merged.origen = base.origen;
+            merged.destino = base.destino;
+            merged.citaSalidaUnidad = base.citaSalidaUnidad;
+            merged.citaCarga = base.citaCarga;
+            merged.citaSalida = base.citaSalida;
+            merged.citaDescarga = base.citaDescarga;
             return merged;
           }
           return base;
@@ -1387,7 +1393,7 @@
         if (!dateInput.value) {
           const dates = [
             ...new Set(
-              allDespachosData.map((d) => d.fechaProgramada).filter(Boolean),
+              allDespachosData.map((d) => d.fechaProgramada).filter(Boolean)
             ),
           ].sort((a, b) => dayjs(b).diff(dayjs(a)));
           dateInput.value = dates[0] || dayjs().format("YYYY-MM-DD");
@@ -1412,7 +1418,7 @@
         try {
           localStorage.setItem(
             "bitacoraData",
-            JSON.stringify(allDespachosData),
+            JSON.stringify(allDespachosData)
           );
         } catch (e) {}
       }
@@ -1422,7 +1428,7 @@
         if (!selectedDate) filteredDespachosData = [...allDespachosData];
         else
           filteredDespachosData = allDespachosData.filter(
-            (d) => d.fechaProgramada === selectedDate,
+            (d) => d.fechaProgramada === selectedDate
           );
         // Si ya cargamos seguimientos desde BD, aplicarlos a la vista actual.
         try {
@@ -1461,7 +1467,7 @@
               <div class="flex justify-between items-start mb-3">
                 <div>
                   <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
-                    d.unidad,
+                    d.unidad
                   )}</h3>
                   <p class="text-sm text-gray-500">${escapeHtml(d.placas)}</p>
                 </div>
@@ -1488,29 +1494,29 @@
         }
         filteredDespachosData.forEach((d) => {
           const origenUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-            d.origen || "",
+            d.origen || ""
           )}`;
           const destinoUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-            d.destino || "",
+            d.destino || ""
           )}`;
           c.innerHTML += `
             <div class="bg-white p-5 rounded-xl shadow border">
               <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
-                d.unidad,
+                d.unidad
               )}</h3>
               <p class="text-sm text-gray-500">${escapeHtml(d.ruta)}</p>
               <p class="text-sm mt-2"><strong>Origen:</strong>
                 <a href="${origenUrl}" target="_blank" class="text-blue-600 underline">${escapeHtml(
-                  d.origen || "N/A",
-                )}</a>
+            d.origen || "N/A"
+          )}</a>
               </p>
               <p class="text-sm"><strong>Destino:</strong>
                 <a href="${destinoUrl}" target="_blank" class="text-blue-600 underline">${escapeHtml(
-                  d.destino || "N/A",
-                )}</a>
+            d.destino || "N/A"
+          )}</a>
               </p>
               <p class="text-sm"><strong>Cliente:</strong> ${escapeHtml(
-                d.cliente || "N/A",
+                d.cliente || "N/A"
               )}</p>
             </div>`;
         });
@@ -1529,7 +1535,7 @@
           ...new Set(
             filteredDespachosData
               .map((d) => d.cliente)
-              .filter((c) => c && c.trim()),
+              .filter((c) => c && c.trim())
           ),
         ].sort();
 
@@ -1543,7 +1549,7 @@
 
         clientes.forEach((cliente) => {
           html += `<option value="${escapeHtml(cliente)}">${escapeHtml(
-            cliente,
+            cliente
           )}</option>`;
         });
 
@@ -1563,7 +1569,7 @@
 
         // Filtrar solo unidades del cliente seleccionado
         const unidadesFiltradas = filteredDespachosData.filter(
-          (d) => d.cliente === clienteSeleccionado,
+          (d) => d.cliente === clienteSeleccionado
         );
 
         const unidadSelect = document.getElementById("unidad-select");
@@ -1586,7 +1592,7 @@
         sel.innerHTML = '<option value="">-- Seleccione unidad --</option>';
         filteredDespachosData.forEach((d, i) => {
           sel.innerHTML += `<option value="${i}">${escapeHtml(
-            d.unidad,
+            d.unidad
           )}</option>`;
         });
         document.getElementById("consulta-btn").disabled = true;
@@ -1616,7 +1622,7 @@
         document.getElementById("modal-body").innerHTML = `
           <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <p><strong>Folio:</strong></p><p>${escapeHtml(
-              String(d.folio).padStart(3, "0"),
+              String(d.folio).padStart(3, "0")
             )}</p>
             <p><strong>Unidad:</strong></p><p>${escapeHtml(d.unidad)}</p>
             <p><strong>Placas:</strong></p><p>${escapeHtml(d.placas)}</p>
@@ -1673,20 +1679,20 @@
               sevLower === "rojo"
                 ? "incidencia-rojo"
                 : sevLower === "naranja"
-                  ? "incidencia-naranja"
-                  : "incidencia-verde";
+                ? "incidencia-naranja"
+                : "incidencia-verde";
 
             return `
             <div class="text-sm p-2 rounded-md ${cls} flex items-center justify-between gap-3">
               <div class="min-w-0">
                 <strong>${escapeHtml(tipo)}</strong>
                 <span class="opacity-80">— ${formatDateTime(
-                  inc && inc.fecha ? inc.fecha : "",
+                  inc && inc.fecha ? inc.fecha : ""
                 )}</span>
                 ${
                   inc && inc.direccion
                     ? `<div class="text-xs opacity-80 mt-1">Dirección: ${escapeHtml(
-                        inc.direccion,
+                        inc.direccion
                       )}</div>`
                     : ``
                 }
@@ -1911,7 +1917,7 @@
         const tipo = sel ? sel.value : "";
         if (!tipo)
           return alert(
-            "Seleccione un tipo de incidencia para ver el protocolo.",
+            "Seleccione un tipo de incidencia para ver el protocolo."
           );
         showProtocoloPorTipo(tipo);
       }
@@ -1933,8 +1939,8 @@
           item.nivel === "Crítica"
             ? "bg-red-100 text-red-800"
             : item.nivel === "Relevante"
-              ? "bg-orange-100 text-orange-800"
-              : "bg-green-100 text-green-800";
+            ? "bg-orange-100 text-orange-800"
+            : "bg-green-100 text-green-800";
         bodyEl.innerHTML = `
           <div class="mb-4">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${badgeClass}">
@@ -1995,8 +2001,8 @@
           <div>
             <label class="block text-sm font-medium text-gray-700">${label}</label>
             <input name="${name}" type="datetime-local" value="${formatForInput(
-              realIso,
-            )}" class="mt-1 w-full p-2 border rounded-md" ${readOnly} />
+          realIso
+        )}" class="mt-1 w-full p-2 border rounded-md" ${readOnly} />
             <div class="mt-2 p-2 bg-gray-100 border border-gray-200 rounded-md text-sm text-gray-700">
               <strong>Programada:</strong> ${formatDateTime(progIso)}
             </div>
@@ -2014,7 +2020,7 @@
                       (v) =>
                         `<option value="${v}" ${
                           d.operadorMonitoreoId === v ? "selected" : ""
-                        }>${v}</option>`,
+                        }>${v}</option>`
                     )
                     .join("")}
                 </select>
@@ -2049,25 +2055,25 @@
                 "Salida inicial de la Unidad (Real)",
                 "realSalidaUnidad",
                 d.realSalidaUnidad,
-                d.citaSalidaUnidad,
+                d.citaSalidaUnidad
               )}
               ${timeField(
                 "Cita de Carga (Real)",
                 "realCarga",
                 d.realCarga,
-                d.citaCarga,
+                d.citaCarga
               )}
               ${timeField(
                 "Salida de carga (Real)",
                 "realSalida",
                 d.realSalida,
-                d.citaSalida,
+                d.citaSalida
               )}
               ${timeField(
                 "Proceso de Descarga (Real)",
                 "realDescarga",
                 d.realDescarga,
-                d.citaDescarga,
+                d.citaDescarga
               )}
             </div>
 
@@ -2097,7 +2103,7 @@
                       (v) =>
                         `<option ${
                           d.estatus === v ? "selected" : ""
-                        }>${v}</option>`,
+                        }>${v}</option>`
                     )
                     .join("")}
                 </select>
@@ -2107,8 +2113,8 @@
             <div>
               <label class="block text-sm font-medium">Observaciones</label>
               <textarea name="observaciones" rows="3" class="mt-1 w-full p-2 border rounded-md" ${readOnly}>${escapeHtml(
-                d.observaciones || "",
-              )}</textarea>
+          d.observaciones || ""
+        )}</textarea>
             </div>
 
             <div class="mt-4 border-t pt-4 grid grid-cols-1 gap-4">
@@ -2311,7 +2317,7 @@
 
       function makeSeguimientoKey(folio, unidad, fechaProgramada) {
         return `${String(folio ?? "").trim()}|${String(
-          unidad ?? "",
+          unidad ?? ""
         ).trim()}|${String(fechaProgramada ?? "").trim()}`;
       }
 
@@ -2400,7 +2406,7 @@
           `${SEGUIMIENTO_LOAD_ENDPOINT}?_=${Date.now()}`,
           {
             cache: "no-store",
-          },
+          }
         );
 
         let json = null;
@@ -2421,8 +2427,8 @@
         const rows = Array.isArray(json?.data)
           ? json.data
           : Array.isArray(json)
-            ? json
-            : [];
+          ? json
+          : [];
 
         const m = new Map();
         rows.forEach((r) => {
@@ -2461,7 +2467,7 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
-          },
+          }
         );
 
         let json = null;
@@ -2518,14 +2524,14 @@
           ...new Set(
             (filteredDespachosData || [])
               .map((d) => String(d.unidad || "").trim())
-              .filter(Boolean),
+              .filter(Boolean)
           ),
         ].sort((a, b) =>
-          a.localeCompare(b, "es", { numeric: true, sensitivity: "base" }),
+          a.localeCompare(b, "es", { numeric: true, sensitivity: "base" })
         );
         unidades.forEach((u) => {
           sel.innerHTML += `<option value="${escapeHtml(u)}">${escapeHtml(
-            u,
+            u
           )}</option>`;
         });
       }
@@ -2540,7 +2546,7 @@
           data = (filteredDespachosData || []).filter(
             (d) =>
               String(d.unidad || "").trim() ===
-              String(filter.value || "").trim(),
+              String(filter.value || "").trim()
           );
 
         if (!data.length) {
@@ -2585,8 +2591,8 @@
           uc.innerHTML = `
             <div class="flex items-center justify-center gap-2">
               <span class="inline-block w-3 h-3 rounded-full ${dotClass}" title="GPS: ${escapeHtml(
-                d.gpsValidacionEstado || "Sin registro",
-              )}"></span>
+            d.gpsValidacionEstado || "Sin registro"
+          )}"></span>
               <strong>${escapeHtml(d.unidad)}</strong>
             </div>
             <p class="text-xs">${escapeHtml(d.placas)}</p>
@@ -2596,7 +2602,7 @@
                 : ""
             }</p>
             <p class="text-xs italic">GPS: ${escapeHtml(
-              d.gpsValidacionEstado || "Sin registro",
+              d.gpsValidacionEstado || "Sin registro"
             )}</p>
         `;
           row.appendChild(uc);
@@ -2627,7 +2633,7 @@
             cell.className = `board-cell ${cls}`;
             cell.setAttribute("data-label", t.label);
             cell.innerHTML = `<p class="text-xs">Prog: ${formatDateTime(
-              t.cita,
+              t.cita
             )}</p><p class="font-semibold">Real: ${
               t.real ? formatDateTime(t.real) : "-"
             }</p>`;
@@ -2658,7 +2664,7 @@
       function renderKPIs(data) {
         const total = data.length;
         const realizados = data.filter(
-          (d) => d.estatus === "Despacho realizado",
+          (d) => d.estatus === "Despacho realizado"
         );
         const enRuta = data.filter((d) => d.estatus === "En ruta");
         const programados = data.filter((d) => d.estatus === "Programado");
@@ -2666,7 +2672,7 @@
           (d) =>
             d.realDescarga &&
             checkTimeDeviation(d.citaDescarga, d.realDescarga) ===
-              "estatus-verde",
+              "estatus-verde"
         );
         const conRetraso = realizados.length - aTiempo.length;
 
@@ -2684,7 +2690,7 @@
         data.forEach((d) =>
           (d.incidencias || []).forEach((i) => {
             incCount[i.tipo] = (incCount[i.tipo] || 0) + 1;
-          }),
+          })
         );
         updateCumplimientoChart([
           aTiempo.length,
@@ -2808,7 +2814,7 @@
         XLSX.utils.book_append_sheet(wb, ws, "Informe");
         XLSX.writeFile(
           wb,
-          `Informe_Detallado_${dayjs().format("YYYY-MM-DD")}.xlsx`,
+          `Informe_Detallado_${dayjs().format("YYYY-MM-DD")}.xlsx`
         );
       }
 
@@ -2849,7 +2855,7 @@
         XLSX.utils.book_append_sheet(wb, ws, "Bitacora");
         XLSX.writeFile(
           wb,
-          `Bitacora_Actualizada_${dayjs().format("YYYY-MM-DD")}.xlsx`,
+          `Bitacora_Actualizada_${dayjs().format("YYYY-MM-DD")}.xlsx`
         );
       }
 
@@ -2941,18 +2947,18 @@
                 ? dbRows
                 : fallback.slice().map(normalizeEmergency911Row)
             ).sort((a, b) =>
-              (a.estado + a.municipio).localeCompare(b.estado + b.municipio),
+              (a.estado + a.municipio).localeCompare(b.estado + b.municipio)
             );
           } catch (err) {
             console.warn(
               "No se pudo cargar números 911 desde BD, usando embebido.",
-              err,
+              err
             );
             emergency911Cache.rows = fallback
               .slice()
               .map(normalizeEmergency911Row)
               .sort((a, b) =>
-                (a.estado + a.municipio).localeCompare(b.estado + b.municipio),
+                (a.estado + a.municipio).localeCompare(b.estado + b.municipio)
               );
           }
 
@@ -2969,7 +2975,7 @@
               emergency911Cache.states
                 .map(
                   (s) =>
-                    `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`,
+                    `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`
                 )
                 .join("");
           }
@@ -2998,7 +3004,7 @@
       function loadMoreEmergency911Rows() {
         emergency911Cache.currentLimit = Math.min(
           emergency911Cache.currentLimit + emergency911Cache.pageSize,
-          emergency911Cache.filtered.length,
+          emergency911Cache.filtered.length
         );
         renderEmergency911Table();
       }
@@ -3006,8 +3012,9 @@
       function renderEmergency911Table() {
         const total = emergency911Cache.filtered.length;
         const show = Math.min(emergency911Cache.currentLimit, total);
-        document.getElementById("em911-status").textContent =
-          `Mostrando ${show} de ${total} registros.`;
+        document.getElementById(
+          "em911-status"
+        ).textContent = `Mostrando ${show} de ${total} registros.`;
         const slice = emergency911Cache.filtered.slice(0, show);
         const tbody = document.getElementById("em911-tbody");
         tbody.innerHTML =
@@ -3019,7 +3026,7 @@
       <td class="px-4 py-2">${escapeHtml(r.municipio)}</td>
       <td class="px-4 py-2 font-semibold">${escapeHtml(r.tel)}</td>
     </tr>
-  `,
+  `
             )
             .join("") ||
           `<tr><td class="px-4 py-4 text-gray-500" colspan="3">Sin resultados.</td></tr>`;
@@ -3047,8 +3054,8 @@
               .includes("critica")
               ? "bg-red-100 text-red-800 border-red-300"
               : contacto.prioridad.toLowerCase().includes("alta")
-                ? "bg-orange-100 text-orange-800 border-orange-300"
-                : "bg-green-100 text-green-800 border-green-300";
+              ? "bg-orange-100 text-orange-800 border-orange-300"
+              : "bg-green-100 text-green-800 border-green-300";
 
             const telefonosHtml = contacto.telefonos.length
               ? contacto.telefonos
@@ -3056,8 +3063,8 @@
                     (tel) =>
                       `<a href="tel:${tel.replace(
                         /[\s-]/g,
-                        "",
-                      )}" class="text-blue-600 hover:text-blue-800 font-medium">${tel}</a>`,
+                        ""
+                      )}" class="text-blue-600 hover:text-blue-800 font-medium">${tel}</a>`
                   )
                   .join(", ")
               : "Sin teléfono";
@@ -3066,7 +3073,7 @@
               ? contacto.correos
                   .map(
                     (email) =>
-                      `<a href="mailto:${email}" class="text-blue-600 hover:text-blue-800">${email}</a>`,
+                      `<a href="mailto:${email}" class="text-blue-600 hover:text-blue-800">${email}</a>`
                   )
                   .join(", ")
               : "Sin correo";
@@ -3076,7 +3083,7 @@
         <div class="flex items-start justify-between mb-4">
           <div>
             <h4 class="font-bold text-lg text-gray-900 mb-1">${escapeHtml(
-              contacto.nombre,
+              contacto.nombre
             )}</h4>
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${badgeClass} border">
               ${escapeHtml(contacto.prioridad)}
@@ -3084,10 +3091,10 @@
           </div>
           <div class="text-right">
             <p class="text-sm font-medium text-gray-700">Cargo/Posicion: ${escapeHtml(
-              contacto.cargo,
+              contacto.cargo
             )}</p>
             <p class="text-xs text-gray-500">Departamento: ${escapeHtml(
-              contacto.departamento,
+              contacto.departamento
             )}</p>
           </div>
         </div>
@@ -3098,14 +3105,14 @@
           ${
             contacto.acciones
               ? `<div><strong>⚡ Acciones:</strong> ${escapeHtml(
-                  contacto.acciones,
+                  contacto.acciones
                 )}</div>`
               : ""
           }
           ${
             contacto.observaciones
               ? `<div class="text-xs text-gray-600"><strong>📝 Observaciones:</strong> ${escapeHtml(
-                  contacto.observaciones,
+                  contacto.observaciones
                 )}</div>`
               : ""
           }
@@ -3172,8 +3179,8 @@
             m === "last7"
               ? "incf-btn-7"
               : m === "last30"
-                ? "incf-btn-30"
-                : `incf-btn-${m}`;
+              ? "incf-btn-30"
+              : `incf-btn-${m}`;
           const btn = document.getElementById(id);
           if (!btn) return;
           const active = m === mode;
@@ -3204,7 +3211,7 @@
           btn.classList.remove(
             "bg-indigo-600",
             "text-white",
-            "border-indigo-600",
+            "border-indigo-600"
           );
           btn.classList.add("bg-white", "text-gray-700");
         });
@@ -3247,7 +3254,7 @@
         let base = allDespachosData.slice();
         if (from && to) {
           base = base.filter(
-            (d) => d.fechaProgramada >= from && d.fechaProgramada <= to,
+            (d) => d.fechaProgramada >= from && d.fechaProgramada <= to
           );
         } else if (from && !to) {
           base = base.filter((d) => d.fechaProgramada >= from);
@@ -3258,38 +3265,67 @@
         const rows = [];
         base.forEach((d) => {
           (d.incidencias || []).forEach((inc) => {
+            const tipo = inc?.tipo || "";
+            // Usar getIncidenciaSeveridad para obtener la severidad según el tipo
+            const sev = inc?.severidad
+              ? String(inc.severidad).toLowerCase()
+              : getIncidenciaSeveridad(tipo).toLowerCase();
+
             rows.push({
               unidad: d.unidad || "",
-              tipo: inc?.tipo || "",
+              tipo: tipo,
               fecha: inc?.fecha || "",
               direccion: inc?.direccion || "",
+              sev: sev,
             });
           });
         });
 
+        const sevRank = (s) =>
+          s === "rojo" ? 0 : s === "naranja" ? 1 : s === "verde" ? 2 : 3;
         rows.sort(
-          (a, b) => dayjs(b.fecha).valueOf() - dayjs(a.fecha).valueOf(),
+          (a, b) =>
+            sevRank(a.sev) - sevRank(b.sev) ||
+            String(a.unidad).localeCompare(String(b.unidad))
         );
 
-        tbody.innerHTML = rows.length
-          ? rows
-              .map(
-                (r) => `
-              <tr>
-                <td class="px-4 py-3 font-semibold text-gray-900">${escapeHtml(
-                  r.unidad,
-                )}</td>
-                <td class="px-4 py-3 text-gray-700">${escapeHtml(r.tipo)}</td>
-                <td class="px-4 py-3 text-gray-700">${formatDateTime(
-                  r.fecha,
-                )}</td>
-                <td class="px-4 py-3 text-gray-700">${escapeHtml(
-                  r.direccion || "-",
-                )}</td>
-              </tr>`,
-              )
-              .join("")
-          : `<tr><td class="px-4 py-6 text-center text-gray-500" colspan="4">Sin incidencias para el filtro seleccionado.</td></tr>`;
+        tbody.innerHTML = rows
+          .map((r) => {
+            // Determinar clase CSS según la severidad (mismo sistema que renderIncidencias)
+            const sevLower = String(r.sev).toLowerCase();
+            const incidenciaClass =
+              sevLower === "rojo"
+                ? "incidencia-rojo"
+                : sevLower === "naranja"
+                ? "incidencia-naranja"
+                : "incidencia-verde";
+
+            // Badge text según severidad
+            const badgeText =
+              sevLower === "rojo"
+                ? "🔴 CRÍTICA"
+                : sevLower === "naranja"
+                ? "🟠 RELEVANTE"
+                : "🟢 ORDINARIA";
+
+            return `
+              <tr class="${incidenciaClass}">
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold">${badgeText}</span>
+                    <span class="font-semibold">${escapeHtml(r.unidad)}</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3 font-medium">${escapeHtml(r.tipo)}</td>
+                <td class="px-4 py-3">${escapeHtml(r.fecha)}</td>
+                <td class="px-4 py-3">${escapeHtml(r.direccion)}</td>
+              </tr>
+            `;
+          })
+          .join("");
+        if (rows.length === 0) {
+          tbody.innerHTML = `<tr><td class="px-4 py-6 text-center text-gray-500" colspan="4">Sin incidencias para el filtro seleccionado.</td></tr>`;
+        }
       }
 
       /* ===========================
@@ -3308,24 +3344,24 @@
 
         const total = lastInformeData.length;
         const realizados = lastInformeData.filter(
-          (d) => d.estatus === "Despacho realizado",
+          (d) => d.estatus === "Despacho realizado"
         );
         const aTiempo = realizados.filter(
           (d) =>
             d.realDescarga &&
             checkTimeDeviation(d.citaDescarga, d.realDescarga) ===
-              "estatus-verde",
+              "estatus-verde"
         ).length;
         const conRetraso = realizados.length - aTiempo;
         const enRuta = lastInformeData.filter(
-          (d) => d.estatus === "En ruta",
+          (d) => d.estatus === "En ruta"
         ).length;
         const programados = lastInformeData.filter(
-          (d) => d.estatus === "Programado",
+          (d) => d.estatus === "Programado"
         ).length;
         const totalIncidencias = lastInformeData.reduce(
           (acc, d) => acc + (d.incidencias ? d.incidencias.length : 0),
-          0,
+          0
         );
 
         const operadorMonitoreo =
@@ -3336,7 +3372,7 @@
 
         const titulo = prompt(
           "Ingrese un título para el informe:",
-          `Informe de Despachos - ${fechaDespacho} - Operador: ${operadorMonitoreo} - Total: ${total}`,
+          `Informe de Despachos - ${fechaDespacho} - Operador: ${operadorMonitoreo} - Total: ${total}`
         );
 
         if (!titulo) return;
@@ -3363,30 +3399,26 @@
             datos_informe: lastInformeData,
           };
 
-          console.log("Enviando payload a BD:", payload);
-
           const res = await fetch(
             "/bitacora_/src/informe/guardar_informe.php",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
-            },
+            }
           );
 
           const text = await res.text();
-          console.log("Respuesta del servidor:", text);
 
           let data;
           try {
             data = JSON.parse(text);
           } catch (e) {
-            console.error("Error parseando JSON:", e);
             throw new Error(
               `Respuesta inválida del servidor (no JSON). Inicio: ${text.substring(
                 0,
-                200,
-              )}`,
+                200
+              )}`
             );
           }
 
@@ -3395,9 +3427,7 @@
           }
 
           alert(`✅ Informe guardado correctamente (ID: ${data.id})`);
-          console.log("Informe guardado exitosamente:", data);
         } catch (error) {
-          console.error("Error al guardar informe (MySQL):", error);
           alert(`❌ Error al guardar en BD: ${error.message}`);
         } finally {
           if (btnGuardar) {
@@ -3451,7 +3481,7 @@
           : [];
 
         const q = getNormalizedString(
-          document.getElementById("informes-filtro-texto")?.value,
+          document.getElementById("informes-filtro-texto")?.value
         );
         const operadorSel = (
           document.getElementById("informes-filtro-operador")?.value ?? ""
@@ -3459,13 +3489,13 @@
           .toString()
           .trim();
         const soloIncidencias = Boolean(
-          document.getElementById("informes-filtro-solo-incidencias")?.checked,
+          document.getElementById("informes-filtro-solo-incidencias")?.checked
         );
         const desde = parseInformeDate(
-          document.getElementById("informes-filtro-fecha-desde")?.value,
+          document.getElementById("informes-filtro-fecha-desde")?.value
         );
         const hasta = parseInformeDate(
-          document.getElementById("informes-filtro-fecha-hasta")?.value,
+          document.getElementById("informes-filtro-fecha-hasta")?.value
         );
 
         const filtered = all.filter((inf) => {
@@ -3512,8 +3542,9 @@
         document.getElementById("informes-filtro-fecha-desde").value = "";
         document.getElementById("informes-filtro-fecha-hasta").value = "";
         document.getElementById("informes-filtro-operador").value = "";
-        document.getElementById("informes-filtro-solo-incidencias").checked =
-          false;
+        document.getElementById(
+          "informes-filtro-solo-incidencias"
+        ).checked = false;
         applyInformesFilters();
       }
 
@@ -3526,7 +3557,7 @@
           ...new Set(
             (informes || [])
               .map((x) => (x?.operador_monitoreo ?? "").toString().trim())
-              .filter(Boolean),
+              .filter(Boolean)
           ),
         ].sort((a, b) => a.localeCompare(b));
 
@@ -3557,7 +3588,7 @@
             "/bitacora_/src/informe/obtener_informes.php",
             {
               cache: "no-store",
-            },
+            }
           );
           const text = await res.text();
           let data;
@@ -3567,8 +3598,8 @@
             throw new Error(
               `Respuesta inválida del servidor (no JSON). Inicio: ${text.substring(
                 0,
-                200,
-              )}`,
+                200
+              )}`
             );
           }
 
@@ -3605,7 +3636,7 @@
             <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
               <p class="text-red-800 font-semibold">Error al cargar informes</p>
               <p class="text-red-700 text-sm mt-1">${String(
-                error.message || error,
+                error.message || error
               )}</p>
               <div class="mt-3 flex gap-2">
                 <button onclick="cargarInformesGuardados()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Reintentar</button>
@@ -3771,9 +3802,9 @@
         try {
           const res = await fetch(
             `informe/obtener_informe_detalle.php?id=${encodeURIComponent(
-              numericId,
+              numericId
             )}`,
-            { cache: "no-store" },
+            { cache: "no-store" }
           );
           const text = await res.text();
           let payload;
@@ -3783,8 +3814,8 @@
             throw new Error(
               `Respuesta inválida del servidor (no JSON). Inicio: ${text.substring(
                 0,
-                200,
-              )}`,
+                200
+              )}`
             );
           }
           if (!res.ok || !payload?.success)
@@ -3808,13 +3839,13 @@
             <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <p><span class="font-medium text-gray-700">Fecha de creación:</span> ${escapeHtml(
-                  row.fecha_creacion || "",
+                  row.fecha_creacion || ""
                 )}</p>
                 <p><span class="font-medium text-gray-700">Fecha de despacho:</span> ${escapeHtml(
-                  row.fecha_despacho || "",
+                  row.fecha_despacho || ""
                 )}</p>
                 <p><span class="font-medium text-gray-700">Operador:</span> ${escapeHtml(
-                  row.operador_monitoreo || "",
+                  row.operador_monitoreo || ""
                 )}</p>
               </div>
 
@@ -3822,7 +3853,7 @@
                   <div class="bg-gray-100 p-4 rounded-lg text-center">
                     <p class="text-sm font-medium text-gray-600">Total Despachos</p>
                       <p class="text-2xl font-bold mt-1">${escapeHtml(
-                        row.total_despachos || 0,
+                        row.total_despachos || 0
                       )}</p>
                   </div>
                   <div class="bg-green-100 p-4 rounded-lg text-center">
@@ -3840,7 +3871,7 @@
                   <div class="bg-yellow-100 p-4 rounded-lg text-center">
                     <p class="text-sm font-medium text-yellow-700">Incidencias</p>
                     <p class="text-2xl font-bold text-yellow-800 mt-1">${escapeHtml(
-                      row.total_incidencias || 0,
+                      row.total_incidencias || 0
                     )}</p>
                   </div>
               </div>
@@ -3874,14 +3905,14 @@
                 return `
                   <tr>
                     <td class="p-3 whitespace-nowrap">${escapeHtml(
-                      d.folio || "",
+                      d.folio || ""
                     )}</td>
                     <td class="p-3 whitespace-nowrap font-semibold">${escapeHtml(
-                      d.unidad || "",
+                      d.unidad || ""
                     )}</td>
                     <td class="p-3">${escapeHtml(ruta)}</td>
                     <td class="p-3 whitespace-nowrap">${escapeHtml(
-                      d.estatus || "",
+                      d.estatus || ""
                     )}</td>
                     <td class="p-3 whitespace-nowrap">${inc}</td>
                   </tr>
@@ -3902,7 +3933,7 @@
             body.innerHTML = `
               <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
                 <strong>No se pudo cargar el detalle:</strong> ${escapeHtml(
-                  String(err?.message || err),
+                  String(err?.message || err)
                 )}
               </div>
             `;
@@ -3926,7 +3957,7 @@
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ id: numericId }),
-            },
+            }
           );
           const text = await res.text();
           let payload;
@@ -3936,8 +3967,8 @@
             throw new Error(
               `Respuesta inválida del servidor (no JSON). Inicio: ${text.substring(
                 0,
-                200,
-              )}`,
+                200
+              )}`
             );
           }
           if (!res.ok || !payload?.success)

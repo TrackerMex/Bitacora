@@ -19,7 +19,6 @@ function to_mysql_date($value) {
   $s = trim((string)$value);
   if ($s === '') return '';
 
-  // Si viene como "YYYY-MM-DD" o "YYYY-MM-DD..." tomar la parte de fecha.
   if (preg_match('/^\d{4}-\d{2}-\d{2}/', $s)) {
     return substr($s, 0, 10);
   }
@@ -36,12 +35,10 @@ function to_mysql_datetime_or_null($value) {
   $s = trim((string)$value);
   if ($s === '') return null;
 
-  // Ya viene como "YYYY-MM-DD HH:MM[:SS]"
   if (preg_match('/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}(?::\d{2})?$/', $s)) {
     return (strlen($s) === 16) ? ($s . ':00') : $s;
   }
 
-  // Parsear ISO (incluye Z / offset) u otros formatos
   try {
     $dt = new DateTime($s);
     return $dt->format('Y-m-d H:i:s');
@@ -117,7 +114,6 @@ try {
     throw new Exception('Error preparando UPSERT: ' . $conn->error);
   }
 
-  // confirmacion_entrega puede ser null
   $stmt->bind_param(
     'sssssssssssss',
     $folio,
@@ -140,7 +136,6 @@ try {
   }
   $stmt->close();
 
-  // Obtener el id real (importante cuando fue UPDATE por clave única)
   $stmtId = $conn->prepare('SELECT id FROM seguimiento_despacho WHERE folio = ? AND unidad = ? AND fecha_programada = ? LIMIT 1');
   if (!$stmtId) {
     throw new Exception('Error preparando SELECT id: ' . $conn->error);
@@ -158,7 +153,6 @@ try {
     throw new Exception('No se pudo resolver el ID del seguimiento.');
   }
 
-  // Limpiar incidencias previas
   $stmtDel = $conn->prepare('DELETE FROM seguimiento_incidencias WHERE seguimiento_id = ?');
   if (!$stmtDel) {
     throw new Exception('Error preparando DELETE incidencias: ' . $conn->error);
@@ -169,7 +163,6 @@ try {
   }
   $stmtDel->close();
 
-  // Insertar incidencias
   $incidencias = isset($data['incidencias']) && is_array($data['incidencias']) ? $data['incidencias'] : [];
   if (count($incidencias) > 0) {
     $stmtInc = $conn->prepare('INSERT INTO seguimiento_incidencias (seguimiento_id, tipo, severidad, fecha, direccion) VALUES (?,?,?,?,?)');

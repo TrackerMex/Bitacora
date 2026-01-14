@@ -1,5 +1,4 @@
 <?php
-// check_php_errors.php - Revisa todos los archivos PHP por errores
 header('Content-Type: text/plain; charset=utf-8');
 
 $files = [
@@ -18,7 +17,6 @@ foreach ($files as $file) {
     
     echo "🔍 $file:\n";
     
-    // Ejecutar el archivo con output buffering
     ob_start();
     
     try {
@@ -29,7 +27,6 @@ foreach ($files as $file) {
             echo "   ⚠️  GENERA OUTPUT:\n";
             echo "   " . str_replace("\n", "\n   ", substr($output, 0, 500)) . "\n";
             
-            // Verificar si es JSON
             json_decode($output);
             if (json_last_error() === JSON_ERROR_NONE) {
                 echo "   ✅ Output es JSON válido\n";

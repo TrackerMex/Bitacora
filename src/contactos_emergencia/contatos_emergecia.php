@@ -11,7 +11,6 @@ $response = [
 ];
 
 try {
-    // Verificar si se recibió el ID
     if (!isset($_GET['id']) || empty($_GET['id'])) {
         throw new Exception("ID no especificado");
     }
@@ -22,7 +21,6 @@ try {
         throw new Exception("ID inválido");
     }
 
-    // Conectar a la base de datos (ruta del proyecto)
     $dbCandidates = [
         __DIR__ . '/../db/db.php',
         __DIR__ . '/../db.php',
@@ -44,7 +42,6 @@ try {
 
     require_once $dbFile;
 
-    // Consulta para obtener el informe específico
     $sql = "SELECT 
             c.nombre,
             c.cargo,

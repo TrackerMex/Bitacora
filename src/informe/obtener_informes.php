@@ -2,7 +2,6 @@
 error_reporting(0);
 ini_set('display_errors', 0);
 
-// Aumentar límites de memoria y tiempo (Hostinger a veces los limita)
 ini_set('memory_limit', '256M');
 ini_set('max_execution_time', 30);
 
@@ -17,10 +16,8 @@ $response = [
 ];
 
 try {
-    // Conectar a la base de datos
     require_once __DIR__ . '/../db/db.php';
     
-    // Verificar si la tabla existe
     $tableCheck = $conn->query("SHOW TABLES LIKE 'informes_guardados'");
     
     if ($tableCheck->num_rows === 0) {
@@ -30,11 +27,10 @@ try {
         exit();
     }
     
-    // Obtener informes con límite para evitar sobrecarga
     $sql = "SELECT id, titulo, fecha_creacion, fecha_despacho, total_despachos, a_tiempo, con_retraso, en_ruta, programados, total_incidencias, operador_monitoreo 
             FROM informes_guardados 
             ORDER BY fecha_creacion DESC 
-            LIMIT 100"; // Límite por seguridad
+            LIMIT 100";
     
     $result = $conn->query($sql);
     
@@ -46,7 +42,6 @@ try {
     $count = 0;
     
     while ($row = $result->fetch_assoc()) {
-        // Limpiar y asegurar tipos de datos
         $row['id'] = intval($row['id']);
         $row['total_despachos'] = intval($row['total_despachos']);
         $row['a_tiempo'] = intval($row['a_tiempo']);
@@ -71,15 +66,12 @@ try {
     http_response_code(500);
 }
 
-// Cerrar conexión
 if (isset($conn)) {
     $conn->close();
 }
 
-// Enviar respuesta
 $json_output = json_encode($response, JSON_UNESCAPED_UNICODE);
 
-// Verificar si hubo error en JSON encode
 if ($json_output === false) {
     $error_response = [
         'success' => false,

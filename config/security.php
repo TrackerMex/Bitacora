@@ -1,27 +1,12 @@
 <?php
-/**
- * config/security.php
- * 
- * Utilidades de seguridad centralizadas
- * - Validación de input
- * - CORS headers
- * - Rate limiting
- * - Session management
- */
-
 require_once __DIR__ . '/environment.php';
 
-/**
- * Establecer headers de seguridad CORS
- */
 function setSecurityHeaders() {
-    // Versión simplificada - agregar en cada endpoint
     header('Content-Type: application/json; charset=utf-8');
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('X-XSS-Protection: 1; mode=block');
     
-    // CORS restringido
     $allowed_origins = array_filter(
         explode(',', getEnvVar('ALLOWED_ORIGINS', 'http://localhost'))
     );
@@ -33,16 +18,12 @@ function setSecurityHeaders() {
         header('Access-Control-Allow-Headers: Content-Type');
     }
     
-    // Responder a preflight
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         http_response_code(200);
         exit();
     }
 }
 
-/**
- * Validar y sanitizar input JSON
- */
 function getJsonInput() {
     $raw = file_get_contents('php://input');
     $data = json_decode($raw, true);
@@ -54,9 +35,6 @@ function getJsonInput() {
     return $data;
 }
 
-/**
- * Validar que un valor sea alfanumérico + guiones/guiones bajos
- */
 function isAlphanumeric($value, $allow_special = false) {
     $pattern = $allow_special 
         ? '/^[a-zA-Z0-9\-_\s]*$/' 
@@ -65,39 +43,23 @@ function isAlphanumeric($value, $allow_special = false) {
     return preg_match($pattern, (string)$value) === 1;
 }
 
-/**
- * Validar que sea una fecha válida en formato YYYY-MM-DD
- */
 function isValidDate($date_string) {
     $date = \DateTime::createFromFormat('Y-m-d', $date_string);
     return $date && $date->format('Y-m-d') === $date_string;
 }
 
-/**
- * Validar que sea una fecha/hora válida en formato YYYY-MM-DD HH:mm:ss
- */
 function isValidDateTime($datetime_string) {
     $dt = \DateTime::createFromFormat('Y-m-d H:i:s', $datetime_string);
     return $dt && $dt->format('Y-m-d H:i:s') === $datetime_string;
 }
 
-/**
- * Escape HTML para prevenir XSS
- */
 function escapeHtml($value) {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-/**
- * Validar email
- */
 function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
-
-/**
- * Rate limiting simple por IP
- */
 class RateLimiter {
     private static $storage = [];
     
@@ -109,18 +71,15 @@ class RateLimiter {
             self::$storage[$key] = [];
         }
         
-        // Limpiar requests antiguos
         self::$storage[$key] = array_filter(
             self::$storage[$key],
             fn($t) => $t > $window_start
         );
         
-        // Verificar límite
         if (count(self::$storage[$key]) >= $max_requests) {
             return false;
         }
-        
-        // Registrar nuevo request
+
         self::$storage[$key][] = $now;
         return true;
     }
@@ -130,9 +89,6 @@ class RateLimiter {
     }
 }
 
-/**
- * Session management seguro
- */
 class SessionManager {
     public static function init() {
         session_set_cookie_params([
@@ -174,10 +130,6 @@ class SessionManager {
         setcookie(session_name(), '', time() - 3600);
     }
 }
-
-/**
- * Logging de actividades
- */
 class Logger {
     const LOG_ERROR = 'error';
     const LOG_WARNING = 'warning';

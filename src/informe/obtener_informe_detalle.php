@@ -1,5 +1,4 @@
 <?php
-// obtener_informe_detalle.php - VERSIÓN COMPLETA
 error_reporting(0);
 ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
@@ -12,7 +11,6 @@ $response = [
 ];
 
 try {
-    // Verificar si se recibió el ID
     if (!isset($_GET['id']) || empty($_GET['id'])) {
         throw new Exception("ID no especificado");
     }
@@ -23,11 +21,8 @@ try {
         throw new Exception("ID inválido");
     }
 
-    // Conectar a la base de datos
     require_once __DIR__ . '/../db/db.php';
 
-
-    // Consulta para obtener el informe específico
     $sql = "SELECT * FROM informes_guardados WHERE id = ?";
     $stmt = $conn->prepare($sql);
 
@@ -44,7 +39,6 @@ try {
     $result = $stmt->get_result();
 
     if ($row = $result->fetch_assoc()) {
-        // Decodificar datos_informe si es JSON
         if (!empty($row['datos_informe'])) {
             $decoded = json_decode($row['datos_informe'], true);
             if ($decoded !== null) {
@@ -66,7 +60,6 @@ try {
     http_response_code(404);
 }
 
-// Cerrar conexión
 if (isset($conn)) {
     $conn->close();
 }

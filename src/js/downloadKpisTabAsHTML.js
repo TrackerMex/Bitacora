@@ -1,39 +1,28 @@
 function downloadKpisTabAsHTML() {
-
   const tab = document.getElementById("tab-4");
 
   if (!tab) return alert("No se encontró el contenedor #tab-4 (KPIs).");
 
- 
-
-  // Clonar el contenido de la pestaña (para no tocar la UI real)
-
   const clone = tab.cloneNode(true);
 
- 
-
-  // Quitar el botón de descarga del clon (para que no salga en el HTML exportado)
-
-  const btnInClone = clone.querySelector('button[onclick="downloadKpisTabAsHTML()"]');
+  const btnInClone = clone.querySelector(
+    'button[onclick="downloadKpisTabAsHTML()"]'
+  );
 
   if (btnInClone) btnInClone.remove();
-
- 
-
-  // Convertir <canvas> a <img> (Chart.js) para que el HTML exportado conserve los gráficos
 
   const originalCanvases = tab.querySelectorAll("canvas");
 
   const cloneCanvases = clone.querySelectorAll("canvas");
 
- 
-
-  for (let i = 0; i < Math.min(originalCanvases.length, cloneCanvases.length); i++) {
-
+  for (
+    let i = 0;
+    i < Math.min(originalCanvases.length, cloneCanvases.length);
+    i++
+  ) {
     const c = originalCanvases[i];
 
     try {
-
       const dataUrl = c.toDataURL("image/png");
 
       const img = document.createElement("img");
@@ -46,33 +35,20 @@ function downloadKpisTabAsHTML() {
 
       img.style.height = "auto";
 
- 
-
-      // Mantener dimensiones aproximadas
-
       if (c.width) img.width = c.width;
 
       if (c.height) img.height = c.height;
 
- 
-
       cloneCanvases[i].replaceWith(img);
-
     } catch (e) {
-
-      console.warn("No se pudo convertir un canvas a imagen. Se dejará sin gráfico en el export.", e);
-
-      // Si falla, removemos el canvas para evitar que salga vacío
+      console.warn(
+        "No se pudo convertir un canvas a imagen. Se dejará sin gráfico en el export.",
+        e
+      );
 
       cloneCanvases[i].remove();
-
     }
-
   }
-
- 
-
-  // Capturar estilos inline del documento (<style>) — incluye tus estilos custom
 
   const inlineStyles = Array.from(document.querySelectorAll("style"))
 
@@ -80,19 +56,9 @@ function downloadKpisTabAsHTML() {
 
     .join("\n\n");
 
- 
-
-  // Como usas Tailwind por CDN (script), lo incluimos para conservar diseño al abrir el HTML exportado
-
-  // OJO: el HTML exportado requerirá internet para cargar Tailwind/Fonts.
-
   const tailwindCdn = `<script src="https://cdn.tailwindcss.com"></script>`;
 
   const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">`;
-
- 
-
-  // Nombre de archivo con fecha seleccionada
 
   const selectedDate = document.getElementById("date-filter")?.value || "";
 
@@ -100,67 +66,62 @@ function downloadKpisTabAsHTML() {
 
   const filename = `KPIs_${safeDate}.html`;
 
- 
-
   const html = `<!doctype html>
 
-<html lang="es">
+                <html lang="es">
 
-<head>
+                <head>
 
-  <meta charset="utf-8">
+                  <meta charset="utf-8">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>KPIs de Cumplimiento - ${escapeHtml(safeDate)}</title>
+                  <title>KPIs de Cumplimiento - ${escapeHtml(safeDate)}</title>
 
-  ${fontLink}
+                  ${fontLink}
 
-  ${tailwindCdn}
+                  ${tailwindCdn}
 
-  <style>
+                  <style>
 
-  ${inlineStyles}
+                  ${inlineStyles}
 
-  </style>
+                  </style>
 
-</head>
+                </head>
 
-<body class="bg-gray-100">
+                <body class="bg-gray-100">
 
-  <div class="container mx-auto p-4 md:p-8">
+                  <div class="container mx-auto p-4 md:p-8">
 
-    <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
 
-      <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
+                      <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
 
-        <div>
+                        <div>
 
-          <h1 class="text-2xl font-extrabold text-gray-900">KPIs de Cumplimiento</h1>
+                          <h1 class="text-2xl font-extrabold text-gray-900">KPIs de Cumplimiento</h1>
 
-          <p class="text-sm text-gray-500">Fecha: ${escapeHtml(safeDate)}</p>
+                          <p class="text-sm text-gray-500">Fecha: ${escapeHtml(
+                            safeDate
+                          )}</p>
 
-        </div>
+                        </div>
 
-      </div>
+                      </div>
 
-      ${clone.innerHTML}
+                      ${clone.innerHTML}
 
-    </div>
+                    </div>
 
-  </div>
+                  </div>
 
-</body>
+                </body>
 
-</html>`;
-
- 
-
+                </html>`;
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
 
   const url = URL.createObjectURL(blob);
-
- 
 
   const a = document.createElement("a");
 
@@ -174,8 +135,5 @@ function downloadKpisTabAsHTML() {
 
   a.remove();
 
- 
-
   URL.revokeObjectURL(url);
-
 }

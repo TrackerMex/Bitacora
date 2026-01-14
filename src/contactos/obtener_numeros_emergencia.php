@@ -1,5 +1,4 @@
 <?php
-// obtener_numeros_emergencia.php
 error_reporting(0);
 ini_set('display_errors', 0);
 
@@ -23,7 +22,6 @@ function pick_first_value($row, $keys) {
 }
 
 try {
-    // Localizar db.php de forma robusta (en algunos despliegues está en rutas distintas)
     $dbCandidates = [
         __DIR__ . '/../db/db.php',
         __DIR__ . '/../db.php',
@@ -45,7 +43,6 @@ try {
 
     require_once $dbFile;
 
-    // Verificar si la tabla existe
     $tableCheck = $conn->query("SHOW TABLES LIKE 'numeros_emergencia_estado'");
     if (!$tableCheck || $tableCheck->num_rows === 0) {
         $response['success'] = true;
@@ -54,9 +51,6 @@ try {
         exit();
     }
 
-    // Esquema esperado:
-    // numeros_emergencia_estado(id, estado, municipio, numero)
-    // OJO: numero es BIGINT; lo tratamos como string para evitar problemas en JS.
     $sql = "SELECT estado, municipio, numero FROM numeros_emergencia_estado ORDER BY estado, municipio";
     $result = $conn->query($sql);
 
@@ -74,7 +68,6 @@ try {
         $municipio = strtoupper(trim($municipio));
         $tel = preg_replace('/\s+/', '', trim($tel));
 
-        // Saltar filas vacías
         if ($estado === '' && $municipio === '' && $tel === '') {
             continue;
         }

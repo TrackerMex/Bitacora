@@ -1,20 +1,10 @@
 <?php
-/**
- * src/api/google-sheets-proxy.php
- * 
- * Proxy seguro para Google Sheets API
- * - Oculta la API key del frontend
- * - Valida requests
- * - Cachea datos para reducir llamadas a Google
- */
-
 error_reporting(0);
 ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Cache-Control: public, max-age=300'); // Cache de 5 minutos
 
-// Cargar configuración
 require_once __DIR__ . '/../../config/environment.php';
 
 $response = [
@@ -24,25 +14,21 @@ $response = [
 ];
 
 try {
-    // Validar método
     if ($_SERVER['REQUEST_METHOD'] !== 'GET' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         throw new Exception('Método no permitido');
     }
-    
-    // Obtener parámetros
+
     $action = isset($_GET['action']) ? (string)$_GET['action'] : '';
     
     if (!$action) {
         throw new Exception('Parámetro "action" requerido');
     }
     
-    // Validar acción permitida
     $allowed_actions = ['bitacora', 'contactos'];
     if (!in_array($action, $allowed_actions)) {
         throw new Exception('Acción no permitida');
     }
     
-    // Obtener API key desde variables de entorno
     $api_key = getEnvVar('GOOGLE_SHEETS_API_KEY');
     $spreadsheet_id = getEnvVar('GOOGLE_SHEETS_SPREADSHEET_ID');
     
@@ -50,7 +36,6 @@ try {
         throw new Exception('Configuración de Google Sheets no disponible');
     }
     
-    // Determinar rango según acción
     $range = match($action) {
         'bitacora' => getEnvVar('GOOGLE_SHEETS_RANGE_BITACORA', 'BITACORA!A1:O944'),
         'contactos' => getEnvVar('GOOGLE_SHEETS_RANGE_CONTACTOS', 'Contactos!A1:H'),
@@ -61,7 +46,6 @@ try {
         throw new Exception('Rango no configurado para esta acción');
     }
     
-    // Construir URL de Google Sheets API
     $url = sprintf(
         'https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s',
         urlencode($spreadsheet_id),
@@ -69,7 +53,6 @@ try {
         urlencode($api_key)
     );
     
-    // Hacer request a Google
     $context = stream_context_create([
         'http' => [
             'method' => 'GET',

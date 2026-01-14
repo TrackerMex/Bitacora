@@ -1,15 +1,6 @@
 <?php
-/**
- * src/db/db.php
- * 
- * Conexión a base de datos usando variables de entorno
- * Manejo seguro de credenciales
- */
+require_once __DIR__ . '/../../config/environment.php';
 
-// Cargar configuración de entorno
-require_once __DIR__ . '/../config/environment.php';
-
-// Configuración de errores
 error_reporting(0);
 ini_set('display_errors', 0);
 mysqli_report(MYSQLI_REPORT_OFF);
@@ -20,25 +11,23 @@ mysqli_report(MYSQLI_REPORT_OFF);
  */
 function getDbConfigs() {
     $configs = [];
-    
-    // Configuración principal
+
     $configs[] = [
-        'host' => getEnv('DB_HOST', 'localhost'),
+        'host' => getEnvVar('DB_HOST', 'localhost'),
         'port' => getEnvInt('DB_PORT', 3306),
-        'user' => getEnv('DB_USER', ''),
-        'pass' => getEnv('DB_PASS', ''),
-        'db'   => getEnv('DB_NAME', '')
+        'user' => getEnvVar('DB_USER', ''),
+        'pass' => getEnvVar('DB_PASS', ''),
+        'db'   => getEnvVar('DB_NAME', '')
     ];
     
-    // Configuración alternativa (fallback)
-    $alt_host = getEnv('DB_HOST_ALT');
+    $alt_host = getEnvVar('DB_HOST_ALT');
     if ($alt_host) {
         $configs[] = [
             'host' => $alt_host,
             'port' => getEnvInt('DB_PORT_ALT', 3306),
-            'user' => getEnv('DB_USER_ALT', ''),
-            'pass' => getEnv('DB_PASS_ALT', ''),
-            'db'   => getEnv('DB_NAME_ALT', '')
+            'user' => getEnvVar('DB_USER_ALT', ''),
+            'pass' => getEnvVar('DB_PASS_ALT', ''),
+            'db'   => getEnvVar('DB_NAME_ALT', '')
         ];
     }
     
@@ -56,13 +45,10 @@ function connectDatabase() {
     $last_error = '';
     
     foreach ($configs as $config) {
-        // Validar que tenga credenciales
         if (empty($config['user']) || empty($config['db'])) {
             $last_error = 'Credenciales de base de datos no configuradas';
             continue;
         }
-        
-        // Intentar conexión
         $conn = @new mysqli(
             $config['host'],
             $config['user'],
@@ -72,7 +58,6 @@ function connectDatabase() {
         );
         
         if (!$conn->connect_error) {
-            // Conexión exitosa
             $conn->set_charset("utf8mb4");
             return $conn;
         }
@@ -81,7 +66,6 @@ function connectDatabase() {
         $conn = null;
     }
     
-    // Si no se pudo conectar, mostrar error genérico en producción
     if (DEBUG) {
         throw new Exception('Error de conexión a BD: ' . $last_error);
     } else {
@@ -89,7 +73,6 @@ function connectDatabase() {
     }
 }
 
-// Establecer conexión global
 try {
     $conn = connectDatabase();
 } catch (Exception $e) {
