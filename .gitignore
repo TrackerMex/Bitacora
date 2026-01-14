@@ -1,0 +1,49 @@
+# Environment & Configuration
+.env
+.env.local
+.env.*.php
+config/db.php
+config/credentials.php
+
+# Sensitive directories
+node_modules/
+vendor/
+composer.lock
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log
+
+# Temporary files
+temp/
+tmp/
+cache/
+*.tmp
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+desktop.ini
+
+# Build artifacts
+dist/
+build/
+
+# Database backups
+*.sql.bak
+*.sql.backup
+backups/
+
+# Session files
+sessions/

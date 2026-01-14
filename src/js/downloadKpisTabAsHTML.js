@@ -1,0 +1,181 @@
+function downloadKpisTabAsHTML() {
+
+  const tab = document.getElementById("tab-4");
+
+  if (!tab) return alert("No se encontró el contenedor #tab-4 (KPIs).");
+
+ 
+
+  // Clonar el contenido de la pestaña (para no tocar la UI real)
+
+  const clone = tab.cloneNode(true);
+
+ 
+
+  // Quitar el botón de descarga del clon (para que no salga en el HTML exportado)
+
+  const btnInClone = clone.querySelector('button[onclick="downloadKpisTabAsHTML()"]');
+
+  if (btnInClone) btnInClone.remove();
+
+ 
+
+  // Convertir <canvas> a <img> (Chart.js) para que el HTML exportado conserve los gráficos
+
+  const originalCanvases = tab.querySelectorAll("canvas");
+
+  const cloneCanvases = clone.querySelectorAll("canvas");
+
+ 
+
+  for (let i = 0; i < Math.min(originalCanvases.length, cloneCanvases.length); i++) {
+
+    const c = originalCanvases[i];
+
+    try {
+
+      const dataUrl = c.toDataURL("image/png");
+
+      const img = document.createElement("img");
+
+      img.src = dataUrl;
+
+      img.alt = c.id || `grafico_${i + 1}`;
+
+      img.style.maxWidth = "100%";
+
+      img.style.height = "auto";
+
+ 
+
+      // Mantener dimensiones aproximadas
+
+      if (c.width) img.width = c.width;
+
+      if (c.height) img.height = c.height;
+
+ 
+
+      cloneCanvases[i].replaceWith(img);
+
+    } catch (e) {
+
+      console.warn("No se pudo convertir un canvas a imagen. Se dejará sin gráfico en el export.", e);
+
+      // Si falla, removemos el canvas para evitar que salga vacío
+
+      cloneCanvases[i].remove();
+
+    }
+
+  }
+
+ 
+
+  // Capturar estilos inline del documento (<style>) — incluye tus estilos custom
+
+  const inlineStyles = Array.from(document.querySelectorAll("style"))
+
+    .map((s) => s.innerHTML)
+
+    .join("\n\n");
+
+ 
+
+  // Como usas Tailwind por CDN (script), lo incluimos para conservar diseño al abrir el HTML exportado
+
+  // OJO: el HTML exportado requerirá internet para cargar Tailwind/Fonts.
+
+  const tailwindCdn = `<script src="https://cdn.tailwindcss.com"></script>`;
+
+  const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">`;
+
+ 
+
+  // Nombre de archivo con fecha seleccionada
+
+  const selectedDate = document.getElementById("date-filter")?.value || "";
+
+  const safeDate = selectedDate || dayjs().format("YYYY-MM-DD");
+
+  const filename = `KPIs_${safeDate}.html`;
+
+ 
+
+  const html = `<!doctype html>
+
+<html lang="es">
+
+<head>
+
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>KPIs de Cumplimiento - ${escapeHtml(safeDate)}</title>
+
+  ${fontLink}
+
+  ${tailwindCdn}
+
+  <style>
+
+  ${inlineStyles}
+
+  </style>
+
+</head>
+
+<body class="bg-gray-100">
+
+  <div class="container mx-auto p-4 md:p-8">
+
+    <div class="bg-white p-6 rounded-xl shadow-md">
+
+      <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
+
+        <div>
+
+          <h1 class="text-2xl font-extrabold text-gray-900">KPIs de Cumplimiento</h1>
+
+          <p class="text-sm text-gray-500">Fecha: ${escapeHtml(safeDate)}</p>
+
+        </div>
+
+      </div>
+
+      ${clone.innerHTML}
+
+    </div>
+
+  </div>
+
+</body>
+
+</html>`;
+
+ 
+
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+
+  const url = URL.createObjectURL(blob);
+
+ 
+
+  const a = document.createElement("a");
+
+  a.href = url;
+
+  a.download = filename;
+
+  document.body.appendChild(a);
+
+  a.click();
+
+  a.remove();
+
+ 
+
+  URL.revokeObjectURL(url);
+
+}

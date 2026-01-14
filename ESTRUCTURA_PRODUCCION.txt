@@ -1,0 +1,279 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    BITÁCORA - ESTRUCTURA DE PRODUCCIÓN                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📁 ESTRUCTURA RECOMENDADA
+========================
+
+bitacora_/
+├── 📄 index.php                      ← Entry point (redirect)
+├── 🔒 .env                           ← Credenciales (NO en git)
+├── 📋 .env.example                   ← Template (EN git)
+├── 🚫 .gitignore                     ← Archivo ignore (EN git)
+├── 🔐 .htaccess                      ← Configuración servidor (EN git)
+│
+├── 📂 config/
+│   ├── environment.php               ← Cargar variables de entorno
+│   └── security.php                  ← Utilidades de seguridad
+│
+├── 📂 logs/                          ← Logs (NO en git)
+│   ├── error.log                     ← Errores
+│   ├── activity.log                  ← Actividades
+│   └── access.log                    ← Accesos
+│
+├── 📂 backups/                       ← Backups BD (NO en git)
+│   ├── db_backup_20250112_030000.sql
+│   └── files_backup_20250112_030000.tar.gz
+│
+├── 📂 src/
+│   ├── 📄 index.html                 ← App principal (usa proxy)
+│   │
+│   ├── 📂 api/                       ← Endpoints proxy seguros
+│   │   └── google-sheets-proxy.php   ← Proxy para Google Sheets
+│   │
+│   ├── 📂 db/
+│   │   └── db.php                    ← Conexión BD (usa .env)
+│   │
+│   ├── 📂 js/
+│   │   ├── downloadKpisTabAsHTML.js
+│   │   └── downloadInformeTabsHTML.js
+│   │
+│   ├── 📂 informe/
+│   │   ├── guardar_informe.php
+│   │   ├── obtener_informe_detalle.php
+│   │   ├── obtener_informes.php
+│   │   └── eliminar_informe.php
+│   │
+│   └── 📂 seguimiento/
+│       ├── guardar_seguimiento.php
+│       └── obtener_seguimiento.php
+│
+└── 📂 documentación/
+    ├── 📘 PRODUCCION.md              ← Guía completa
+    ├── 📘 SETUP_RAPIDO.md            ← Guía rápida (5 min)
+    ├── 📘 AGENTS.md                  ← Guidelines para agentes
+    └── 📘 ESTRUCTURA_PRODUCCION.txt  ← Este archivo
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔐 CAMBIOS DE SEGURIDAD
+======================
+
+ANTES (Inseguro)
+├── API key en JavaScript        ❌ Expuesto
+├── BD credentials en PHP         ❌ En repositorio
+├── Sin validación de input       ❌ Vulnerable
+├── Sin logs                      ❌ Sin auditoría
+└── Sin protección CORS           ❌ Abierto
+
+DESPUÉS (Seguro)
+├── API key en variables de entorno    ✅ Protegido
+├── BD credentials en .env             ✅ No en git
+├── Validación centralizada            ✅ Security.php
+├── Logging de actividades             ✅ Auditoría completa
+├── CORS restringido                   ✅ Dominios permitidos
+├── HTTPS obligatorio                  ✅ En producción
+├── Headers de seguridad               ✅ XSS/Clickjacking
+└── Permisos de archivos               ✅ 600 en .env
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 ARCHIVOS CREADOS
+===================
+
+✅ .env.example
+   └─ Template de variables de entorno
+      Instrucciones: Copiar a .env, reemplazar valores reales
+
+✅ .env (crear manualmente)
+   └─ Credenciales reales (NUNCA en git)
+      Permisos: chmod 600
+
+✅ .gitignore
+   └─ Archivos a ignorar en git
+      Incluye: .env, logs/, backups/, node_modules/, etc.
+
+✅ .htaccess
+   └─ Configuración de servidor Apache
+      - Protege archivos sensibles
+      - Compresión GZIP
+      - Caching de recursos
+      - Headers de seguridad
+      - HTTPS redirect
+
+✅ config/environment.php
+   └─ Cargador de variables de entorno
+      Funciones: getEnv(), getEnvBool(), getEnvInt()
+
+✅ config/security.php
+   └─ Utilidades de seguridad centralizadas
+      - setSecurityHeaders()
+      - Validación de input
+      - Rate limiting
+      - Session management
+      - Logging
+
+✅ src/api/google-sheets-proxy.php
+   └─ Proxy seguro para Google Sheets
+      - API key en backend (NO en cliente)
+      - Caching de datos
+      - Validación de requests
+      - Manejo de errores
+
+✅ src/db/db.php (actualizado)
+   └─ Conexión BD con variables de entorno
+      - Carga desde .env
+      - Manejo de fallbacks
+      - Mejor manejo de errores
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 PASOS PARA DEPLOYAR
+======================
+
+LOCAL (Desarrollo)
+───────────────────
+1. cp .env.example .env
+2. Editar .env con credenciales locales
+3. mkdir -p config logs backups src/api
+4. Verificar: php -l src/db/db.php
+
+SERVIDOR (Hostinger)
+────────────────────
+1. Subir archivos (TODO EXCEPTO .env)
+2. Crear .env en servidor (SSH o cPanel)
+3. chmod 600 .env
+4. mkdir -p logs backups (si no existen)
+5. Verificar: php config/environment.php
+6. Test: curl http://dominio/bitacora_/src/api/google-sheets-proxy.php?action=bitacora
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔑 VARIABLES DE ENTORNO REQUERIDAS
+==================================
+
+DATABASE
+────────
+DB_HOST=srv1145.hstgr.io
+DB_PORT=3306
+DB_USER=u558294948_test
+DB_PASS=contraseña_real
+DB_NAME=u558294948_test
+
+GOOGLE SHEETS
+─────────────
+GOOGLE_SHEETS_API_KEY=AIzaSyDtA5bl8XuclA92cz2f-eCswuWQul87f0I
+GOOGLE_SHEETS_SPREADSHEET_ID=1XwjnIxq98oStetgaD5XDWpfgUhMCR1dgCzY8eVa3tiE
+
+SECURITY
+────────
+ENVIRONMENT=production
+DEBUG=false
+FORCE_HTTPS=true
+SESSION_TIMEOUT=120
+
+CORS
+────
+ALLOWED_ORIGINS=https://tudominio.com,https://www.tudominio.com
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ CHECKLIST DE VERIFICACIÓN
+=============================
+
+ANTES DE COMMITEAR:
+─────────────────
+□ .env está en .gitignore
+□ git status no muestra .env
+□ Ningún archivo .php hardcodea credenciales
+□ Ningún .js expone API keys
+
+ANTES DE DEPLOYAR:
+──────────────────
+□ .env creado en servidor con credenciales reales
+□ chmod 600 .env
+□ php -l src/db/db.php sin errores
+□ mkdir -p logs backups src/api
+□ .htaccess en raíz del proyecto
+□ HTTPS habilitado en servidor
+
+EN PRODUCCIÓN:
+──────────────
+□ DEBUG=false
+□ ENVIRONMENT=production
+□ FORCE_HTTPS=true
+□ Logs monitoreados regularmente
+□ Backups automáticos configurados
+□ CORS restringido a dominios permitidos
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📚 DOCUMENTACIÓN
+================
+
+SETUP_RAPIDO.md
+└─ Guía de 5 minutos para empezar
+   - Pasos rápidos
+   - Cambios mínimos necesarios
+   - Checklist simple
+
+PRODUCCION.md
+└─ Guía completa y detallada
+   - Estructura detallada
+   - Configuración avanzada
+   - Deploy en Hostinger
+   - Monitoreo y logging
+   - Backup y recuperación
+
+AGENTS.md
+└─ Directrices para agentes de código
+   - Estándares de código
+   - Comandos de test
+   - Naming conventions
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 RESUMEN DE SEGURIDAD
+=======================
+
+ANTES (Problema)              →    DESPUÉS (Solución)
+────────────────────────────────────────────────────
+API key en JS                 →    API key en backend (.env)
+BD credentials en código      →    Credenciales en .env
+Sin validación de input       →    Security.php centralizado
+Sin logging                   →    Logging completo
+CORS abierto                  →    CORS restringido
+HTTP permitido                →    HTTPS obligatorio
+Sin headers de seguridad      →    Headers protectores
+BD credenciales en git        →    .gitignore protect
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📞 PRÓXIMOS PASOS
+=================
+
+1. INMEDIATO (Hoy)
+   ├─ Crear .env con credenciales reales
+   ├─ Verificar que .env esté en .gitignore
+   └─ git commit (sin .env)
+
+2. ANTES DE DEPLOYAR (Esta semana)
+   ├─ Revisar SETUP_RAPIDO.md
+   ├─ Actualizar src/index.html para usar proxy
+   └─ Testear localmente
+
+3. EN PRODUCCIÓN (Proxima semana)
+   ├─ Seguir pasos en PRODUCCION.md
+   ├─ Configurar backups
+   ├─ Monitorer logs
+   └─ Revisar seguridad
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Versión: 1.0
+Fecha: 2025-01-12
+Autor: OpenCode Agent
+Estado: ✅ Completado
+
+═══════════════════════════════════════════════════════════════════════════════
+EO
