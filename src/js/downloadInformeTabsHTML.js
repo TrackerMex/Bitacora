@@ -1,66 +1,66 @@
 function downloadInformeTabAsHTML() {
-    const tab = document.getElementById("tab-5");
+  const tab = document.getElementById("tab-5");
 
-    if (!tab)
-        return alert("No se encontró el contenedor #tab-5 (Informe Ejecutivo).");
+  if (!tab)
+    return alert("No se encontró el contenedor #tab-5 (Informe Ejecutivo).");
 
-    const clone = tab.cloneNode(true);
+  const clone = tab.cloneNode(true);
 
-    const btnInClone = clone.querySelector(
-        'button[onclick="downloadInformeTabAsHTML()"]'
-    );
+  const btnInClone = clone.querySelector(
+    'button[onclick="downloadInformeTabAsHTML()"]'
+  );
 
-    if (btnInClone) btnInClone.remove();
+  if (btnInClone) btnInClone.remove();
 
-    const originalCanvases = tab.querySelectorAll("canvas");
+  const originalCanvases = tab.querySelectorAll("canvas");
 
-    const cloneCanvases = clone.querySelectorAll("canvas");
+  const cloneCanvases = clone.querySelectorAll("canvas");
 
-    for (
-        let i = 0;
-        i < Math.min(originalCanvases.length, cloneCanvases.length);
-        i++
-    ) {
-        const c = originalCanvases[i];
+  for (
+    let i = 0;
+    i < Math.min(originalCanvases.length, cloneCanvases.length);
+    i++
+  ) {
+    const c = originalCanvases[i];
 
-        try {
-            const dataUrl = c.toDataURL("image/png");
+    try {
+      const dataUrl = c.toDataURL("image/png");
 
-            const img = document.createElement("img");
+      const img = document.createElement("img");
 
-            img.src = dataUrl;
+      img.src = dataUrl;
 
-            img.alt = c.id || `grafico_${i + 1}`;
+      img.alt = c.id || `grafico_${i + 1}`;
 
-            img.style.maxWidth = "100%";
+      img.style.maxWidth = "100%";
 
-            img.style.height = "auto";
+      img.style.height = "auto";
 
-            cloneCanvases[i].replaceWith(img);
-        } catch (e) {
-            console.warn("No se pudo convertir un canvas a imagen (tab-5).", e);
+      cloneCanvases[i].replaceWith(img);
+    } catch (e) {
+      console.warn("No se pudo convertir un canvas a imagen (tab-5).", e);
 
-            cloneCanvases[i].remove();
-        }
+      cloneCanvases[i].remove();
     }
+  }
 
-    const inlineStyles = Array.from(document.querySelectorAll("style"))
+  const inlineStyles = Array.from(document.querySelectorAll("style"))
 
-        .map((s) => s.innerHTML)
+    .map((s) => s.innerHTML)
 
-        .join("\n\n");
+    .join("\n\n");
 
-    const tailwindCdn = `<script src="https://cdn.tailwindcss.com"></script>`;
+  const tailwindCdn = `<script src="https://cdn.tailwindcss.com"></script>`;
 
-    const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">`;
+  const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">`;
 
-    const selectedDate = document.getElementById("date-filter")?.value || "";
+  const selectedDate = document.getElementById("date-filter")?.value || "";
 
-    const safeDate = selectedDate || dayjs().format("YYYY-MM-DD");
+  const safeDate = selectedDate || dayjs().format("YYYY-MM-DD");
 
-    const filename = `Informe_Ejecutivo_${safeDate}.html`;
+  const filename = `Informe_Ejecutivo_${safeDate}.html`;
 
-    const html = `<!doctype html>
+  const html = `<!doctype html>
 
 <html lang="es">
 
@@ -114,21 +114,21 @@ function downloadInformeTabAsHTML() {
 
 </html>`;
 
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
 
-    const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
+  const a = document.createElement("a");
 
-    a.href = url;
+  a.href = url;
 
-    a.download = filename;
+  a.download = filename;
 
-    document.body.appendChild(a);
+  document.body.appendChild(a);
 
-    a.click();
+  a.click();
 
-    a.remove();
+  a.remove();
 
-    URL.revokeObjectURL(url);
+  URL.revokeObjectURL(url);
 }

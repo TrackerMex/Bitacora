@@ -1,3 +1,3 @@
 <?php
-header("Location: bitacoraTracker.html");
+header("Location: src/index.html");
 exit;
