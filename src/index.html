@@ -980,6 +980,65 @@
       </div>
     </div>
 
+    <!-- Modal: Confirmar Guardar Sin Incidencias -->
+    <div
+      id="confirm-save-modal"
+      class="modal hidden fixed inset-0 flex items-center justify-center z-50 p-4"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
+      >
+        <div class="flex justify-between items-center p-5 border-b bg-amber-50">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">Confirmar acción</h3>
+          </div>
+          <button
+            onclick="closeConfirmSaveModal(false)"
+            class="text-gray-400 hover:text-gray-600 text-xl"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="p-6">
+          <p class="text-gray-600 mb-6">
+            No hay incidencias registradas para este seguimiento.<br />
+            <span class="font-medium text-gray-800">¿Desea guardar?</span>
+          </p>
+          <div class="flex gap-3 justify-end">
+            <button
+              onclick="closeConfirmSaveModal(false)"
+              class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
+            >
+              Cancelar
+            </button>
+            <button
+              onclick="closeConfirmSaveModal(true)"
+              class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
+            >
+              Sí, guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal: Protocolo -->
     <div
       id="protocolo-modal"
@@ -1121,11 +1180,21 @@
 
         let s = String(value).trim();
         if (!s) return "";
+
+        // Si tiene hora, extraer solo la parte de fecha
         s = s.split(/\s+/)[0];
         s = s.replace(/\/+/g, "/").replace(/-+/g, "-");
+
         const parsed = dayjs(
           s,
-          ["YYYY-MM-DD", "YYYY/MM/DD", "DD-MM-YYYY", "DD/MM/YYYY"],
+          [
+            "YYYY-MM-DD",
+            "YYYY/MM/DD",
+            "DD-MM-YYYY",
+            "DD/MM/YYYY",
+            "D-M-YYYY",
+            "D/M/YYYY",
+          ],
           true,
         );
         return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
@@ -1133,17 +1202,53 @@
 
       function parseExcelDateTime(timeValue, dateValue) {
         if (!timeValue) return "";
+
         const fullFormats = [
           "DD-MM-YYYY HH:mm:ss",
           "DD/MM/YYYY HH:mm:ss",
+          "DD-MM-YYYY H:mm:ss",
+          "DD/MM/YYYY H:mm:ss",
           "DD-MM-YYYY HH:mm",
           "DD/MM/YYYY HH:mm",
+          "DD-MM-YYYY H:mm",
+          "DD/MM/YYYY H:mm",
+          "YYYY-MM-DD HH:mm:ss",
+          "YYYY-MM-DD H:mm:ss",
+          "YYYY/MM/DD HH:mm:ss",
+          "YYYY/MM/DD H:mm:ss",
         ];
+
         let dt = dayjs(String(timeValue), fullFormats, true);
+
         if (!dt.isValid()) {
+          const str = String(timeValue).trim();
+
+          const dateTimeMatch = str.match(
+            /^(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\s+(\d{1,2}:\d{2}(?::\d{2})?)$/,
+          );
+          if (dateTimeMatch) {
+            const datePart = dateTimeMatch[1];
+            const timePart = dateTimeMatch[2];
+            const baseParsed = dayjs(
+              datePart,
+              ["DD-MM-YYYY", "DD/MM/YYYY", "MM-DD-YYYY", "MM/DD/YYYY"],
+              true,
+            );
+            const timeMatch = timePart.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+
+            if (baseParsed.isValid() && timeMatch) {
+              dt = baseParsed
+                .hour(parseInt(timeMatch[1], 10))
+                .minute(parseInt(timeMatch[2], 10))
+                .second(timeMatch[3] ? parseInt(timeMatch[3], 10) : 0);
+            }
+          }
+        }
+
+        if (!dt.isValid() && dateValue) {
           const base = dayjs(
             String(dateValue),
-            ["DD-MM-YYYY", "DD/MM/YYYY"],
+            ["DD-MM-YYYY", "DD/MM/YYYY", "YYYY-MM-DD"],
             true,
           );
           const m = String(timeValue).match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
@@ -1154,18 +1259,19 @@
               .second(m[3] ? parseInt(m[3], 10) : 0);
           }
         }
+
         return dt.isValid() ? dt.toISOString() : "";
       }
 
       function formatDateTime(iso) {
         return iso && dayjs(iso).isValid()
-          ? dayjs(iso).format("DD/MM/YYYY HH:mm")
+          ? dayjs(iso).format("DD/MM/YYYY HH:mm:ss")
           : "-";
       }
       function formatForInput(iso) {
         if (!iso) return "";
         const d = dayjs(iso);
-        return d.isValid() ? d.format("YYYY-MM-DDT HH:mm") : "";
+        return d.isValid() ? d.format("YYYY-MM-DDTHH:mm:ss") : "";
       }
 
       function checkTimeDeviation(prog, real) {
@@ -1269,7 +1375,7 @@
           "/bitacora_/src/api/google-sheets-proxy.php?action=bitacora";
         const response = await fetch(url);
         const apiResponse = await response.json();
-        const values = apiResponse.data || []; // ← Obtener datos del proxy
+        const values = apiResponse.data || [];
         const jsonData = convertSheetDataToObjects(values);
         processData(jsonData);
       }
@@ -2441,18 +2547,15 @@
         }, 0);
       }
 
-      // Validar estado del botón Guardar según incidencias
+      // Validar estado del botón Guardar - siempre habilitado para editores
       function updateGuardarButtonState(index) {
-        const d = filteredDespachosData[index];
         const btn = document.getElementById(`btn-guardar-seguimiento-${index}`);
         if (!btn || userRole !== "editor") return;
 
-        const hasIncidencias =
-          Array.isArray(d?.incidencias) && d.incidencias.length > 0;
-        btn.disabled = !hasIncidencias;
-        btn.title = hasIncidencias
-          ? "Guardar seguimiento"
-          : "Debe agregar al menos una incidencia para guardar";
+        // El botón siempre está habilitado para editores
+        // Se puede guardar con o sin incidencias
+        btn.disabled = false;
+        btn.title = "Guardar seguimiento";
       }
 
       // ✅ ÚNICA addIncidencia (con envío a Make)
@@ -2529,16 +2632,38 @@
         }
       }
 
+      // Variable para almacenar el índice pendiente de guardar
+      let pendingSaveIndex = null;
+
       function saveSeguimiento(index) {
         if (userRole !== "editor") return;
 
         const d = filteredDespachosData[index];
-        // Validar que haya al menos una incidencia
-        if (!Array.isArray(d?.incidencias) || d.incidencias.length === 0) {
-          alert("Debe agregar al menos una incidencia antes de guardar.");
+
+        // Si no hay incidencias, mostrar modal de confirmación
+        const hasIncidencias =
+          Array.isArray(d?.incidencias) && d.incidencias.length > 0;
+        if (!hasIncidencias) {
+          pendingSaveIndex = index;
+          document
+            .getElementById("confirm-save-modal")
+            .classList.remove("hidden");
           return;
         }
 
+        executeSaveSeguimiento(index);
+      }
+
+      function closeConfirmSaveModal(confirmed) {
+        document.getElementById("confirm-save-modal").classList.add("hidden");
+        if (confirmed && pendingSaveIndex !== null) {
+          executeSaveSeguimiento(pendingSaveIndex);
+        }
+        pendingSaveIndex = null;
+      }
+
+      function executeSaveSeguimiento(index) {
+        const d = filteredDespachosData[index];
         const form = document.getElementById("form-seguimiento");
 
         d.operadorMonitoreoId =
