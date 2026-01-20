@@ -1133,6 +1133,7 @@
               titulo: datosIncidencia.titulo,
               descripcion: datosIncidencia.cuerpo,
               fecha: new Date().toISOString(),
+              direccion: datosIncidencia.direccion || "",
             }),
           });
           if (response.ok) console.log("Incidencia enviada con éxito");
@@ -2631,6 +2632,17 @@
               `Estatus: ${d.estatus || "Programado"}`,
               `Dirección: ${incObj.direccion || "N/A"}`,
             ].join("\n"),
+            // Campos individuales para Make.com
+            direccion: incObj.direccion || "",
+            unidad: d.unidad || "",
+            folio: String(d.folio || ""),
+            operador: d.operador || "",
+            telefono: d.telefono || "",
+            ruta: d.ruta || "",
+            origen: d.origen || "",
+            destino: d.destino || "",
+            severidad: incObj.severidad || "",
+            tipoIncidencia: tipo || "",
           };
           enviarIncidencia(datosIncidencia);
         } catch (e) {
