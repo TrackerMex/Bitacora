@@ -2,9 +2,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
 
 try {
-    require 'db.php';
+    require_once __DIR__ . '/../db/db.php';
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         throw new Exception("Método no permitido. Use POST.");
     }
