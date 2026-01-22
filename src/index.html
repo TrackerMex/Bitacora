@@ -428,17 +428,33 @@
           <h2 class="text-2xl font-semibold mb-4 text-gray-800">
             Matriz de Tiempos Programados vs. Reales
           </h2>
-          <div class="mb-4">
-            <label
-              for="registro-unidad-filter"
-              class="font-medium text-gray-700"
-              >Filtrar por estatus:</label
-            >
-            <select
-              id="registro-unidad-filter"
-              onchange="renderRegistroDespacho()"
-              class="p-2 border rounded-lg ml-2"
-            ></select>
+          <div class="flex flex-wrap gap-3 mb-4">
+            <div>
+              <label
+                for="registro-unidad-filter"
+                class="font-medium text-gray-700"
+                >Filtrar por estatus:</label
+              >
+              <select
+                id="registro-unidad-filter"
+                onchange="renderRegistroDespacho()"
+                class="p-2 border rounded-lg ml-2"
+              ></select>
+            </div>
+            <div>
+              <label
+                for="registro-unidades-filter"
+                class="font-medium text-gray-700"
+                >Filtrar por unidad:</label
+              >
+              <select
+                id="registro-unidades-filter"
+                onchange="renderRegistroDespacho()"
+                class="p-2 border rounded-lg ml-2"
+              >
+                <option value="all">Todas las unidades</option>
+              </select>
+            </div>
           </div>
           <div id="registro-board-container" class="overflow-x-auto pb-4"></div>
         </div>
@@ -2941,51 +2957,95 @@
    TAB 3 Matriz
 =========================== */
       function populateRegistroFilter() {
-        const sel = document.getElementById("registro-unidad-filter");
-        if (!sel) return;
-        sel.innerHTML = '<option value="all">Mostrar Todos</option>';
+        // Poblar filtro por estatus
+        const selEstatus = document.getElementById("registro-unidad-filter");
+        if (selEstatus) {
+          selEstatus.innerHTML =
+            '<option value="all">Todos los estatus</option>';
 
-        const estatusSet = new Set();
-        (filteredDespachosData || []).forEach((d) => {
-          const est = String(d.estatus || "Sin estatus").trim();
-          estatusSet.add(est);
-        });
+          const estatusSet = new Set();
+          (filteredDespachosData || []).forEach((d) => {
+            const est = String(d.estatus || "Sin estatus").trim();
+            estatusSet.add(est);
+          });
 
-        const ordenEstatus = [
-          "Programado",
-          "En ruta",
-          "Despacho realizado",
-          "Despacho No realizado",
-          "Sin estatus",
-        ];
+          const ordenEstatus = [
+            "Programado",
+            "En ruta",
+            "Despacho realizado",
+            "Despacho No realizado",
+            "Sin estatus",
+          ];
 
-        const estatusOrdenados = ordenEstatus.filter((e) => estatusSet.has(e));
+          const estatusOrdenados = ordenEstatus.filter((e) =>
+            estatusSet.has(e),
+          );
 
-        estatusSet.forEach((e) => {
-          if (!ordenEstatus.includes(e)) {
-            estatusOrdenados.push(e);
-          }
-        });
+          estatusSet.forEach((e) => {
+            if (!ordenEstatus.includes(e)) {
+              estatusOrdenados.push(e);
+            }
+          });
 
-        estatusOrdenados.forEach((e) => {
-          sel.innerHTML += `<option value="${escapeHtml(
-            e,
-          )}">${escapeHtml(e)}</option>`;
-        });
+          estatusOrdenados.forEach((e) => {
+            selEstatus.innerHTML += `<option value="${escapeHtml(
+              e,
+            )}">${escapeHtml(e)}</option>`;
+          });
+        }
+
+        // Poblar filtro por unidad
+        const selUnidad = document.getElementById("registro-unidades-filter");
+        if (selUnidad) {
+          selUnidad.innerHTML =
+            '<option value="all">Todas las unidades</option>';
+
+          const unidadesSet = new Set();
+          (filteredDespachosData || []).forEach((d) => {
+            const unidad = String(d.unidad || "").trim();
+            if (unidad) unidadesSet.add(unidad);
+          });
+
+          // Ordenar unidades alfabéticamente
+          const unidadesOrdenadas = Array.from(unidadesSet).sort((a, b) =>
+            a.localeCompare(b, "es", { sensitivity: "base" }),
+          );
+
+          unidadesOrdenadas.forEach((u) => {
+            selUnidad.innerHTML += `<option value="${escapeHtml(
+              u,
+            )}">${escapeHtml(u)}</option>`;
+          });
+        }
       }
 
       function renderRegistroDespacho() {
         const container = document.getElementById("registro-board-container");
-        const filter = document.getElementById("registro-unidad-filter");
+        const filterEstatus = document.getElementById("registro-unidad-filter");
+        const filterUnidad = document.getElementById(
+          "registro-unidades-filter",
+        );
         container.innerHTML = "";
 
-        let data = filteredDespachosData;
-        if (filter && filter.value !== "all")
-          data = (filteredDespachosData || []).filter(
+        let data = filteredDespachosData || [];
+
+        // Aplicar filtro por estatus
+        if (filterEstatus && filterEstatus.value !== "all") {
+          data = data.filter(
             (d) =>
               String(d.estatus || "").trim() ===
-              String(filter.value || "").trim(),
+              String(filterEstatus.value || "").trim(),
           );
+        }
+
+        // Aplicar filtro por unidad
+        if (filterUnidad && filterUnidad.value !== "all") {
+          data = data.filter(
+            (d) =>
+              String(d.unidad || "").trim() ===
+              String(filterUnidad.value || "").trim(),
+          );
+        }
 
         if (!data.length) {
           container.innerHTML = `<div class="text-center p-6">No hay despachos para mostrar.</div>`;
