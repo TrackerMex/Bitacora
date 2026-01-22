@@ -432,7 +432,7 @@
             <label
               for="registro-unidad-filter"
               class="font-medium text-gray-700"
-              >Filtrar por Unidad:</label
+              >Filtrar por estatus:</label
             >
             <select
               id="registro-unidad-filter"
@@ -2943,20 +2943,34 @@
       function populateRegistroFilter() {
         const sel = document.getElementById("registro-unidad-filter");
         if (!sel) return;
-        sel.innerHTML = '<option value="all">Mostrar Todas</option>';
-        const unidades = [
-          ...new Set(
-            (filteredDespachosData || [])
-              .map((d) => String(d.unidad || "").trim())
-              .filter(Boolean),
-          ),
-        ].sort((a, b) =>
-          a.localeCompare(b, "es", { numeric: true, sensitivity: "base" }),
-        );
-        unidades.forEach((u) => {
-          sel.innerHTML += `<option value="${escapeHtml(u)}">${escapeHtml(
-            u,
-          )}</option>`;
+        sel.innerHTML = '<option value="all">Mostrar Todos</option>';
+
+        const estatusSet = new Set();
+        (filteredDespachosData || []).forEach((d) => {
+          const est = String(d.estatus || "Sin estatus").trim();
+          estatusSet.add(est);
+        });
+
+        const ordenEstatus = [
+          "Programado",
+          "En ruta",
+          "Despacho realizado",
+          "Despacho No realizado",
+          "Sin estatus",
+        ];
+
+        const estatusOrdenados = ordenEstatus.filter((e) => estatusSet.has(e));
+
+        estatusSet.forEach((e) => {
+          if (!ordenEstatus.includes(e)) {
+            estatusOrdenados.push(e);
+          }
+        });
+
+        estatusOrdenados.forEach((e) => {
+          sel.innerHTML += `<option value="${escapeHtml(
+            e,
+          )}">${escapeHtml(e)}</option>`;
         });
       }
 
@@ -2969,7 +2983,7 @@
         if (filter && filter.value !== "all")
           data = (filteredDespachosData || []).filter(
             (d) =>
-              String(d.unidad || "").trim() ===
+              String(d.estatus || "").trim() ===
               String(filter.value || "").trim(),
           );
 
