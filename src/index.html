@@ -88,6 +88,10 @@
         background: #fef3c7;
         color: #92400e;
       }
+      .estatus-cancelado {
+        background: #dbeafe;
+        color: #1e40af;
+      }
       .task-cell {
         background: #f9fafb;
         color: #4b5563;
@@ -366,7 +370,7 @@
 
             <div class="flex items-center gap-2">
               <!-- Teléfono/911 -->
-              <button
+              <!-- <button
                 type="button"
                 onclick="openEmergency911Modal()"
                 title="Números de Emergencia 911"
@@ -387,7 +391,7 @@
                     d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-3.1-3.1A19.79 19.79 0 0 1 2 4.18 2 2 0 0 1 4.18 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
                   />
                 </svg>
-              </button>
+              </button> -->
 
               <!-- Contactos -->
               <button
@@ -428,32 +432,60 @@
           <h2 class="text-2xl font-semibold mb-4 text-gray-800">
             Matriz de Tiempos Programados vs. Reales
           </h2>
-          <div class="flex flex-wrap gap-3 mb-4">
-            <div>
-              <label
-                for="registro-unidad-filter"
-                class="font-medium text-gray-700"
-                >Filtrar por estatus:</label
-              >
-              <select
-                id="registro-unidad-filter"
-                onchange="renderRegistroDespacho()"
-                class="p-2 border rounded-lg ml-2"
-              ></select>
+          <div
+            class="flex flex-wrap items-center justify-between gap-3 mb-6 p-4 border rounded-lg bg-gray-50"
+          >
+            <div class="flex flex-wrap items-center gap-4">
+              <div class="flex items-center flex-grow max-w-xl gap-3">
+                <label
+                  for="registro-unidad-filter"
+                  class="font-medium text-gray-700"
+                  >Filtrar por estatus:</label
+                >
+                <select
+                  id="registro-unidad-filter"
+                  onchange="renderRegistroDespacho()"
+                  class="p-2 border rounded-lg ml-2"
+                ></select>
+              </div>
+              <div class="flex items-center flex-grow max-w-xl gap-3">
+                <label
+                  for="registro-unidades-filter"
+                  class="font-medium text-gray-700"
+                  >Filtrar por unidad:</label
+                >
+                <select
+                  id="registro-unidades-filter"
+                  onchange="renderRegistroDespacho()"
+                  class="p-2 border rounded-lg ml-2"
+                >
+                  <option value="all">Todas las unidades</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label
-                for="registro-unidades-filter"
-                class="font-medium text-gray-700"
-                >Filtrar por unidad:</label
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                onclick="openEmergency911Modal()"
+                title="Números de Emergencia 911"
+                class="bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-red-500 hover:text-white transition flex items-center justify-center"
               >
-              <select
-                id="registro-unidades-filter"
-                onchange="renderRegistroDespacho()"
-                class="p-2 border rounded-lg ml-2"
-              >
-                <option value="all">Todas las unidades</option>
-              </select>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-3.1-3.1A19.79 19.79 0 0 1 2 4.18 2 2 0 0 1 4.18 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
           <div id="registro-board-container" class="overflow-x-auto pb-4"></div>
@@ -476,7 +508,7 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <div class="grid grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
             <div class="bg-gray-800 text-white p-5 rounded-xl shadow-xl">
               <p class="text-sm font-medium opacity-80">Total Despachos</p>
               <p id="kpi-total-despachos" class="text-3xl font-bold mt-1">0</p>
@@ -502,6 +534,12 @@
             <div class="bg-blue-600 text-white p-5 rounded-xl shadow-xl">
               <p class="text-sm font-medium opacity-80">Programados</p>
               <p id="kpi-despachos-programados" class="text-3xl font-bold mt-1">
+                0
+              </p>
+            </div>
+            <div class="bg-blue-400 text-white p-5 rounded-xl shadow-xl">
+              <p class="text-sm font-medium opacity-80">Cancelados</p>
+              <p id="kpi-despachos-cancelados" class="text-3xl font-bold mt-1">
                 0
               </p>
             </div>
@@ -537,7 +575,9 @@
           </div>
           <!-- Filtro de Informe Ejecutivo (aplicado a Resumen, Detalle e Incidencias) -->
           <div class="mb-6">
-            <h3 class="text-sm font-medium text-gray-700 mb-3">Filtro por fecha de despacho:</h3>
+            <h3 class="text-sm font-medium text-gray-700 mb-3">
+              Filtro por fecha de despacho:
+            </h3>
             <div class="flex flex-wrap items-center gap-3 mb-3">
               <button
                 id="incf-btn-selected"
@@ -695,7 +735,7 @@
                 <input
                   id="informes-filtro-texto"
                   type="text"
-                  placeholder="Título, ID, operador, fecha de despacho..."
+                  placeholder="Título, ID, unidad, fecha de despacho..."
                   oninput="applyInformesFilters()"
                   class="mt-1 w-full p-2 border rounded-lg"
                 />
@@ -728,16 +768,16 @@
               </div>
               <div>
                 <label
-                  for="informes-filtro-operador"
+                  for="informes-filtro-unidad"
                   class="block text-sm font-medium text-gray-700"
-                  >Operador</label
+                  >Unidad</label
                 >
                 <select
-                  id="informes-filtro-operador"
+                  id="informes-filtro-unidad"
                   onchange="applyInformesFilters()"
                   class="mt-1 w-full p-2 border rounded-lg"
                 >
-                  <option value="">Todos</option>
+                  <option value="">Todas</option>
                 </select>
               </div>
             </div>
@@ -2482,6 +2522,7 @@
                     "En ruta",
                     "Despacho realizado",
                     "Despacho No realizado",
+                    "Cancelado",
                   ]
                     .map(
                       (v) =>
@@ -2718,17 +2759,15 @@
           form.elements["confirmacionEntrega"]?.value || null;
 
         const est = form.elements["estatus"]?.value;
-        if (d.confirmacionEntrega === "SI") d.estatus = "Despacho realizado";
-        else if (d.confirmacionEntrega === "NO")
+        // Prioridad: 1) Confirmación de entrega, 2) Estatus seleccionado manualmente
+        if (d.confirmacionEntrega === "SI") {
+          d.estatus = "Despacho realizado";
+        } else if (d.confirmacionEntrega === "NO") {
           d.estatus = "Despacho No realizado";
-        else if (
-          d.realSalidaUnidad ||
-          d.realCarga ||
-          d.realSalida ||
-          d.realDescarga
-        )
-          d.estatus = "En ruta";
-        else d.estatus = est;
+        } else {
+          // Respetar el estatus seleccionado manualmente por el usuario
+          d.estatus = est;
+        }
 
         d.observaciones = form.elements["observaciones"]?.value || "";
 
@@ -2975,6 +3014,7 @@
             "En ruta",
             "Despacho realizado",
             "Despacho No realizado",
+            "Cancelado",
             "Sin estatus",
           ];
 
@@ -3164,6 +3204,7 @@
             stClass = "estatus-verde";
           else if (d.estatus === "Despacho No realizado")
             stClass = "estatus-rojo";
+          else if (d.estatus === "Cancelado") stClass = "estatus-cancelado";
           statusCell.className = `board-cell ${stClass}`;
           statusCell.setAttribute("data-label", "Estatus");
           statusCell.textContent = d.estatus || "Sin estatus";
@@ -3185,6 +3226,7 @@
         );
         const enRuta = data.filter((d) => d.estatus === "En ruta");
         const programados = data.filter((d) => d.estatus === "Programado");
+        const cancelados = data.filter((d) => d.estatus === "Cancelado");
         const aTiempo = realizados.filter(
           (d) =>
             d.realDescarga &&
@@ -3202,6 +3244,8 @@
           enRuta.length;
         document.getElementById("kpi-despachos-programados").textContent =
           programados.length;
+        document.getElementById("kpi-despachos-cancelados").textContent =
+          cancelados.length;
 
         const incCount = {};
         data.forEach((d) =>
@@ -3214,6 +3258,7 @@
           conRetraso,
           enRuta.length,
           programados.length,
+          cancelados.length,
         ]);
         updateIncidenciasChart(incCount);
       }
@@ -3226,8 +3271,27 @@
         charts.cumplimiento = new Chart(ctx, {
           type: "bar",
           data: {
-            labels: ["A Tiempo", "Con Retraso", "En Ruta", "Programados"],
-            datasets: [{ data: vals, borderRadius: 4, barThickness: 30 }],
+            labels: [
+              "A Tiempo",
+              "Con Retraso",
+              "En Ruta",
+              "Programados",
+              "Cancelados",
+            ],
+            datasets: [
+              {
+                data: vals,
+                backgroundColor: [
+                  "#16a34a", // Verde - A Tiempo (bg-green-600)
+                  "#dc2626", // Rojo - Con Retraso (bg-red-600)
+                  "#ca8a04", // Amarillo - En Ruta (bg-yellow-600)
+                  "#2563eb", // Azul - Programados (bg-blue-600)
+                  "#6090fa", // Azul - Cancelados (bg-blue-600)
+                ],
+                borderRadius: 4,
+                barThickness: 30,
+              },
+            ],
           },
           options: {
             indexAxis: "y",
@@ -3274,12 +3338,12 @@
       function renderInforme(data) {
         const c = document.getElementById("informe-container");
         const btn = document.getElementById("download-excel-report-btn");
-        
+
         // Aplicar el mismo filtro de fecha que en las incidencias
         const window = getIncExecutiveDateWindow();
         const from = window.from || "";
         const to = window.to || "";
-        
+
         let filteredData = data.slice();
         if (from && to) {
           filteredData = filteredData.filter(
@@ -3290,7 +3354,7 @@
         } else if (!from && to) {
           filteredData = filteredData.filter((d) => d.fechaProgramada <= to);
         }
-        
+
         if (!filteredData.length) {
           c.innerHTML = `<p class="text-center p-6 bg-gray-100 rounded-lg">No hay datos para generar informe con el filtro seleccionado.</p>`;
           btn.disabled = true;
@@ -3301,7 +3365,10 @@
         btn.disabled = false;
 
         const total = filteredData.length;
-        const incs = filteredData.reduce((a, d) => a + (d.incidencias || []).length, 0);
+        const incs = filteredData.reduce(
+          (a, d) => a + (d.incidencias || []).length,
+          0,
+        );
         c.innerHTML = `
           <div class="bg-white border rounded-xl p-4">
             <p class="text-gray-800 font-semibold">Resumen</p>
@@ -3309,7 +3376,8 @@
               <div class="bg-gray-50 border rounded-lg p-3"><p class="text-xs text-gray-500">Total</p><p class="text-2xl font-bold">${total}</p></div>
               <div class="bg-yellow-50 border rounded-lg p-3"><p class="text-xs text-gray-500">Incidencias</p><p class="text-2xl font-bold">${incs}</p></div>
               <div class="bg-green-50 border rounded-lg p-3"><p class="text-xs text-gray-500">Realizados</p><p class="text-2xl font-bold">${
-                filteredData.filter((d) => d.estatus === "Despacho realizado").length
+                filteredData.filter((d) => d.estatus === "Despacho realizado")
+                  .length
               }</p></div>
               <div class="bg-blue-50 border rounded-lg p-3"><p class="text-xs text-gray-500">En Ruta</p><p class="text-2xl font-bold">${
                 filteredData.filter((d) => d.estatus === "En ruta").length
@@ -4063,8 +4131,8 @@
         const q = getNormalizedString(
           document.getElementById("informes-filtro-texto")?.value,
         );
-        const operadorSel = (
-          document.getElementById("informes-filtro-operador")?.value ?? ""
+        const unidadSel = (
+          document.getElementById("informes-filtro-unidad")?.value ?? ""
         )
           .toString()
           .trim();
@@ -4087,15 +4155,16 @@
               inf.titulo,
               inf.operador_monitoreo,
               inf.fecha_despacho,
+              ...(getUnidadesFromInforme(inf) || []),
             ]
               .map(getNormalizedString)
               .join(" ");
             if (!haystack.includes(q)) return false;
           }
 
-          if (operadorSel) {
-            const op = (inf.operador_monitoreo ?? "").toString().trim();
-            if (op !== operadorSel) return false;
+          if (unidadSel) {
+            const unidades = getUnidadesFromInforme(inf);
+            if (!unidades.includes(unidadSel)) return false;
           }
 
           if (soloIncidencias) {
@@ -4121,34 +4190,54 @@
         document.getElementById("informes-filtro-texto").value = "";
         document.getElementById("informes-filtro-fecha-desde").value = "";
         document.getElementById("informes-filtro-fecha-hasta").value = "";
-        document.getElementById("informes-filtro-operador").value = "";
+        document.getElementById("informes-filtro-unidad").value = "";
         document.getElementById("informes-filtro-solo-incidencias").checked =
           false;
         applyInformesFilters();
       }
 
-      function populateOperadorInformeFilter(informes) {
-        const sel = document.getElementById("informes-filtro-operador");
+      function getUnidadesFromInforme(inf) {
+        if (!inf) return [];
+        let detalles = [];
+        if (Array.isArray(inf.datos_informe_decoded)) {
+          detalles = inf.datos_informe_decoded;
+        } else if (inf.datos_informe) {
+          try {
+            const decoded = JSON.parse(inf.datos_informe);
+            if (Array.isArray(decoded)) detalles = decoded;
+          } catch (e) {
+            console.warn('Error parsing datos_informe:', e);
+          }
+        }
+        const unidades = detalles
+          .map((d) => (d?.unidad ?? "").toString().trim())
+          .filter(Boolean);
+        return [...new Set(unidades)];
+      }
+
+      function populateUnidadInformeFilter(informes) {
+        const sel = document.getElementById("informes-filtro-unidad");
         if (!sel) return;
 
         const current = (sel.value ?? "").toString();
-        const operators = [
-          ...new Set(
-            (informes || [])
-              .map((x) => (x?.operador_monitoreo ?? "").toString().trim())
-              .filter(Boolean),
-          ),
-        ].sort((a, b) => a.localeCompare(b));
+        const allUnidades = new Set();
+        
+        (informes || []).forEach((inf) => {
+          const unidades = getUnidadesFromInforme(inf);
+          unidades.forEach((u) => allUnidades.add(u));
+        });
 
-        sel.innerHTML = '<option value="">Todos</option>';
-        operators.forEach((op) => {
+        const unidadesArray = [...allUnidades].sort((a, b) => a.localeCompare(b));
+
+        sel.innerHTML = '<option value="">Todas</option>';
+        unidadesArray.forEach((unidad) => {
           const opt = document.createElement("option");
-          opt.value = op;
-          opt.textContent = op;
+          opt.value = unidad;
+          opt.textContent = unidad;
           sel.appendChild(opt);
         });
 
-        sel.value = operators.includes(current) ? current : "";
+        sel.value = unidadesArray.includes(current) ? current : "";
       }
 
       async function cargarInformesGuardados() {
@@ -4189,12 +4278,12 @@
           // Formato esperado: { success, data: [], count }
           if (data && data.success && Array.isArray(data.data)) {
             informesGuardadosCache = data.data;
-            populateOperadorInformeFilter(informesGuardadosCache);
+            populateUnidadInformeFilter(informesGuardadosCache);
             applyInformesFilters();
           } else if (Array.isArray(data)) {
             // Compatibilidad si devuelve array directo
             informesGuardadosCache = data;
-            populateOperadorInformeFilter(informesGuardadosCache);
+            populateUnidadInformeFilter(informesGuardadosCache);
             applyInformesFilters();
           } else {
             container.innerHTML = `

@@ -27,7 +27,7 @@ try {
         exit();
     }
     
-    $sql = "SELECT id, titulo, fecha_creacion, fecha_despacho, total_despachos, a_tiempo, con_retraso, en_ruta, programados, total_incidencias, operador_monitoreo 
+    $sql = "SELECT id, titulo, fecha_creacion, fecha_despacho, total_despachos, a_tiempo, con_retraso, en_ruta, programados, total_incidencias, operador_monitoreo, datos_informe 
             FROM informes_guardados 
             ORDER BY fecha_creacion DESC 
             LIMIT 100";
@@ -49,6 +49,14 @@ try {
         $row['en_ruta'] = intval($row['en_ruta']);
         $row['programados'] = intval($row['programados']);
         $row['total_incidencias'] = intval($row['total_incidencias']);
+        
+        // Decodificar datos_informe si existe
+        if (!empty($row['datos_informe'])) {
+            $decoded = json_decode($row['datos_informe'], true);
+            if ($decoded !== null) {
+                $row['datos_informe_decoded'] = $decoded;
+            }
+        }
         
         $informes[] = $row;
         $count++;
