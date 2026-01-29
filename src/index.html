@@ -1435,8 +1435,7 @@
    DATA LOAD (Sheets)
 =========================== */
       async function loadDataFromGoogleSheets(isInitialLoad = true) {
-        const url =
-          "/bitacora_/src/api/google-sheets-proxy.php?action=bitacora";
+        const url = "/bitacora_/src/api/google-sheets-proxy.php?action=datos";
         const response = await fetch(url);
         const apiResponse = await response.json();
         const values = apiResponse.data || [];
@@ -1528,11 +1527,26 @@
         const headers = data
           .shift()
           .map((h) => (typeof h === "string" ? h.trim().toLowerCase() : h));
+
+        // Mapeo de nombres de columnas del Google Sheet a nombres esperados por el código
+        const columnMap = {
+          "salida programada": "salida_prog",
+          "carga programada": "carga_prog",
+          "salida carga programada": "salida_carga_prog",
+          "descarga programada": "descarga_prog",
+          "id equipos": "id_equipos",
+          teléfono: "telefono",
+        };
+
         return data
           .map((row) => {
             const obj = {};
             headers.forEach((header, index) => {
-              if (header) obj[header] = row[index] || "";
+              if (header) {
+                // Usar el nombre mapeado si existe, o el original
+                const mappedHeader = columnMap[header] || header;
+                obj[mappedHeader] = row[index] || "";
+              }
             });
             return obj;
           })
@@ -4206,7 +4220,7 @@
             const decoded = JSON.parse(inf.datos_informe);
             if (Array.isArray(decoded)) detalles = decoded;
           } catch (e) {
-            console.warn('Error parsing datos_informe:', e);
+            console.warn("Error parsing datos_informe:", e);
           }
         }
         const unidades = detalles
@@ -4221,13 +4235,15 @@
 
         const current = (sel.value ?? "").toString();
         const allUnidades = new Set();
-        
+
         (informes || []).forEach((inf) => {
           const unidades = getUnidadesFromInforme(inf);
           unidades.forEach((u) => allUnidades.add(u));
         });
 
-        const unidadesArray = [...allUnidades].sort((a, b) => a.localeCompare(b));
+        const unidadesArray = [...allUnidades].sort((a, b) =>
+          a.localeCompare(b),
+        );
 
         sel.innerHTML = '<option value="">Todas</option>';
         unidadesArray.forEach((unidad) => {

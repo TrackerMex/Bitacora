@@ -24,7 +24,7 @@ try {
         throw new Exception('Parámetro "action" requerido');
     }
     
-    $allowed_actions = ['bitacora', 'contactos'];
+    $allowed_actions = ['datos', 'contactos'];
     if (!in_array($action, $allowed_actions)) {
         throw new Exception('Acción no permitida');
     }
@@ -37,8 +37,8 @@ try {
     }
     
     $range = match($action) {
-        'bitacora' => getEnvVar('GOOGLE_SHEETS_RANGE_BITACORA', 'BITACORA!A1:O944'),
-        'contactos' => getEnvVar('GOOGLE_SHEETS_RANGE_CONTACTOS', 'Contactos!A1:H'),
+        'datos' => getEnvVar('GOOGLE_SHEETS_RANGE_DATOS', 'Datos!A7:N1000'),
+        'contactos' => getEnvVar('GOOGLE_SHEETS_RANGE_CONTACTOS', 'Contactos!A7:N1000'),
         default => ''
     };
     
