@@ -88,6 +88,14 @@
         background: #fef3c7;
         color: #92400e;
       }
+      .estatus-cargando {
+        background: #fed7aa;
+        color: #c2410c;
+      }
+      .estatus-salida-carga {
+        background: #bfdbfe;
+        color: #1e40af;
+      }
       .estatus-cancelado {
         background: #dbeafe;
         color: #1e40af;
@@ -145,6 +153,97 @@
         color: #10b981;
         border-left: 4px solid #10b981;
       }
+
+      /* Estilos para campos no programados */
+      .field-no-programada {
+        border: 2px solid #fbbf24;
+        background-color: #fffbeb;
+        border-radius: 0.75rem;
+      }
+
+      /* Estilos para badges de estatus */
+      .badge-estatus {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+      }
+      .badge-programado {
+        background-color: #dbeafe;
+        color: #1e40af;
+      }
+      .badge-en-ruta {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+      .badge-cargando {
+        background-color: #fed7aa;
+        color: #c2410c;
+      }
+      .badge-salida-carga {
+        background-color: #bfdbfe;
+        color: #1e40af;
+      }
+      .badge-realizado {
+        background-color: #d1fae5;
+        color: #065f46;
+      }
+      .badge-no-realizado {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+      .badge-cancelado {
+        background-color: #e5e7eb;
+        color: #374151;
+      }
+
+      .badge-no-programada {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        background-color: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fbbf24;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        animation: pulse-gentle 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse-gentle {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      .field-programada {
+        border: 2px solid #d1d5db;
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+      }
+
+      /* Barra de progreso de estatus */
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: #e5e7eb;
+        border-radius: 9999px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #fbbf24, #10b981);
+        transition: width 0.3s ease;
+      }
     </style>
 
     <script>
@@ -156,7 +255,7 @@
   <body>
     <div class="container mx-auto p-4 md:p-8">
       <!-- Header -->
-      <header class="mb-6 bg-white p-6 rounded-xl shadow-md text-center">
+      <header class="mb-6 bg-white p-6 rounded-xl shadow-md text-center relative">
         <img
           src="https://i.postimg.cc/CY2DgtbK/A-COLOR.png"
           alt="Logo"
@@ -171,6 +270,15 @@
         <p class="text-sm text-gray-700">
           Desarrollo realizado por el Departamento de IA 2025
         </p>
+        <div id="user-info" class="absolute top-4 right-4 flex items-center gap-3 hidden">
+          <span id="username-display" class="text-sm font-medium text-gray-700"></span>
+          <button
+            onclick="handleLogout()"
+            class="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 text-sm"
+          >
+            Cerrar Sesión
+          </button>
+        </div>
       </header>
 
       <!-- Controles -->
@@ -253,6 +361,13 @@
           onclick="changeTab(6)"
         >
           Informes Guardados
+        </button>
+        <button
+          id="tab-btn-7"
+          class="tab-btn text-gray-500"
+          onclick="changeTab(7)"
+        >
+          Validaciones GPS
         </button>
       </div>
 
@@ -526,7 +641,7 @@
               </p>
             </div>
             <div class="bg-yellow-600 text-white p-5 rounded-xl shadow-xl">
-              <p class="text-sm font-medium opacity-80">En Ruta</p>
+              <p class="text-sm font-medium opacity-80">En Proceso</p>
               <p id="kpi-despachos-en-ruta" class="text-3xl font-bold mt-1">
                 0
               </p>
@@ -862,6 +977,143 @@
             </div>
           </div>
         </div>
+
+        <!-- TAB 7 -->
+        <div id="tab-7" class="tab-content-item hidden">
+          <h2 class="text-2xl font-semibold mb-4 text-gray-800">
+            Validaciones GPS y Accesorios
+          </h2>
+
+          <div class="mb-4 text-sm text-gray-600">
+            <p>
+              Vista consolidada de las validaciones de GPS y accesorios de todas
+              las unidades.
+            </p>
+          </div>
+
+          <!-- Filtros -->
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label
+                  for="validaciones-filtro-unidad"
+                  class="block text-sm font-medium text-gray-700"
+                  >Unidad</label
+                >
+                <input
+                  id="validaciones-filtro-unidad"
+                  type="text"
+                  placeholder="Buscar unidad..."
+                  oninput="applyValidacionesFilters()"
+                  class="mt-1 w-full p-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label
+                  for="validaciones-filtro-cliente"
+                  class="block text-sm font-medium text-gray-700"
+                  >Cliente</label
+                >
+                <select
+                  id="validaciones-filtro-cliente"
+                  onchange="applyValidacionesFilters()"
+                  class="mt-1 w-full p-2 border rounded-lg"
+                >
+                  <option value="">Todos los clientes</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  for="validaciones-filtro-estado"
+                  class="block text-sm font-medium text-gray-700"
+                  >Estado</label
+                >
+                <select
+                  id="validaciones-filtro-estado"
+                  onchange="applyValidacionesFilters()"
+                  class="mt-1 w-full p-2 border rounded-lg"
+                >
+                  <option value="">Todos</option>
+                  <option value="validado">Con validación</option>
+                  <option value="sin_validar">Sin validación</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla de validaciones -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border rounded-lg shadow-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th
+                    class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
+                  >
+                    Unidad
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
+                  >
+                    Cliente
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
+                  >
+                    Operador Monitor
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
+                  >
+                    Estado
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
+                  >
+                    Validaciones GPS
+                  </th>
+                  <th
+                    class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
+                  >
+                    Última Actualización
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="validaciones-table-body" class="divide-y">
+                <!-- Renderizado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Detalles GPS -->
+    <div
+      id="gps-details-modal"
+      class="modal hidden fixed inset-0 flex items-center justify-center z-50 p-4"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
+      >
+        <div
+          class="flex justify-between items-center p-6 border-b bg-indigo-50"
+        >
+          <h3
+            id="gps-details-modal-title"
+            class="text-xl font-bold text-gray-800"
+          >
+            Validación GPS
+          </h3>
+          <button
+            onclick="closeModal('gps-details-modal')"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            ✕
+          </button>
+        </div>
+        <div id="gps-details-modal-body" class="p-6">
+          <!-- Contenido dinámico -->
+        </div>
       </div>
     </div>
 
@@ -1122,25 +1374,152 @@
       </div>
     </div>
 
+    <!-- Modal: Editar Origen/Destino -->
+    <div
+      id="edit-origen-destino-modal"
+      class="modal hidden fixed inset-0 flex items-center justify-center z-50 p-4"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden"
+      >
+        <div class="flex justify-between items-center p-6 border-b bg-blue-50">
+          <h3 class="text-xl font-bold text-gray-800">
+            Editar Origen y Destino
+          </h3>
+          <button
+            onclick="closeModal('edit-origen-destino-modal')"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="p-6">
+          <form id="form-edit-origen-destino" class="space-y-4">
+            <input type="hidden" id="edit-folio" name="folio" />
+            <input type="hidden" id="edit-unidad" name="unidad" />
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Unidad</label
+              >
+              <input
+                type="text"
+                id="edit-unidad-display"
+                disabled
+                class="w-full p-2 border rounded-lg bg-gray-100 text-gray-700"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Origen</label
+              >
+              <textarea
+                id="edit-origen"
+                name="origen"
+                rows="2"
+                class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ingrese el origen"
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Destino</label
+              >
+              <textarea
+                id="edit-destino"
+                name="destino"
+                rows="2"
+                class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ingrese el destino"
+              ></textarea>
+            </div>
+
+            <div class="flex gap-3 justify-end pt-4 border-t">
+              <button
+                type="button"
+                onclick="closeModal('edit-origen-destino-modal')"
+                class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              >
+                Guardar Cambios
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <script>
       const USER_ROLES = {
         editor: {
           username: "user",
           password: "editor",
-          tabs: [0, 1, 2, 3, 4, 5, 6],
+          tabs: [0, 1, 2, 3, 4, 5, 6, 7],
         },
-        lector: { username: "view", password: "read", tabs: [3, 4, 5, 6] },
+        lector: { username: "view", password: "read", tabs: [3, 4, 5, 6, 7] },
       };
 
       let userRole = null;
-      function setUserRole(role) {
+      let userUnidades = []; // Cambio: usar unidades en lugar de clientes
+      let userTabs = [];
+      let username = '';
+      
+      function setUserRole(role, unidades = [], tabs = []) {
         userRole = role;
+        userUnidades = unidades;
+        userTabs = tabs;
         try {
           sessionStorage.setItem("bitacoraUserRole", role);
+          sessionStorage.setItem("bitacoraUserUnidades", JSON.stringify(unidades));
+          sessionStorage.setItem("bitacoraUserTabs", JSON.stringify(tabs));
+          sessionStorage.setItem("bitacoraUsername", username);
         } catch (e) {}
         const loginModal = document.getElementById("login-modal");
         if (loginModal) loginModal.classList.add("hidden");
+        
+        // Show user info in header
+        const userInfo = document.getElementById("user-info");
+        const usernameDisplay = document.getElementById("username-display");
+        if (userInfo && usernameDisplay) {
+          usernameDisplay.textContent = username;
+          userInfo.classList.remove("hidden");
+        }
+        
         updateTabVisibility();
+      }
+      
+      function handleLogout() {
+        // Clear session
+        userRole = null;
+        userUnidades = [];
+        userTabs = [];
+        username = '';
+        
+        try {
+          sessionStorage.removeItem("bitacoraUserRole");
+          sessionStorage.removeItem("bitacoraUserUnidades");
+          sessionStorage.removeItem("bitacoraUserTabs");
+          sessionStorage.removeItem("bitacoraUsername");
+        } catch (e) {}
+        
+        // Hide user info
+        const userInfo = document.getElementById("user-info");
+        if (userInfo) userInfo.classList.add("hidden");
+        
+        // Clear filtered data
+        filteredDespachosData = [];
+        renderAllTabs();
+        
+        // Show login modal
+        const loginModal = document.getElementById("login-modal");
+        if (loginModal) loginModal.classList.remove("hidden");
       }
 
       Chart.register(ChartDataLabels);
@@ -1151,8 +1530,8 @@
       let lastInformeData = [];
 
       /* ===========================
-   HELPERS
-=========================== */
+         HELPERS
+      =========================== */
 
       function updateClienteDisplay() {
         const nameEl = document.getElementById("cliente-display-name");
@@ -1321,6 +1700,132 @@
         return dt.isValid() ? dt.toISOString() : "";
       }
 
+      // Calcular estatus automático basado en campos de tiempo
+      function calcularEstatusAutomatico(data) {
+        const hasSalidaUnidad = !!(
+          data.realSalidaUnidad && String(data.realSalidaUnidad).trim()
+        );
+        const hasProcesoCarga = !!(
+          data.realCarga && String(data.realCarga).trim()
+        );
+        const hasSalidaCarga = !!(
+          data.realSalida && String(data.realSalida).trim()
+        );
+        const hasDescarga = !!(
+          data.realDescarga && String(data.realDescarga).trim()
+        );
+
+        // Verificar estados especiales (tienen prioridad sobre el cálculo automático)
+        const estatusManual = data.estatus_especial || "";
+        if (
+          estatusManual === "Cancelado" ||
+          estatusManual === "Despacho No realizado"
+        ) {
+          return estatusManual;
+        }
+
+        // REGLA ESPECIAL: Si solo tiene Proceso de Descarga = Despacho realizado
+        if (
+          hasDescarga &&
+          !hasSalidaCarga &&
+          !hasProcesoCarga &&
+          !hasSalidaUnidad
+        ) {
+          return "Despacho realizado";
+        }
+
+        // Calcular estatus basado en campos llenos (orden secuencial)
+        if (
+          hasDescarga &&
+          hasSalidaCarga &&
+          hasProcesoCarga &&
+          hasSalidaUnidad
+        ) {
+          return "Despacho realizado";
+        } else if (hasSalidaCarga && hasProcesoCarga && hasSalidaUnidad) {
+          return "Salida de Carga";
+        } else if (hasProcesoCarga && hasSalidaUnidad) {
+          return "Cargando";
+        } else if (hasSalidaUnidad) {
+          return "En ruta";
+        } else {
+          return "Programado";
+        }
+      }
+
+      // Calcular progreso (0-100) basado en campos completados
+      function calcularProgreso(data) {
+        let completados = 0;
+        const total = 4;
+
+        if (data.realSalidaUnidad && String(data.realSalidaUnidad).trim())
+          completados++;
+        if (data.realCarga && String(data.realCarga).trim()) completados++;
+        if (data.realSalida && String(data.realSalida).trim()) completados++;
+        if (data.realDescarga && String(data.realDescarga).trim())
+          completados++;
+
+        return Math.round((completados / total) * 100);
+      }
+
+      // Actualizar estatus y progreso desde el formulario
+      function updateEstatusFromForm() {
+        const form = document.getElementById("form-seguimiento");
+        if (!form) return;
+
+        // Obtener valores de los campos
+        const data = {
+          realSalidaUnidad: form.elements["realSalidaUnidad"]?.value || "",
+          realCarga: form.elements["realCarga"]?.value || "",
+          realSalida: form.elements["realSalida"]?.value || "",
+          realDescarga: form.elements["realDescarga"]?.value || "",
+          estatus_especial: form.elements["estatus_especial"]?.value || "",
+        };
+
+        // Calcular estatus automático
+        const estatusCalculado = calcularEstatusAutomatico(data);
+        const progresoCalculado = calcularProgreso(data);
+
+        // Actualizar badge de estatus
+        const container = document.getElementById("estatus-badge-container");
+        if (container) {
+          container.innerHTML = renderEstatusBadge(estatusCalculado);
+        }
+
+        // Actualizar barra de progreso
+        const progressFill = document.querySelector(".progress-fill");
+        if (progressFill) {
+          progressFill.style.width = progresoCalculado + "%";
+        }
+
+        // Actualizar porcentaje
+        const porcentajeEl = document.getElementById("progreso-porcentaje");
+        if (porcentajeEl) {
+          porcentajeEl.textContent = progresoCalculado + "%";
+        }
+      }
+
+      // Renderizar badge de estatus
+      function renderEstatusBadge(estatus) {
+        const badges = {
+          Programado:
+            '<span class="badge-estatus badge-programado">⚙️ Programado</span>',
+          "En ruta":
+            '<span class="badge-estatus badge-en-ruta">🚛 En Ruta</span>',
+          Cargando:
+            '<span class="badge-estatus badge-cargando">📦 Cargando</span>',
+          "Salida de Carga":
+            '<span class="badge-estatus badge-salida-carga">🚚 Salida de Carga</span>',
+          "Despacho realizado":
+            '<span class="badge-estatus badge-realizado">✅ Despacho Realizado</span>',
+          "Despacho No realizado":
+            '<span class="badge-estatus badge-no-realizado">❌ No Entregado</span>',
+          Cancelado:
+            '<span class="badge-estatus badge-cancelado">🚫 Cancelado</span>',
+        };
+        return badges[estatus] || "";
+      }
+
       function formatDateTime(iso) {
         if (!iso || !dayjs(iso).isValid()) return "-";
         const d = dayjs(iso);
@@ -1348,11 +1853,11 @@
       }
 
       /* ===========================
-   LOGIN + TABS
-=========================== */
-      function handleLogin(event) {
+         LOGIN + TABS
+      =========================== */
+      async function handleLogin(event) {
         if (event && event.preventDefault) event.preventDefault();
-        const username = (
+        const usernameInput = (
           document.getElementById("username")?.value || ""
         ).trim();
         const password = (
@@ -1361,27 +1866,48 @@
         const errorMessage = document.getElementById("login-error-message");
         if (errorMessage) errorMessage.classList.add("hidden");
 
-        const CREDENTIALS = [
-          { u: "user", p: "editor", role: "editor" },
-          { u: "view", p: "read", role: "lector" },
-        ];
-        const match = CREDENTIALS.find(
-          (c) => c.u === username && c.p === password,
-        );
-        if (!match) {
+        try {
+          const response = await fetch('/bitacora_/src/usuarios/login.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              username: usernameInput,
+              password: password
+            })
+          });
+
+          const data = await response.json();
+
+          if (!data.success) {
+            if (errorMessage) {
+              errorMessage.textContent = data.message || "Usuario o contraseña incorrectos.";
+              errorMessage.classList.remove("hidden");
+            }
+            return false;
+          }
+
+          // Store username globally and set user role with permissions
+          username = data.user.username;
+          setUserRole(data.user.role, data.user.unidades, data.user.tabs);
+          
+          // Reprocess data with unit filter
+          processData(allDespachosData);
+          
+        } catch (error) {
+          console.error('Login error:', error);
           if (errorMessage) {
-            errorMessage.textContent = "Usuario o contraseña incorrectos.";
+            errorMessage.textContent = "Error al iniciar sesión. Intenta de nuevo.";
             errorMessage.classList.remove("hidden");
           }
-          return false;
         }
-        setUserRole(match.role);
         return false;
       }
 
       function updateTabVisibility() {
-        const allowed = USER_ROLES[userRole]?.tabs ?? [];
-        for (let i = 0; i < 7; i++) {
+        const allowed = userTabs;
+        for (let i = 0; i < 8; i++) {
           const btn = document.getElementById(`tab-btn-${i}`);
           const tab = document.getElementById(`tab-${i}`);
           if (btn) btn.classList.toggle("hidden", !allowed.includes(i));
@@ -1395,12 +1921,12 @@
           document.getElementById("login-modal").classList.remove("hidden");
           return;
         }
-        const allowed = USER_ROLES[userRole].tabs;
+        const allowed = userTabs;
         if (!allowed.includes(index)) {
           alert("No tienes permiso para acceder a esta pestaña.");
           return;
         }
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 8; i++) {
           const btn = document.getElementById(`tab-btn-${i}`);
           const tab = document.getElementById(`tab-${i}`);
           if (btn && !btn.classList.contains("hidden")) {
@@ -1411,15 +1937,16 @@
         }
         if (index === 4) renderKPIs(filteredDespachosData);
         if (index === 5) {
-          renderInforme(allDespachosData);
+          renderInforme(filteredDespachosData);
           renderIncidenciasExecutiveReport();
         }
         if (index === 6) cargarInformesGuardados();
+        if (index === 7) renderValidacionesGPS();
       }
 
       /* ===========================
-   MODALS
-=========================== */
+         MODALS
+      =========================== */
       function openModal(id) {
         document.getElementById(id).classList.remove("hidden");
       }
@@ -1432,11 +1959,10 @@
       };
 
       /* ===========================
-   DATA LOAD (Sheets)
-=========================== */
+         DATA LOAD (Sheets)
+      =========================== */
       async function loadDataFromGoogleSheets(isInitialLoad = true) {
-        const url =
-          "/bitacora_/src/api/google-sheets-proxy.php?action=bitacora";
+        const url = "/bitacora_/src/api/google-sheets-proxy.php?action=datos";
         const response = await fetch(url);
         const apiResponse = await response.json();
         const values = apiResponse.data || [];
@@ -1524,15 +2050,62 @@
       }
 
       function convertSheetDataToObjects(data) {
-        if (data.length < 2) return [];
-        const headers = data
-          .shift()
-          .map((h) => (typeof h === "string" ? h.trim().toLowerCase() : h));
-        return data
+        if (data.length < 1) return [];
+
+        // Mapeo de nombres de columnas del Google Sheet a nombres esperados por el código
+        // Columnas reales del sheet: Fecha, Unidad, Placas, Id equipos, Operador, Telefono,
+        //                            Ruta, Origen, Destino, Salida Programada, Carga Programada,
+        //                            Salida Carga Programada, Descarga Programada, Cliente
+        const columnMap = {
+          "salida programada": "salida_prog",
+          "carga programada": "carga_prog",
+          "salida carga programada": "salida_carga_prog",
+          "descarga programada": "descarga_prog",
+          "id equipos": "id_equipos",
+          "teléfono": "telefono",
+          "telefono": "telefono",
+        };
+
+        // Fallback fijo por índice cuando el rango no incluye la fila de encabezados
+        // Orden real del Sheet (A→N): Fecha, Unidad, Placas, Id equipos, Operador, Telefono,
+        //                             Ruta, Origen, Destino, Salida Programada, Carga Programada,
+        //                             Salida Carga Programada, Descarga Programada, Cliente
+        const fallbackHeaders = [
+          "fecha", "unidad", "placas", "id_equipos", "operador", "telefono",
+          "ruta", "origen", "destino", "salida_prog", "carga_prog",
+          "salida_carga_prog", "descarga_prog", "cliente",
+        ];
+
+        // Detectar si la primera fila es encabezado o ya son datos
+        // Si la celda [0][0] parece una fecha (YYYY-MM-DD o DD/MM/YYYY), no es header
+        const firstCell = String(data[0][0] || "").trim();
+        const looksLikeDate = /^\d{4}-\d{2}-\d{2}/.test(firstCell) ||
+                              /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/.test(firstCell);
+
+        let headers;
+        let rows;
+
+        if (!looksLikeDate && data.length >= 2) {
+          // Primera fila son encabezados
+          headers = data
+            .shift()
+            .map((h) => (typeof h === "string" ? h.trim().toLowerCase() : h));
+          rows = data;
+        } else {
+          // Primera fila son ya datos — usar mapeo fijo por índice
+          console.warn("[Bitácora] La primera fila del proxy son datos, no encabezados. Usando mapeo fijo por índice. Corrige GOOGLE_SHEETS_RANGE_DATOS en .env del servidor para incluir la fila de headers.");
+          headers = fallbackHeaders;
+          rows = data;
+        }
+
+        return rows
           .map((row) => {
             const obj = {};
             headers.forEach((header, index) => {
-              if (header) obj[header] = row[index] || "";
+              if (header) {
+                const mappedHeader = columnMap[header] || header;
+                obj[mappedHeader] = row[index] || "";
+              }
             });
             return obj;
           })
@@ -1587,7 +2160,6 @@
             realCarga: "",
             realSalida: "",
             realDescarga: "",
-            confirmacionEntrega: null,
             estatus: "Programado",
             incidencias: [],
             observaciones: "",
@@ -1656,6 +2228,36 @@
         } catch (e) {}
       }
 
+      /**
+       * Filter data by assigned units based on user permissions
+       * Supports:
+       * - "*" wildcard for admin/editor (sees all)
+       * - Array of unit IDs (exact match with unidad column)
+       */
+      function filterDataByCliente(data) {
+        // If no user logged in or no data, return empty
+        if (!userRole || !data || data.length === 0) {
+          return [];
+        }
+
+        // Admin/editor with "*" sees all
+        if (userUnidades.includes('*')) {
+          return data;
+        }
+
+        // Filter by assigned units (exact match)
+        return data.filter(item => {
+          const itemUnidad = String(item?.unidad || '').trim().toUpperCase();
+          if (!itemUnidad) return false;
+
+          // Check if unit is in assigned list (case-insensitive exact match)
+          return userUnidades.some(allowedUnidad => {
+            const allowed = String(allowedUnidad).trim().toUpperCase();
+            return itemUnidad === allowed;
+          });
+        });
+      }
+
       function filterByDate() {
         const selectedDate = document.getElementById("date-filter").value;
         if (!selectedDate) filteredDespachosData = [...allDespachosData];
@@ -1663,6 +2265,10 @@
           filteredDespachosData = allDespachosData.filter(
             (d) => d.fechaProgramada === selectedDate,
           );
+        
+        // Apply unit filter
+        filteredDespachosData = filterDataByCliente(filteredDespachosData);
+        
         // Si ya cargamos seguimientos desde BD, aplicarlos a la vista actual.
         try {
           applySeguimientosDbToArray(filteredDespachosData);
@@ -1681,12 +2287,13 @@
         renderKPIs(filteredDespachosData);
         renderInforme(filteredDespachosData);
         renderIncidenciasExecutiveReport();
+        renderValidacionesGPS();
         updateClienteDisplay();
       }
 
       /* ===========================
-   TAB 0 / TAB 1
-=========================== */
+         TAB 0 / TAB 1
+      =========================== */
       function renderDatosGenerales() {
         const c = document.getElementById("datos-generales-container");
         c.innerHTML = "";
@@ -1755,25 +2362,25 @@
             : "";
 
           c.innerHTML += `
-            <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-100">
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
-                    d.unidad,
-                  )}${tramoLabel}</h3>
-                  <p class="text-sm text-gray-500">${escapeHtml(d.placas)}</p>
-                </div>
-                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                  Folio: ${String(d.folio).padStart(3, "0")}
-                </span>
-              </div>
-              <div class="space-y-2 text-sm">
-                <p><strong>Operador:</strong> ${escapeHtml(d.operador)}</p>
-                <p><strong>Ruta:</strong> ${escapeHtml(d.ruta)}</p>
-                <p><strong>Destino:</strong> ${escapeHtml(d.destino)}</p>
-                <p><strong>Cliente:</strong> ${escapeHtml(d.cliente)}</p>
-              </div>
-            </div>`;
+                  <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
+                          d.unidad,
+                        )}${tramoLabel}</h3>
+                        <p class="text-sm text-gray-500">${escapeHtml(d.placas)}</p>
+                      </div>
+                      <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                        Folio: ${String(d.folio).padStart(3, "0")}
+                      </span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                      <p><strong>Operador:</strong> ${escapeHtml(d.operador)}</p>
+                      <p><strong>Ruta:</strong> ${escapeHtml(d.ruta)}</p>
+                      <p><strong>Destino:</strong> ${escapeHtml(d.destino)}</p>
+                      <p><strong>Cliente:</strong> ${escapeHtml(d.cliente)}</p>
+                    </div>
+                  </div>`;
         });
 
         actualizarContadorDatosGenerales(mostrados, datosFiltrados.length);
@@ -1867,7 +2474,9 @@
           unidadIndex[unidadNombre] = 0;
         });
 
-        filteredDespachosData.forEach((d) => {
+        const isEditor = userRole === "editor" || userRole === "admin";
+
+        filteredDespachosData.forEach((d, index) => {
           // Determinar número de tramo si hay múltiples registros
           const unidadNombre = String(d.unidad || "").trim();
           const tieneMultiplesTramos = unidadCount[unidadNombre] > 1;
@@ -1883,32 +2492,135 @@
           const destinoUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
             d.destino || "",
           )}`;
+
+          const editButton = isEditor
+            ? `<button
+                onclick="openEditOrigenDestinoModal(${index})"
+                class="mt-3 w-full bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
+              >
+                Editar Origen/Destino
+              </button>`
+            : "";
+
           c.innerHTML += `
-            <div class="bg-white p-5 rounded-xl shadow border">
-              <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
-                d.unidad,
-              )}${tramoLabel}</h3>
-              <p class="text-sm text-gray-500">${escapeHtml(d.ruta)}</p>
-              <p class="text-sm mt-2"><strong>Origen:</strong>
-                <a href="${origenUrl}" target="_blank" class="text-blue-600 underline">${escapeHtml(
-                  d.origen || "N/A",
-                )}</a>
-              </p>
-              <p class="text-sm"><strong>Destino:</strong>
-                <a href="${destinoUrl}" target="_blank" class="text-blue-600 underline">${escapeHtml(
-                  d.destino || "N/A",
-                )}</a>
-              </p>
-              <p class="text-sm"><strong>Cliente:</strong> ${escapeHtml(
-                d.cliente || "N/A",
-              )}</p>
-            </div>`;
+                  <div class="bg-white p-5 rounded-xl shadow border">
+                    <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
+                      d.unidad,
+                    )}${tramoLabel}</h3>
+                    <p class="text-sm text-gray-500">${escapeHtml(d.ruta)}</p>
+                    <p class="text-sm mt-2"><strong>Origen:</strong>
+                      <a href="${origenUrl}" target="_blank" class="text-blue-600 underline">${escapeHtml(
+                        d.origen || "N/A",
+                      )}</a>
+                    </p>
+                    <p class="text-sm"><strong>Destino:</strong>
+                      <a href="${destinoUrl}" target="_blank" class="text-blue-600 underline">${escapeHtml(
+                        d.destino || "N/A",
+                      )}</a>
+                    </p>
+                    <p class="text-sm"><strong>Cliente:</strong> ${escapeHtml(
+                      d.cliente || "N/A",
+                    )}</p>
+                    ${editButton}
+                  </div>`;
         });
       }
 
+      // Abrir modal para editar origen/destino
+      function openEditOrigenDestinoModal(index) {
+        const despacho = filteredDespachosData[index];
+        if (!despacho) return;
+
+        document.getElementById("edit-folio").value = despacho.folio || "";
+        document.getElementById("edit-unidad").value = despacho.unidad || "";
+        document.getElementById("edit-unidad-display").value =
+          despacho.unidad || "";
+        document.getElementById("edit-origen").value = despacho.origen || "";
+        document.getElementById("edit-destino").value = despacho.destino || "";
+
+        document
+          .getElementById("edit-origen-destino-modal")
+          .classList.remove("hidden");
+      }
+
+      // Manejar submit del formulario de edición
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("form-edit-origen-destino");
+        if (form) {
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const folio = document.getElementById("edit-folio").value;
+            const unidad = document.getElementById("edit-unidad").value;
+            const origen = document.getElementById("edit-origen").value.trim();
+            const destino = document
+              .getElementById("edit-destino")
+              .value.trim();
+
+            if (!folio || !unidad) {
+              alert("Error: Faltan datos del despacho");
+              return;
+            }
+
+            if (!origen && !destino) {
+              alert("Debe ingresar al menos un origen o destino");
+              return;
+            }
+
+            // Deshabilitar botón de envío
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Guardando...";
+
+            try {
+              const response = await fetch(
+                "/bitacora_/src/origen_destino/actualizar_origen_destino.php",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    folio: folio,
+                    unidad: unidad,
+                    origen: origen,
+                    destino: destino,
+                  }),
+                },
+              );
+
+              const result = await response.json();
+
+              if (result.success) {
+                alert("Origen y destino actualizados correctamente");
+
+                // Cerrar modal
+                closeModal("edit-origen-destino-modal");
+
+                // Recargar datos de Google Sheets
+                await loadDataFromGoogleSheets(false);
+
+                // Re-renderizar la pestaña
+                renderOrigenDestino();
+              } else {
+                alert("Error: " + result.message);
+              }
+            } catch (error) {
+              console.error("Error al actualizar origen/destino:", error);
+              alert("Error al conectar con el servidor. Intente nuevamente.");
+            } finally {
+              // Restaurar botón
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalText;
+            }
+          });
+        }
+      });
+
       /* ===========================
-   TAB 2 (seguimiento) - versión compacta
-=========================== */
+         TAB 2 (seguimiento) - versión compacta
+      =========================== */
 
       function renderClienteFilter() {
         const container = document.getElementById("cliente-filter-container");
@@ -1924,12 +2636,12 @@
         ].sort();
 
         let html = `
-        <div class="mb-4">
-          <label class="block mb-2 font-semibold">Filtrar por Cliente:</label>
-          <select id="cliente-filter" onchange="filterByCliente()" 
-                  class="border px-3 py-2 rounded w-full max-w-md">
-            <option value="">Todos los clientes</option>
-      `;
+              <div class="mb-4">
+                <label class="block mb-2 font-semibold">Filtrar por Cliente:</label>
+                <select id="cliente-filter" onchange="filterByCliente()"
+                        class="border px-3 py-2 rounded w-full max-w-md">
+                  <option value="">Todos los clientes</option>
+            `;
 
         clientes.forEach((cliente) => {
           html += `<option value="${escapeHtml(cliente)}">${escapeHtml(
@@ -2040,19 +2752,19 @@
         if (idx === "") return;
         const d = filteredDespachosData[Number(idx)];
         document.getElementById("modal-body").innerHTML = `
-          <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <p><strong>Folio:</strong></p><p>${escapeHtml(
-              String(d.folio).padStart(3, "0"),
-            )}</p>
-            <p><strong>Unidad:</strong></p><p>${escapeHtml(d.unidad)}</p>
-            <p><strong>Placas:</strong></p><p>${escapeHtml(d.placas)}</p>
-            <p><strong>Operador:</strong></p><p>${escapeHtml(d.operador)}</p>
-            <p><strong>Teléfono:</strong></p><p>${escapeHtml(d.telefono)}</p>
-            <p><strong>Ruta:</strong></p><p>${escapeHtml(d.ruta)}</p>
-            <p><strong>Origen:</strong></p><p>${escapeHtml(d.origen)}</p>
-            <p><strong>Destino:</strong></p><p>${escapeHtml(d.destino)}</p>
-            <p><strong>Cliente:</strong></p><p>${escapeHtml(d.cliente)}</p>
-          </div>`;
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <p><strong>Folio:</strong></p><p>${escapeHtml(
+                    String(d.folio).padStart(3, "0"),
+                  )}</p>
+                  <p><strong>Unidad:</strong></p><p>${escapeHtml(d.unidad)}</p>
+                  <p><strong>Placas:</strong></p><p>${escapeHtml(d.placas)}</p>
+                  <p><strong>Operador:</strong></p><p>${escapeHtml(d.operador)}</p>
+                  <p><strong>Teléfono:</strong></p><p>${escapeHtml(d.telefono)}</p>
+                  <p><strong>Ruta:</strong></p><p>${escapeHtml(d.ruta)}</p>
+                  <p><strong>Origen:</strong></p><p>${escapeHtml(d.origen)}</p>
+                  <p><strong>Destino:</strong></p><p>${escapeHtml(d.destino)}</p>
+                  <p><strong>Cliente:</strong></p><p>${escapeHtml(d.cliente)}</p>
+                </div>`;
         openModal("data-modal");
       }
 
@@ -2103,36 +2815,36 @@
                   : "incidencia-verde";
 
             return `
-            <div class="text-sm p-2 rounded-md ${cls} flex items-center justify-between gap-3">
-              <div class="min-w-0">
-                <strong>${escapeHtml(tipo)}</strong>
-                <span class="opacity-80">— ${formatDateTime(
-                  inc && inc.fecha ? inc.fecha : "",
-                )}</span>
-                ${
-                  inc && inc.direccion
-                    ? `<div class="text-xs opacity-80 mt-1">Dirección: ${escapeHtml(
-                        inc.direccion,
-                      )}</div>`
-                    : ``
-                }
-              </div>
-              ${
-                isEditor
-                  ? `<button type="button" onclick="deleteIncidencia(${despachoIndex}, ${incIndex})" class="p-1 text-red-700 hover:text-red-900" title="Eliminar incidencia">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M15 6V4c0-1-1-2-2-2h-2c-1 0-2 1-2 2v2"/>
-                      </svg>
-                    </button>`
-                  : ``
-              }
-            </div>`;
+                  <div class="text-sm p-2 rounded-md ${cls} flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                      <strong>${escapeHtml(tipo)}</strong>
+                      <span class="opacity-80">— ${formatDateTime(
+                        inc && inc.fecha ? inc.fecha : "",
+                      )}</span>
+                      ${
+                        inc && inc.direccion
+                          ? `<div class="text-xs opacity-80 mt-1">Dirección: ${escapeHtml(
+                              inc.direccion,
+                            )}</div>`
+                          : ``
+                      }
+                    </div>
+                    ${
+                      isEditor
+                        ? `<button type="button" onclick="deleteIncidencia(${despachoIndex}, ${incIndex})" class="p-1 text-red-700 hover:text-red-900" title="Eliminar incidencia">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M15 6V4c0-1-1-2-2-2h-2c-1 0-2 1-2 2v2"/>
+                            </svg>
+                          </button>`
+                        : ``
+                    }
+                  </div>`;
           })
           .join("");
       }
 
       function deleteIncidencia(despachoIndex, incIndex) {
-        if (userRole !== "editor") return;
+        if (userRole !== "editor" && userRole !== "admin") return;
         const d = filteredDespachosData[despachoIndex];
         if (!d || !Array.isArray(d.incidencias)) return;
         d.incidencias.splice(incIndex, 1);
@@ -2366,16 +3078,16 @@
               ? "bg-orange-100 text-orange-800"
               : "bg-green-100 text-green-800";
         bodyEl.innerHTML = `
-          <div class="mb-4">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${badgeClass}">
-              ${item.nivel}
-            </span>
-          </div>
-          <ol class="list-decimal ml-5 space-y-2 text-gray-700">
-            ${(item.pasos || [])
-              .map((p) => `<li>${escapeHtml(p)}</li>`)
-              .join("")}
-          </ol>`;
+                <div class="mb-4">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${badgeClass}">
+                    ${item.nivel}
+                  </span>
+                </div>
+                <ol class="list-decimal ml-5 space-y-2 text-gray-700">
+                  ${(item.pasos || [])
+                    .map((p) => `<li>${escapeHtml(p)}</li>`)
+                    .join("")}
+                </ol>`;
         openModal("protocolo-modal");
       }
 
@@ -2388,223 +3100,253 @@
           return;
         }
 
-        const isEditor = userRole === "editor";
+        const isEditor = userRole === "editor" || userRole === "admin";
         const disabled = isEditor ? "" : "disabled";
         const readOnly = isEditor ? "" : "readonly";
 
         const incidenciaOptions = `
-          <option value="">-- Seleccione incidencia --</option>
-          <optgroup label="🔴 Críticas (Rojo)">
-            <option>Desconexión de batería</option>
-            <option>Botón de pánico</option>
-            <option>Persecución</option>
-            <option>Accidente vehicular propio</option>
-            <option>Robo o asalto</option>
-            <option>Despacho No Recibido</option>
-          </optgroup>
-          <optgroup label="🟠 Relevantes (Naranja)">
-            <option>Ausencia de actualización</option>
-            <option>Parada no autorizada</option>
-            <option>Operador no contesta más de 2 veces</option>
-            <option>Detención por faltas al reglamento de tránsito</option>
-            <option>Falla mecánica</option>
-            <option>Ponchadura de llantas</option>
-            <option>Cierres carreteros</option>
-            <option>Condiciones climatológicas</option>
-            <option>Sin contacto con el operador</option>
-            <option>Desvío de ruta</option>
-            <option>Vehículo sospechoso</option>
-          </optgroup>
-          <optgroup label="🟢 Ordinarias (Verde)">
-            <option>Salida a destiempo</option>
-            <option>Desconocimiento de lugar de entrega</option>
-            <option>Mala actitud del Operador</option>
-          </optgroup>`;
+                <option value="">-- Seleccione incidencia --</option>
+                <optgroup label="🔴 Críticas (Rojo)">
+                  <option>Desconexión de batería</option>
+                  <option>Botón de pánico</option>
+                  <option>Persecución</option>
+                  <option>Accidente vehicular propio</option>
+                  <option>Robo o asalto</option>
+                  <option>Despacho No Recibido</option>
+                </optgroup>
+                <optgroup label="🟠 Relevantes (Naranja)">
+                  <option>Ausencia de actualización</option>
+                  <option>Parada no autorizada</option>
+                  <option>Operador no contesta más de 2 veces</option>
+                  <option>Detención por faltas al reglamento de tránsito</option>
+                  <option>Falla mecánica</option>
+                  <option>Ponchadura de llantas</option>
+                  <option>Cierres carreteros</option>
+                  <option>Condiciones climatológicas</option>
+                  <option>Sin contacto con el operador</option>
+                  <option>Desvío de ruta</option>
+                  <option>Vehículo sospechoso</option>
+                </optgroup>
+                <optgroup label="🟢 Ordinarias (Verde)">
+                  <option>Salida a destiempo</option>
+                  <option>Desconocimiento de lugar de entrega</option>
+                  <option>Mala actitud del Operador</option>
+                </optgroup>`;
 
-        const timeField = (label, name, realIso, progIso) => `
-          <div>
-            <label class="block text-sm font-medium text-gray-700">${label}</label>
-            <input name="${name}" type="datetime-local" value="${formatForInput(
-              realIso,
-            )}" class="mt-1 w-full p-2 border rounded-md" ${readOnly} />
-            <div class="mt-2 p-2 bg-gray-100 border border-gray-200 rounded-md text-sm text-gray-700">
-              <strong>Programada:</strong> ${formatDateTime(progIso)}
-            </div>
-          </div>`;
+        const timeField = (label, name, realIso, progIso) => {
+          const hasValue = realIso && realIso.trim();
+          const containerClass = hasValue
+            ? "field-programada"
+            : "field-no-programada";
+          const badgeHtml = hasValue
+            ? ""
+            : `
+                  <span class="badge-no-programada" id="badge-${name}">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    NO PROGRAMADA
+                  </span>
+                `;
+
+          return `
+                <div class="${containerClass} p-4 transition-all duration-300" id="container-${name}">
+                  <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-medium text-gray-700">${label}</label>
+                    ${badgeHtml}
+                  </div>
+                  <input
+                    name="${name}"
+                    type="datetime-local"
+                    value="${formatForInput(realIso)}"
+                    class="mt-1 w-full p-2 border rounded-md"
+                    ${readOnly}
+                    onchange="updateTimeFieldStatus('${name}'); updateEstatusFromForm();"
+                    oninput="updateTimeFieldStatus('${name}')"
+                  />
+                  <div class="mt-2 p-2 bg-gray-100 border border-gray-200 rounded-md text-sm text-gray-700">
+                    <strong>Programada:</strong> ${formatDateTime(progIso)}
+                  </div>
+                </div>
+                `;
+        };
 
         container.innerHTML = `
-          <form id="form-seguimiento" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="bg-gray-50 border rounded-xl p-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">ID del Operador de Monitoreo</label>
-                <select name="operadorMonitoreoId" class="w-full p-2 border rounded-md" ${disabled}>
-                  <option value="">-- Seleccione --</option>
-                  ${["GEO-01", "GEO-02", "GEO-03", "GEO-04", "GEO-05", "GEO-06"]
-                    .map(
-                      (v) =>
-                        `<option value="${v}" ${
-                          d.operadorMonitoreoId === v ? "selected" : ""
-                        }>${v}</option>`,
-                    )
-                    .join("")}
-                </select>
-              </div>
+                <form id="form-seguimiento" class="space-y-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 border rounded-xl p-4">
+                      <label class="block text-sm font-semibold text-gray-700 mb-2">ID del Operador de Monitoreo</label>
+                      <select name="operadorMonitoreoId" class="w-full p-2 border rounded-md" ${disabled}>
+                        <option value="">-- Seleccione --</option>
+                        ${[
+                          "GEO-01",
+                          "GEO-02",
+                          "GEO-03",
+                          "GEO-04",
+                          "GEO-05",
+                          "GEO-06",
+                        ]
+                          .map(
+                            (v) =>
+                              `<option value="${v}" ${
+                                d.operadorMonitoreoId === v ? "selected" : ""
+                              }>${v}</option>`,
+                          )
+                          .join("")}
+                      </select>
+                    </div>
 
-              <div class="bg-gray-50 border rounded-xl p-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Validación GPS y accesorios</label>
-                <select name="gpsValidacionEstado" class="w-full p-2 border rounded-md" ${disabled}>
-                  <option value="">-- Seleccione --</option>
-                  <option value="Operativo" ${
-                    String(d.gpsValidacionEstado).toLowerCase() === "operativo"
-                      ? "selected"
-                      : ""
-                  }>Operativo</option>
-                  <option value="No Operativo" ${
-                    String(d.gpsValidacionEstado).toLowerCase() ===
-                    "no operativo"
-                      ? "selected"
-                      : ""
-                  }>No Operativo</option>
-                </select>
-                <p class="mt-2 text-xs text-gray-500">Última validación: <span class="font-semibold">${
-                  d.gpsValidacionTimestamp
-                    ? formatDateTime(d.gpsValidacionTimestamp)
-                    : "Sin registro"
-                }</span></p>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              ${timeField(
-                "Salida inicial de la Unidad (Real)",
-                "realSalidaUnidad",
-                d.realSalidaUnidad,
-                d.citaSalidaUnidad,
-              )}
-              ${timeField(
-                "Cita de Carga (Real)",
-                "realCarga",
-                d.realCarga,
-                d.citaCarga,
-              )}
-              ${timeField(
-                "Salida de carga (Real)",
-                "realSalida",
-                d.realSalida,
-                d.citaSalida,
-              )}
-              ${timeField(
-                "Proceso de Descarga (Real)",
-                "realDescarga",
-                d.realDescarga,
-                d.citaDescarga,
-              )}
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium">Confirmación de Entrega</label>
-                <select name="confirmacionEntrega" class="mt-1 w-full p-2 border rounded-md" ${disabled}>
-                  <option value="">-- Seleccione --</option>
-                  <option value="SI" ${
-                    d.confirmacionEntrega === "SI" ? "selected" : ""
-                  }>SI</option>
-                  <option value="NO" ${
-                    d.confirmacionEntrega === "NO" ? "selected" : ""
-                  }>NO</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-medium">Estatus</label>
-                <select name="estatus" class="mt-1 w-full p-2 border rounded-md" ${disabled}>
-                  ${[
-                    "Programado",
-                    "En ruta",
-                    "Despacho realizado",
-                    "Despacho No realizado",
-                    "Cancelado",
-                  ]
-                    .map(
-                      (v) =>
-                        `<option ${
-                          d.estatus === v ? "selected" : ""
-                        }>${v}</option>`,
-                    )
-                    .join("")}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">Observaciones</label>
-              <textarea name="observaciones" rows="3" class="mt-1 w-full p-2 border rounded-md" ${readOnly}>${escapeHtml(
-                d.observaciones || "",
-              )}</textarea>
-            </div>
-
-            <div class="mt-4 border-t pt-4 grid grid-cols-1 gap-4">
-              <div>
-                <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
-                  <div class="text-sm text-gray-600">
-                    Incidencias: <strong>${
-                      (d.incidencias || []).length
-                    }</strong>
+                    <div class="bg-gray-50 border rounded-xl p-4">
+                      <label class="block text-sm font-semibold text-gray-700 mb-2">Validación GPS y accesorios</label>
+                      <div class="space-y-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                        ${renderGpsCheckboxes(d.gpsValidacionEstado, disabled)}
+                      </div>
+                      <p class="mt-3 text-xs text-gray-500">Última validación: <span class="font-semibold">${
+                        d.gpsValidacionTimestamp
+                          ? formatDateTime(d.gpsValidacionTimestamp)
+                          : "Sin registro"
+                      }</span></p>
+                    </div>
                   </div>
 
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <select id="incidencia-tipo" class="p-2 border rounded-md w-72" ${disabled} onchange="handleIncidenciaTipoChange()">
-                      ${incidenciaOptions}
-                    </select>
-
-                    <div id="incidencia-direccion-wrapper" class="hidden w-full md:w-[32rem]">
-
-                    <label class="block text-sm font-medium text-gray-700">Dirección de ocurrencia</label>
-
-                    <input
-
-                      id="incidencia-direccion"
-
-                      type="text"
-
-                      placeholder="Ej. Km 43 Aut. México-Querétaro, Col. ..., Municipio, Estado"
-
-                      class="mt-1 w-full p-2 border rounded-md"
-
-                      ${disabled}
-
-                    />
-
-                    <p class="text-xs text-gray-500 mt-1">
-
-                      Se guardará junto a la incidencia y se verá en el Informe Ejecutivo.
-
-                    </p>
-
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${timeField(
+                      "Salida inicial de la Unidad (Real)",
+                      "realSalidaUnidad",
+                      d.realSalidaUnidad,
+                      d.citaSalidaUnidad,
+                    )}
+                    ${timeField(
+                      "Cita de Carga (Real)",
+                      "realCarga",
+                      d.realCarga,
+                      d.citaCarga,
+                    )}
+                    ${timeField(
+                      "Salida de carga (Real)",
+                      "realSalida",
+                      d.realSalida,
+                      d.citaSalida,
+                    )}
+                    ${timeField(
+                      "Proceso de Descarga (Real)",
+                      "realDescarga",
+                      d.realDescarga,
+                      d.citaDescarga,
+                    )}
                   </div>
 
-                    <button type="button" onclick="addIncidencia(${index})" ${disabled}
-                      class="bg-slate-700 text-white px-4 py-2 rounded-md hover:bg-slate-800 disabled:bg-gray-400">
-                      Agregar
-                    </button>
+                  <div class="bg-gray-50 border-2 rounded-xl p-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Estatus del Despacho</label>
 
-                    <button type="button" onclick="showProtocoloIncidenciaFromSelect()"
-                      class="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700">
-                      Ver protocolo
-                    </button>
+                    <!-- Estatus automático calculado -->
+                    <div class="bg-white border-2 border-indigo-200 rounded-lg p-4 mb-3">
+                      <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-600">Progreso del Despacho:</span>
+                        <span id="progreso-porcentaje" class="text-sm font-bold text-indigo-600">${calcularProgreso(d)}%</span>
+                      </div>
+                      <div class="progress-bar mb-3">
+                        <div class="progress-fill" style="width: ${calcularProgreso(d)}%"></div>
+                      </div>
+                      <div id="estatus-badge-container">
+                        ${renderEstatusBadge(calcularEstatusAutomatico(d))}
+                      </div>
+                    </div>
 
-                    <button type="button" id="btn-guardar-seguimiento-${index}" onclick="saveSeguimiento(${index})" ${disabled}
-                      class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:bg-gray-400">
-                      Guardar
-                    </button>
+                    <!-- Estado especial (Cancelado / No realizado) -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Estado Especial (opcional)</label>
+                      <select name="estatus_especial" class="mt-1 w-full p-2.5 border-2 rounded-lg text-base" ${disabled} onchange="updateEstatusFromForm()">
+                        <option value="">-- Sin estado especial --</option>
+                        <option value="Cancelado" ${
+                          d.estatus_especial === "Cancelado" ||
+                          d.estatus === "Cancelado"
+                            ? "selected"
+                            : ""
+                        }>🚫 Cancelado</option>
+                        <option value="Despacho No realizado" ${
+                          d.estatus_especial === "Despacho No realizado" ||
+                          d.estatus === "Despacho No realizado"
+                            ? "selected"
+                            : ""
+                        }>❌ Despacho No realizado</option>
+                      </select>
+                      <p class="text-xs text-gray-500 mt-1">
+                        Solo seleccione si el despacho fue cancelado o no se realizó. El estatus normal se calcula automáticamente.
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div class="space-y-2" id="incidencias-list">
-                  ${renderIncidencias(d.incidencias || [], index, isEditor)}
-                </div>
-              </div>
-            </div>
-          </form>`;
+                  <div>
+                    <label class="block text-sm font-medium">Observaciones</label>
+                    <textarea name="observaciones" rows="3" class="mt-1 w-full p-2 border rounded-md" ${readOnly}>${escapeHtml(
+                      d.observaciones || "",
+                    )}</textarea>
+                  </div>
+
+                  <div class="mt-4 border-t pt-4 grid grid-cols-1 gap-4">
+                    <div>
+                      <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+                        <div class="text-sm text-gray-600">
+                          Incidencias: <strong>${
+                            (d.incidencias || []).length
+                          }</strong>
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <select id="incidencia-tipo" class="p-2 border rounded-md w-72" ${disabled} onchange="handleIncidenciaTipoChange()">
+                            ${incidenciaOptions}
+                          </select>
+
+                          <div id="incidencia-direccion-wrapper" class="hidden w-full md:w-[32rem]">
+
+                          <label class="block text-sm font-medium text-gray-700">Dirección de ocurrencia</label>
+
+                          <input
+
+                            id="incidencia-direccion"
+
+                            type="text"
+
+                            placeholder="Ej. Km 43 Aut. México-Querétaro, Col. ..., Municipio, Estado"
+
+                            class="mt-1 w-full p-2 border rounded-md"
+
+                            ${disabled}
+
+                          />
+
+                          <p class="text-xs text-gray-500 mt-1">
+
+                            Se guardará junto a la incidencia y se verá en el Informe Ejecutivo.
+
+                          </p>
+
+                        </div>
+
+                          <button type="button" onclick="addIncidencia(${index})" ${disabled}
+                            class="bg-slate-700 text-white px-4 py-2 rounded-md hover:bg-slate-800 disabled:bg-gray-400">
+                            Agregar
+                          </button>
+
+                          <button type="button" onclick="showProtocoloIncidenciaFromSelect()"
+                            class="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700">
+                            Ver protocolo
+                          </button>
+
+                          <button type="button" id="btn-guardar-seguimiento-${index}" onclick="saveSeguimiento(${index})" ${disabled}
+                            class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:bg-gray-400">
+                            Guardar
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="space-y-2" id="incidencias-list">
+                        ${renderIncidencias(d.incidencias || [], index, isEditor)}
+                      </div>
+                    </div>
+                  </div>
+                </form>`;
         container.classList.remove("hidden");
         setTimeout(() => {
           handleIncidenciaTipoChange();
@@ -2615,7 +3357,7 @@
       // Validar estado del botón Guardar - siempre habilitado para editores
       function updateGuardarButtonState(index) {
         const btn = document.getElementById(`btn-guardar-seguimiento-${index}`);
-        if (!btn || userRole !== "editor") return;
+        if (!btn || (userRole !== "editor" && userRole !== "admin")) return;
 
         // El botón siempre está habilitado para editores
         // Se puede guardar con o sin incidencias
@@ -2623,9 +3365,234 @@
         btn.title = "Guardar seguimiento";
       }
 
+      // Renderizar checkboxes de GPS
+      function renderGpsCheckboxes(currentValue, disabled) {
+        const opciones = [
+          { id: "boton_panico", label: "Botón de pánico" },
+          { id: "paro_motor_puerta", label: "Paro de motor de puerta" },
+          { id: "paro_motor", label: "Paro de motor" },
+          { id: "camaras", label: "Cámaras" },
+          { id: "desactivar_puertas", label: "Desactivar puertas" },
+        ];
+
+        // Parsear valor actual (puede ser JSON array o string legacy)
+        let selected = [];
+        if (currentValue) {
+          try {
+            // Intentar parsear como JSON array
+            selected = JSON.parse(currentValue);
+            if (!Array.isArray(selected)) selected = [];
+          } catch (e) {
+            // Si falla, es formato legacy ("Operativo" / "No Operativo")
+            // Dejar vacío para nueva migración
+            selected = [];
+          }
+        }
+
+        return opciones
+          .map((opcion) => {
+            const checked = selected.includes(opcion.id) ? "checked" : "";
+            return `
+                  <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                    <input
+                      type="checkbox"
+                      name="gpsValidacion"
+                      value="${opcion.id}"
+                      ${checked}
+                      ${disabled}
+                      class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    />
+                    <span class="text-sm text-gray-700">${opcion.label}</span>
+                  </label>
+                `;
+          })
+          .join("");
+      }
+
+      // Obtener valores seleccionados de checkboxes GPS
+      function getGpsValidacionValues() {
+        const checkboxes = document.querySelectorAll(
+          'input[name="gpsValidacion"]:checked',
+        );
+        const values = Array.from(checkboxes).map((cb) => cb.value);
+        return JSON.stringify(values); // Retornar como JSON string para BD
+      }
+
+      // Formatear estado GPS para visualización
+      function formatGpsEstado(gpsValidacionEstado) {
+        if (!gpsValidacionEstado) return "Sin registro";
+
+        try {
+          const items = JSON.parse(gpsValidacionEstado);
+          if (!Array.isArray(items) || items.length === 0)
+            return "Sin validación";
+
+          const labels = {
+            boton_panico: "Botón de pánico",
+            paro_motor_puerta: "Paro de motor de puerta",
+            paro_motor: "Paro de motor",
+            camaras: "Cámaras",
+            desactivar_puertas: "Desactivar puertas",
+          };
+
+          return items.map((item) => labels[item] || item).join(", ");
+        } catch (e) {
+          // Si no es JSON, es formato legacy
+          return String(gpsValidacionEstado);
+        }
+      }
+
+      // Verificar si GPS está operativo (tiene al menos un elemento seleccionado)
+      function isGpsOperativo(gpsValidacionEstado) {
+        if (!gpsValidacionEstado) return false;
+
+        try {
+          const items = JSON.parse(gpsValidacionEstado);
+          return Array.isArray(items) && items.length > 0;
+        } catch (e) {
+          // Formato legacy
+          return String(gpsValidacionEstado).toLowerCase() === "operativo";
+        }
+      }
+
+      // Actualizar estado visual de campo de fecha
+      function updateTimeFieldStatus(fieldName) {
+        const input = document.querySelector(`input[name="${fieldName}"]`);
+        const container = document.getElementById(`container-${fieldName}`);
+        const badge = document.getElementById(`badge-${fieldName}`);
+
+        if (!input || !container) return;
+
+        const hasValue = input.value && input.value.trim();
+
+        if (hasValue) {
+          // Tiene valor - estilo normal
+          container.className =
+            "field-programada p-4 transition-all duration-300";
+          if (badge) badge.style.display = "none";
+        } else {
+          // Sin valor - estilo "no programada"
+          container.className =
+            "field-no-programada p-4 transition-all duration-300";
+          if (badge) badge.style.display = "inline-flex";
+        }
+      }
+
+      // Renderizar badge de estatus
+      function renderEstatusBadge(estatus) {
+        const badges = {
+          Programado:
+            '<span class="badge-estatus badge-programado">⚙️ Programado</span>',
+          "En ruta":
+            '<span class="badge-estatus badge-en-ruta">🚛 En Tránsito</span>',
+          "Despacho realizado":
+            '<span class="badge-estatus badge-realizado">✅ Entregado Exitosamente</span>',
+          "Despacho No realizado":
+            '<span class="badge-estatus badge-no-realizado">❌ No Entregado</span>',
+          Cancelado:
+            '<span class="badge-estatus badge-cancelado">🚫 Cancelado</span>',
+        };
+        return badges[estatus] || "";
+      }
+
+      // Actualizar badge de estatus dinámicamente
+      function updateEstatusDisplay(estatus) {
+        const container = document.getElementById("estatus-badge-container");
+        if (container) {
+          container.innerHTML = renderEstatusBadge(estatus);
+        }
+      }
+
+      // Mostrar modal con detalles de validación GPS
+      function showGpsDetailsModal(index) {
+        const d = filteredDespachosData[index];
+        if (!d) return;
+
+        const titleEl = document.getElementById("gps-details-modal-title");
+        const bodyEl = document.getElementById("gps-details-modal-body");
+
+        titleEl.textContent = `Validación GPS - ${d.unidad}`;
+
+        const gpsOk = isGpsOperativo(d.gpsValidacionEstado);
+        const statusClass = gpsOk
+          ? "bg-green-100 text-green-800"
+          : "bg-red-100 text-red-800";
+        const statusText = gpsOk ? "Validado" : "Sin validación";
+
+        let validacionesHtml =
+          '<p class="text-gray-500 italic">Sin validaciones registradas</p>';
+
+        if (gpsOk) {
+          try {
+            const items = JSON.parse(d.gpsValidacionEstado);
+            const labels = {
+              boton_panico: "Botón de pánico",
+              paro_motor_puerta: "Paro de motor de puerta",
+              paro_motor: "Paro de motor",
+              camaras: "Cámaras",
+              desactivar_puertas: "Desactivar puertas",
+            };
+
+            validacionesHtml = '<ul class="space-y-2">';
+            items.forEach((item) => {
+              validacionesHtml += `
+                      <li class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-gray-700">${escapeHtml(labels[item] || item)}</span>
+                      </li>
+                    `;
+            });
+            validacionesHtml += "</ul>";
+          } catch (e) {
+            validacionesHtml = `<p class="text-gray-700">${escapeHtml(d.gpsValidacionEstado)}</p>`;
+          }
+        }
+
+        bodyEl.innerHTML = `
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-600">Estado:</span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${statusClass}">
+                      ${statusText}
+                    </span>
+                  </div>
+
+                  <div class="border-t pt-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Accesorios Validados:</h4>
+                    ${validacionesHtml}
+                  </div>
+
+                  <div class="border-t pt-4">
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span class="font-medium text-gray-600">Cliente:</span>
+                        <p class="text-gray-800">${escapeHtml(d.cliente || "N/A")}</p>
+                      </div>
+                      <div>
+                        <span class="font-medium text-gray-600">Placas:</span>
+                        <p class="text-gray-800">${escapeHtml(d.placas || "N/A")}</p>
+                      </div>
+                      <div>
+                        <span class="font-medium text-gray-600">Operador Monitor:</span>
+                        <p class="text-gray-800">${escapeHtml(d.operadorMonitoreoId || "No asignado")}</p>
+                      </div>
+                      <div>
+                        <span class="font-medium text-gray-600">Última actualización:</span>
+                        <p class="text-gray-800">${d.gpsValidacionTimestamp ? formatDateTime(d.gpsValidacionTimestamp) : "Sin registro"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+
+        openModal("gps-details-modal");
+      }
+
       // ✅ ÚNICA addIncidencia (con envío a Make)
       function addIncidencia(index) {
-        if (userRole !== "editor") return;
+        if (userRole !== "editor" && userRole !== "admin") return;
 
         const sel = document.getElementById("incidencia-tipo");
         const tipo = sel ? sel.value : "";
@@ -2712,7 +3679,7 @@
       let pendingSaveIndex = null;
 
       function saveSeguimiento(index) {
-        if (userRole !== "editor") return;
+        if (userRole !== "editor" && userRole !== "admin") return;
 
         const d = filteredDespachosData[index];
 
@@ -2744,10 +3711,14 @@
 
         d.operadorMonitoreoId =
           form.elements["operadorMonitoreoId"]?.value || "";
-        d.gpsValidacionEstado =
-          form.elements["gpsValidacionEstado"]?.value || "";
+
+        // Obtener valores de checkboxes GPS
+        const gpsValuesNew = getGpsValidacionValues();
+        const gpsValuesChanged = gpsValuesNew !== d.gpsValidacionEstado;
+        d.gpsValidacionEstado = gpsValuesNew;
+
         // Actualizar timestamp solo si cambió el estado
-        if (form.elements["gpsValidacionEstado"]?.value) {
+        if (gpsValuesChanged && gpsValuesNew !== "[]") {
           d.gpsValidacionTimestamp = new Date().toISOString();
         }
 
@@ -2755,19 +3726,12 @@
         d.realCarga = form.elements["realCarga"]?.value || "";
         d.realSalida = form.elements["realSalida"]?.value || "";
         d.realDescarga = form.elements["realDescarga"]?.value || "";
-        d.confirmacionEntrega =
-          form.elements["confirmacionEntrega"]?.value || null;
 
-        const est = form.elements["estatus"]?.value;
-        // Prioridad: 1) Confirmación de entrega, 2) Estatus seleccionado manualmente
-        if (d.confirmacionEntrega === "SI") {
-          d.estatus = "Despacho realizado";
-        } else if (d.confirmacionEntrega === "NO") {
-          d.estatus = "Despacho No realizado";
-        } else {
-          // Respetar el estatus seleccionado manualmente por el usuario
-          d.estatus = est;
-        }
+        // Obtener estado especial (si existe)
+        d.estatus_especial = form.elements["estatus_especial"]?.value || "";
+
+        // Calcular estatus automático
+        d.estatus = calcularEstatusAutomatico(d);
 
         d.observaciones = form.elements["observaciones"]?.value || "";
 
@@ -2783,8 +3747,8 @@
       }
 
       /* ===========================
-    Seguimiento en BD (MySQL)
-=========================== */
+          Seguimiento en BD (MySQL)
+      =========================== */
       const SEGUIMIENTO_SAVE_ENDPOINT =
         "/bitacora_/src/seguimiento/guardar_seguimiento.php";
       const SEGUIMIENTO_LOAD_ENDPOINT =
@@ -2837,13 +3801,8 @@
           realCarga: r?.real_carga ?? "",
           realSalida: r?.real_salida ?? "",
           realDescarga: r?.real_descarga ?? "",
-
-          confirmacionEntrega:
-            r?.confirmacion_entrega === null ||
-            typeof r?.confirmacion_entrega === "undefined"
-              ? null
-              : String(r.confirmacion_entrega),
-          estatus: r?.estatus ?? "",
+          estatus: r?.estatus ?? "Programado",
+          estatus_especial: r?.estatus_especial ?? "",
           observaciones: r?.observaciones ?? "",
           incidencias: parseIncidenciasFromDbString(r?.incidencias),
         };
@@ -2867,10 +3826,8 @@
           d.realCarga = s.realCarga || d.realCarga;
           d.realSalida = s.realSalida || d.realSalida;
           d.realDescarga = s.realDescarga || d.realDescarga;
-
-          if (s.confirmacionEntrega !== null)
-            d.confirmacionEntrega = s.confirmacionEntrega;
           d.estatus = s.estatus || d.estatus;
+          d.estatus_especial = s.estatus_especial || d.estatus_especial || "";
           d.observaciones =
             typeof s.observaciones === "string" && s.observaciones.trim()
               ? s.observaciones
@@ -2935,8 +3892,8 @@
           realCarga: d.realCarga || "",
           realSalida: d.realSalida || "",
           realDescarga: d.realDescarga || "",
-          confirmacionEntrega: d.confirmacionEntrega,
-          estatus: d.estatus || "",
+          estatus: d.estatus || "Programado",
+          estatus_especial: d.estatus_especial || "",
           observaciones: d.observaciones || "",
           incidencias: Array.isArray(d.incidencias) ? d.incidencias : [],
         };
@@ -2978,8 +3935,8 @@
           realCarga: d.realCarga || "",
           realSalida: d.realSalida || "",
           realDescarga: d.realDescarga || "",
-          confirmacionEntrega: d.confirmacionEntrega,
-          estatus: d.estatus || "",
+          estatus: d.estatus || "Programado",
+          estatus_especial: d.estatus_especial || "",
           observaciones: d.observaciones || "",
           incidencias: Array.isArray(d.incidencias) ? d.incidencias : [],
         });
@@ -2994,8 +3951,8 @@
       }
 
       /* ===========================
-   TAB 3 Matriz
-=========================== */
+         TAB 3 Matriz
+      =========================== */
       function populateRegistroFilter() {
         // Poblar filtro por estatus
         const selEstatus = document.getElementById("registro-unidad-filter");
@@ -3127,6 +4084,14 @@
           const row = document.createElement("div");
           row.className = "board-row";
 
+          // Encontrar el índice real en filteredDespachosData
+          const realIndex = filteredDespachosData.findIndex(
+            (item) =>
+              item.folio === d.folio &&
+              item.unidad === d.unidad &&
+              item.fechaProgramada === d.fechaProgramada,
+          );
+
           // Determinar número de tramo si hay múltiples registros
           const unidadNombre = String(d.unidad || "").trim();
           const tieneMultiplesTramos = unidadCount[unidadNombre] > 1;
@@ -3136,32 +4101,33 @@
             ? ` - Tramo ${numeroTramo}`
             : "";
 
-          const gpsOk =
-            String(d.gpsValidacionEstado || "")
-              .trim()
-              .toLowerCase() === "operativo";
+          const gpsOk = isGpsOperativo(d.gpsValidacionEstado);
           const dotClass = gpsOk ? "bg-green-500" : "bg-red-500";
 
           const uc = document.createElement("div");
           uc.className = "board-cell unit-cell";
           uc.setAttribute("data-label", "Unidad");
           uc.innerHTML = `
-            <div class="flex items-center justify-center gap-2">
-              <span class="inline-block w-3 h-3 rounded-full ${dotClass}" title="GPS: ${escapeHtml(
-                d.gpsValidacionEstado || "Sin registro",
-              )}"></span>
-              <strong>${escapeHtml(d.unidad)}${tramoLabel}</strong>
-            </div>
-            <p class="text-xs">${escapeHtml(d.placas)}</p>
-            <p class="text-xs italic">${
-              d.operadorMonitoreoId
-                ? "Operador: " + escapeHtml(d.operadorMonitoreoId)
-                : ""
-            }</p>
-            <p class="text-xs italic">GPS: ${escapeHtml(
-              d.gpsValidacionEstado || "Sin registro",
-            )}</p>
-        `;
+                  <div class="flex items-center justify-center gap-2">
+                    <span class="inline-block w-3 h-3 rounded-full ${dotClass}" title="${gpsOk ? "GPS validado" : "Sin validación GPS"}"></span>
+                    <strong>${escapeHtml(d.unidad)}${tramoLabel}</strong>
+                    <button
+                      onclick="showGpsDetailsModal(${realIndex})"
+                      class="ml-2 text-indigo-600 hover:text-indigo-800 transition"
+                      title="Ver detalles de validación GPS"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  <p class="text-xs">${escapeHtml(d.placas)}</p>
+                  <p class="text-xs italic">${
+                    d.operadorMonitoreoId
+                      ? "Operador: " + escapeHtml(d.operadorMonitoreoId)
+                      : ""
+                  }</p>
+              `;
           row.appendChild(uc);
 
           const tasks = [
@@ -3198,16 +4164,26 @@
           });
 
           const statusCell = document.createElement("div");
+
+          // Calcular estatus automático
+          const estatusCalculado = calcularEstatusAutomatico(d);
+
           let stClass = "task-cell";
-          if (d.estatus === "En ruta") stClass = "estatus-en-ruta";
-          else if (d.estatus === "Despacho realizado")
+          if (estatusCalculado === "En ruta") stClass = "estatus-en-ruta";
+          else if (estatusCalculado === "Cargando")
+            stClass = "estatus-cargando";
+          else if (estatusCalculado === "Salida de Carga")
+            stClass = "estatus-salida-carga";
+          else if (estatusCalculado === "Despacho realizado")
             stClass = "estatus-verde";
-          else if (d.estatus === "Despacho No realizado")
+          else if (estatusCalculado === "Despacho No realizado")
             stClass = "estatus-rojo";
-          else if (d.estatus === "Cancelado") stClass = "estatus-cancelado";
+          else if (estatusCalculado === "Cancelado")
+            stClass = "estatus-cancelado";
+
           statusCell.className = `board-cell ${stClass}`;
           statusCell.setAttribute("data-label", "Estatus");
-          statusCell.textContent = d.estatus || "Sin estatus";
+          statusCell.textContent = estatusCalculado || "Programado";
           row.appendChild(statusCell);
 
           board.appendChild(row);
@@ -3217,16 +4193,39 @@
       }
 
       /* ===========================
-   TAB 4 KPIs
-=========================== */
+         TAB 4 KPIs
+      =========================== */
       function renderKPIs(data) {
         const total = data.length;
-        const realizados = data.filter(
-          (d) => d.estatus === "Despacho realizado",
+
+        // Calcular estatus para cada registro
+        const dataConEstatus = data.map((d) => ({
+          ...d,
+          estatusCalculado: calcularEstatusAutomatico(d),
+        }));
+
+        const realizados = dataConEstatus.filter(
+          (d) => d.estatusCalculado === "Despacho realizado",
         );
-        const enRuta = data.filter((d) => d.estatus === "En ruta");
-        const programados = data.filter((d) => d.estatus === "Programado");
-        const cancelados = data.filter((d) => d.estatus === "Cancelado");
+        const enRuta = dataConEstatus.filter(
+          (d) => d.estatusCalculado === "En ruta",
+        );
+        const cargando = dataConEstatus.filter(
+          (d) => d.estatusCalculado === "Cargando",
+        );
+        const salidaCarga = dataConEstatus.filter(
+          (d) => d.estatusCalculado === "Salida de Carga",
+        );
+        const programados = dataConEstatus.filter(
+          (d) => d.estatusCalculado === "Programado",
+        );
+        const cancelados = dataConEstatus.filter(
+          (d) => d.estatusCalculado === "Cancelado",
+        );
+        const noRealizados = dataConEstatus.filter(
+          (d) => d.estatusCalculado === "Despacho No realizado",
+        );
+
         const aTiempo = realizados.filter(
           (d) =>
             d.realDescarga &&
@@ -3235,17 +4234,20 @@
         );
         const conRetraso = realizados.length - aTiempo.length;
 
+        // Sumar todos los despachos en proceso (en ruta + cargando + salida de carga)
+        const enProceso = enRuta.length + cargando.length + salidaCarga.length;
+
         document.getElementById("kpi-total-despachos").textContent = total;
         document.getElementById("kpi-despachos-a-tiempo").textContent =
           aTiempo.length;
         document.getElementById("kpi-despachos-retraso").textContent =
           conRetraso;
         document.getElementById("kpi-despachos-en-ruta").textContent =
-          enRuta.length;
+          enProceso;
         document.getElementById("kpi-despachos-programados").textContent =
           programados.length;
         document.getElementById("kpi-despachos-cancelados").textContent =
-          cancelados.length;
+          cancelados.length + noRealizados.length;
 
         const incCount = {};
         data.forEach((d) =>
@@ -3256,9 +4258,9 @@
         updateCumplimientoChart([
           aTiempo.length,
           conRetraso,
-          enRuta.length,
+          enProceso,
           programados.length,
-          cancelados.length,
+          cancelados.length + noRealizados.length,
         ]);
         updateIncidenciasChart(incCount);
       }
@@ -3274,7 +4276,7 @@
             labels: [
               "A Tiempo",
               "Con Retraso",
-              "En Ruta",
+              "En Proceso",
               "Programados",
               "Cancelados",
             ],
@@ -3333,8 +4335,8 @@
       }
 
       /* ===========================
-   TAB 5 Informe + Excel
-=========================== */
+         TAB 5 Informe + Excel
+      =========================== */
       function renderInforme(data) {
         const c = document.getElementById("informe-container");
         const btn = document.getElementById("download-excel-report-btn");
@@ -3370,61 +4372,62 @@
           0,
         );
         c.innerHTML = `
-          <div class="bg-white border rounded-xl p-4">
-            <p class="text-gray-800 font-semibold">Resumen</p>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-              <div class="bg-gray-50 border rounded-lg p-3"><p class="text-xs text-gray-500">Total</p><p class="text-2xl font-bold">${total}</p></div>
-              <div class="bg-yellow-50 border rounded-lg p-3"><p class="text-xs text-gray-500">Incidencias</p><p class="text-2xl font-bold">${incs}</p></div>
-              <div class="bg-green-50 border rounded-lg p-3"><p class="text-xs text-gray-500">Realizados</p><p class="text-2xl font-bold">${
-                filteredData.filter((d) => d.estatus === "Despacho realizado")
-                  .length
-              }</p></div>
-              <div class="bg-blue-50 border rounded-lg p-3"><p class="text-xs text-gray-500">En Ruta</p><p class="text-2xl font-bold">${
-                filteredData.filter((d) => d.estatus === "En ruta").length
-              }</p></div>
-            </div>
-          </div>
+                <div class="bg-white border rounded-xl p-4">
+                  <p class="text-gray-800 font-semibold">Resumen</p>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                    <div class="bg-gray-50 border rounded-lg p-3"><p class="text-xs text-gray-500">Total</p><p class="text-2xl font-bold">${total}</p></div>
+                    <div class="bg-yellow-50 border rounded-lg p-3"><p class="text-xs text-gray-500">Incidencias</p><p class="text-2xl font-bold">${incs}</p></div>
+                    <div class="bg-green-50 border rounded-lg p-3"><p class="text-xs text-gray-500">Realizados</p><p class="text-2xl font-bold">${
+                      filteredData.filter(
+                        (d) => d.estatus === "Despacho realizado",
+                      ).length
+                    }</p></div>
+                    <div class="bg-blue-50 border rounded-lg p-3"><p class="text-xs text-gray-500">En Ruta</p><p class="text-2xl font-bold">${
+                      filteredData.filter((d) => d.estatus === "En ruta").length
+                    }</p></div>
+                  </div>
+                </div>
 
-          <div class="bg-white border rounded-xl p-4 pt-2">
-            <h3 class="text-lg font-semibold pl-4">Detalle</h3>
-            <div class="overflow-x-auto">
-            <table class="min-w-full text-sm border rounded-lg overflow-hidden">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-4 py-2 text-left">Unidad</th>
-                  <th class="px-4 py-2 text-left">Ruta</th>
-                  <th class="px-4 py-2 text-left">Estatus</th>
-                  <th class="px-4 py-2 text-left">Prog. Descarga</th>
-                  <th class="px-4 py-2 text-left">Real Descarga</th>
-                  <th class="px-4 py-2 text-left min-w-[200px]">Observaciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y bg-white">
-                ${filteredData
-                  .map(
-                    (d) => `
-                  <tr>
-                    <td class="px-4 py-2 font-semibold">${escapeHtml(
-                      d.unidad,
-                    )}</td>
-                    <td class="px-4 py-2">${escapeHtml(d.ruta)}</td>
-                    <td class="px-4 py-2">${escapeHtml(d.estatus)}</td>
-                    <td class="px-4 py-2">${formatDateTime(d.citaDescarga)}</td>
-                    <td class="px-4 py-2 font-semibold">${formatDateTime(
-                      d.realDescarga,
-                    )}</td>
-                    <td class="px-4 py-2 text-gray-600 text-xs">${escapeHtml(
-                      d.observaciones || "-",
-                    )}</td>
-                  </tr>
-                `,
-                  )
-                  .join("")}
-              </tbody>
-            </table>
-            </div>
-          </div>
-          `;
+                <div class="bg-white border rounded-xl p-4 pt-2">
+                  <h3 class="text-lg font-semibold pl-4">Detalle</h3>
+                  <div class="overflow-x-auto">
+                  <table class="min-w-full text-sm border rounded-lg overflow-hidden">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th class="px-4 py-2 text-left">Unidad</th>
+                        <th class="px-4 py-2 text-left">Ruta</th>
+                        <th class="px-4 py-2 text-left">Estatus</th>
+                        <th class="px-4 py-2 text-left">Prog. Descarga</th>
+                        <th class="px-4 py-2 text-left">Real Descarga</th>
+                        <th class="px-4 py-2 text-left min-w-[200px]">Observaciones</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y bg-white">
+                      ${filteredData
+                        .map(
+                          (d) => `
+                        <tr>
+                          <td class="px-4 py-2 font-semibold">${escapeHtml(
+                            d.unidad,
+                          )}</td>
+                          <td class="px-4 py-2">${escapeHtml(d.ruta)}</td>
+                          <td class="px-4 py-2">${escapeHtml(d.estatus)}</td>
+                          <td class="px-4 py-2">${formatDateTime(d.citaDescarga)}</td>
+                          <td class="px-4 py-2 font-semibold">${formatDateTime(
+                            d.realDescarga,
+                          )}</td>
+                          <td class="px-4 py-2 text-gray-600 text-xs">${escapeHtml(
+                            d.observaciones || "-",
+                          )}</td>
+                        </tr>
+                      `,
+                        )
+                        .join("")}
+                    </tbody>
+                  </table>
+                  </div>
+                </div>
+                `;
       }
 
       function downloadReportAsExcel() {
@@ -3485,7 +4488,6 @@
           "Real Salida Carga": formatDateTime(d.realSalida),
           "Prog Descarga": formatDateTime(d.citaDescarga),
           "Real Descarga": formatDateTime(d.realDescarga),
-          ConfirmacionEntrega: d.confirmacionEntrega,
           Estatus: d.estatus,
           Observaciones: d.observaciones || "",
           Incidencias: (d.incidencias || [])
@@ -3505,8 +4507,8 @@
       }
 
       /* ===========================
-   911: versión embebida (fallback)
-=========================== */
+         911: versión embebida (fallback)
+      =========================== */
       const EMBEDDED_911_DATA = [
         {
           estado: "CIUDAD DE MEXICO",
@@ -3665,12 +4667,12 @@
           slice
             .map(
               (r) => `
-    <tr>
-      <td class="px-4 py-2 whitespace-nowrap">${escapeHtml(r.estado)}</td>
-      <td class="px-4 py-2">${escapeHtml(r.municipio)}</td>
-      <td class="px-4 py-2 font-semibold">${escapeHtml(r.tel)}</td>
-    </tr>
-  `,
+          <tr>
+            <td class="px-4 py-2 whitespace-nowrap">${escapeHtml(r.estado)}</td>
+            <td class="px-4 py-2">${escapeHtml(r.municipio)}</td>
+            <td class="px-4 py-2 font-semibold">${escapeHtml(r.tel)}</td>
+          </tr>
+        `,
             )
             .join("") ||
           `<tr><td class="px-4 py-4 text-gray-500" colspan="3">Sin resultados.</td></tr>`;
@@ -3683,11 +4685,11 @@
 
         if (!items || items.length === 0) {
           container.innerHTML = `
-      <div class="col-span-full text-center p-10 bg-orange-50 border-2 border-orange-200 rounded-xl">
-        <p class="text-lg font-medium text-orange-800 mb-2">No hay contactos disponibles</p>
-        <p class="text-sm text-orange-600">Verifica la conexión con Google Sheets o añade datos en la pestaña CONTACTOS_EMERGENCIA</p>
-      </div>
-    `;
+            <div class="col-span-full text-center p-10 bg-orange-50 border-2 border-orange-200 rounded-xl">
+              <p class="text-lg font-medium text-orange-800 mb-2">No hay contactos disponibles</p>
+              <p class="text-sm text-orange-600">Verifica la conexión con Google Sheets o añade datos en la pestaña CONTACTOS_EMERGENCIA</p>
+            </div>
+          `;
           return;
         }
 
@@ -3723,46 +4725,46 @@
               : "Sin correo";
 
             return `
-      <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all">
-        <div class="flex items-start justify-between mb-4">
-          <div>
-            <h4 class="font-bold text-lg text-gray-900 mb-1">${escapeHtml(
-              contacto.nombre,
-            )}</h4>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${badgeClass} border">
-              ${escapeHtml(contacto.prioridad)}
-            </span>
-          </div>
-          <div class="text-right">
-            <p class="text-sm font-medium text-gray-700">Cargo/Posicion: ${escapeHtml(
-              contacto.cargo,
-            )}</p>
-            <p class="text-xs text-gray-500">Departamento: ${escapeHtml(
-              contacto.departamento,
-            )}</p>
-          </div>
-        </div>
-        
-        <div class="space-y-2 text-sm mb-4">
-          <div><strong>📞 Teléfonos:</strong> ${telefonosHtml}</div>
-          <div><strong>✉️ Correos:</strong> ${correosHtml}</div>
-          ${
-            contacto.acciones
-              ? `<div><strong>⚡ Acciones:</strong> ${escapeHtml(
-                  contacto.acciones,
-                )}</div>`
-              : ""
-          }
-          ${
-            contacto.observaciones
-              ? `<div class="text-xs text-gray-600"><strong>📝 Observaciones:</strong> ${escapeHtml(
-                  contacto.observaciones,
-                )}</div>`
-              : ""
-          }
-        </div>
-      </div>
-    `;
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all">
+              <div class="flex items-start justify-between mb-4">
+                <div>
+                  <h4 class="font-bold text-lg text-gray-900 mb-1">${escapeHtml(
+                    contacto.nombre,
+                  )}</h4>
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${badgeClass} border">
+                    ${escapeHtml(contacto.prioridad)}
+                  </span>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm font-medium text-gray-700">Cargo/Posicion: ${escapeHtml(
+                    contacto.cargo,
+                  )}</p>
+                  <p class="text-xs text-gray-500">Departamento: ${escapeHtml(
+                    contacto.departamento,
+                  )}</p>
+                </div>
+              </div>
+
+              <div class="space-y-2 text-sm mb-4">
+                <div><strong>📞 Teléfonos:</strong> ${telefonosHtml}</div>
+                <div><strong>✉️ Correos:</strong> ${correosHtml}</div>
+                ${
+                  contacto.acciones
+                    ? `<div><strong>⚡ Acciones:</strong> ${escapeHtml(
+                        contacto.acciones,
+                      )}</div>`
+                    : ""
+                }
+                ${
+                  contacto.observaciones
+                    ? `<div class="text-xs text-gray-600"><strong>📝 Observaciones:</strong> ${escapeHtml(
+                        contacto.observaciones,
+                      )}</div>`
+                    : ""
+                }
+              </div>
+            </div>
+          `;
           })
           .join("");
 
@@ -3774,11 +4776,11 @@
 
         // Mostrar loader
         container.innerHTML = `
-    <div class="col-span-full text-center p-10 bg-gray-50 rounded-xl">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-      <p class="text-gray-600">Cargando contactos de emergencia...</p>
-    </div>
-  `;
+          <div class="col-span-full text-center p-10 bg-gray-50 rounded-xl">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+            <p class="text-gray-600">Cargando contactos de emergencia...</p>
+          </div>
+        `;
 
         openModal("emergency-contacts-modal");
 
@@ -3809,8 +4811,8 @@
       }
 
       /* ===========================
-   Incidencias - Informe Ejecutivo (filtros)
-=========================== */
+         Incidencias - Informe Ejecutivo (filtros)
+      =========================== */
       let incExecutiveFilterMode = "selected";
       let incExecutiveRange = { from: "", to: "" };
 
@@ -3835,7 +4837,7 @@
           btn.classList.toggle("text-gray-700", !active);
         });
         // Actualizar tanto el resumen/detalle como las incidencias
-        renderInforme(allDespachosData);
+        renderInforme(filteredDespachosData);
         renderIncidenciasExecutiveReport();
       }
 
@@ -3862,7 +4864,7 @@
           btn.classList.add("bg-white", "text-gray-700");
         });
         // Actualizar tanto el resumen/detalle como las incidencias
-        renderInforme(allDespachosData);
+        renderInforme(filteredDespachosData);
         renderIncidenciasExecutiveReport();
       }
 
@@ -3899,7 +4901,7 @@
         const to = window.to || "";
 
         // Filtrar despachos por fechaProgramada dentro del rango (si aplica)
-        let base = allDespachosData.slice();
+        let base = filteredDespachosData.slice();
         if (from && to) {
           base = base.filter(
             (d) => d.fechaProgramada >= from && d.fechaProgramada <= to,
@@ -3957,18 +4959,18 @@
                   : "🟢 ORDINARIA";
 
             return `
-              <tr class="${incidenciaClass}">
-                <td class="px-4 py-3">
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold">${badgeText}</span>
-                    <span class="font-semibold">${escapeHtml(r.unidad)}</span>
-                  </div>
-                </td>
-                <td class="px-4 py-3 font-medium">${escapeHtml(r.tipo)}</td>
-                <td class="px-4 py-3">${escapeHtml(r.fecha)}</td>
-                <td class="px-4 py-3">${escapeHtml(r.direccion)}</td>
-              </tr>
-            `;
+                    <tr class="${incidenciaClass}">
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs font-bold">${badgeText}</span>
+                          <span class="font-semibold">${escapeHtml(r.unidad)}</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 font-medium">${escapeHtml(r.tipo)}</td>
+                      <td class="px-4 py-3">${escapeHtml(r.fecha)}</td>
+                      <td class="px-4 py-3">${escapeHtml(r.direccion)}</td>
+                    </tr>
+                  `;
           })
           .join("");
         if (rows.length === 0) {
@@ -3977,11 +4979,11 @@
       }
 
       /* ===========================
-   Informes guardados (BD MySQL)
-=========================== */
+         Informes guardados (BD MySQL)
+      =========================== */
 
       async function guardarInformeEnBD() {
-        if (userRole !== "editor") {
+        if (userRole !== "editor" && userRole !== "admin") {
           alert("No tienes permisos para guardar informes.");
           return;
         }
@@ -4206,7 +5208,7 @@
             const decoded = JSON.parse(inf.datos_informe);
             if (Array.isArray(decoded)) detalles = decoded;
           } catch (e) {
-            console.warn('Error parsing datos_informe:', e);
+            console.warn("Error parsing datos_informe:", e);
           }
         }
         const unidades = detalles
@@ -4221,13 +5223,15 @@
 
         const current = (sel.value ?? "").toString();
         const allUnidades = new Set();
-        
+
         (informes || []).forEach((inf) => {
           const unidades = getUnidadesFromInforme(inf);
           unidades.forEach((u) => allUnidades.add(u));
         });
 
-        const unidadesArray = [...allUnidades].sort((a, b) => a.localeCompare(b));
+        const unidadesArray = [...allUnidades].sort((a, b) =>
+          a.localeCompare(b),
+        );
 
         sel.innerHTML = '<option value="">Todas</option>';
         unidadesArray.forEach((unidad) => {
@@ -4245,11 +5249,11 @@
         if (!container) return;
 
         container.innerHTML = `
-          <div class="text-center p-6">
-            <p class="text-gray-500">Cargando informes guardados...</p>
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mt-2"></div>
-          </div>
-        `;
+                <div class="text-center p-6">
+                  <p class="text-gray-500">Cargando informes guardados...</p>
+                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mt-2"></div>
+                </div>
+              `;
 
         try {
           const res = await fetch(
@@ -4287,10 +5291,10 @@
             applyInformesFilters();
           } else {
             container.innerHTML = `
-              <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-yellow-800">
-                ${data?.message || "No se pudo cargar la lista de informes."}
-              </div>
-            `;
+                    <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-yellow-800">
+                      ${data?.message || "No se pudo cargar la lista de informes."}
+                    </div>
+                  `;
             informesGuardadosCache = [];
             setInformesFilterSummary(0, 0);
           }
@@ -4301,16 +5305,16 @@
               "Estado de la Base de Datos: Conectado (MySQL)";
         } catch (error) {
           container.innerHTML = `
-            <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
-              <p class="text-red-800 font-semibold">Error al cargar informes</p>
-              <p class="text-red-700 text-sm mt-1">${String(
-                error.message || error,
-              )}</p>
-              <div class="mt-3 flex gap-2">
-                <button onclick="cargarInformesGuardados()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Reintentar</button>
-              </div>
-            </div>
-          `;
+                  <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                    <p class="text-red-800 font-semibold">Error al cargar informes</p>
+                    <p class="text-red-700 text-sm mt-1">${String(
+                      error.message || error,
+                    )}</p>
+                    <div class="mt-3 flex gap-2">
+                      <button onclick="cargarInformesGuardados()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Reintentar</button>
+                    </div>
+                  </div>
+                `;
           const status = document.getElementById("db-status");
           if (status)
             status.textContent =
@@ -4325,15 +5329,15 @@
             : 0;
           setInformesFilterSummary(0, total);
           container.innerHTML = `
-            <div class="text-center p-10 bg-gray-50 rounded-lg">
-                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <h3 class="text-lg font-medium text-gray-700">No hay informes guardados</h3>
-                <p class="text-gray-500 mt-2">Los informes que guardes aparecerán aquí.</p>
-                <p class="text-gray-400 text-sm mt-1">Ve a la pestaña "06. Informe Ejecutivo" para crear uno.</p>
-            </div>
-          `;
+                  <div class="text-center p-10 bg-gray-50 rounded-lg">
+                      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                      <h3 class="text-lg font-medium text-gray-700">No hay informes guardados</h3>
+                      <p class="text-gray-500 mt-2">Los informes que guardes aparecerán aquí.</p>
+                      <p class="text-gray-400 text-sm mt-1">Ve a la pestaña "06. Informe Ejecutivo" para crear uno.</p>
+                  </div>
+                `;
           return;
         }
 
@@ -4389,60 +5393,60 @@
           const totalIncidencias = parseInt(informe.total_incidencias) || 0;
 
           html += `
-            <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-3">
-                        <h3 class="font-bold text-lg text-blue-800 truncate" title="${titulo}">
-                            ${titulo}
-                        </h3>
-                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                    ID: ${id || "N/A"}
-                        </span>
-                    </div>
-                    <div class="flex items-center text-sm text-gray-500 mb-4">
-                        <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        <span class="truncate">${fechaFormateada}</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="bg-gray-50 p-3 rounded-lg">
-                            <p class="text-xs text-gray-500">Total Despachos</p>
-                            <p class="text-lg font-bold">${totalDespachos}</p>
-                        </div>
-                        <div class="bg-green-50 p-3 rounded-lg">
-                            <p class="text-xs text-gray-500">A Tiempo</p>
-                            <p class="text-lg font-bold text-green-600">${aTiempo}</p>
-                        </div>
-                        <div class="bg-red-50 p-3 rounded-lg">
-                            <p class="text-xs text-gray-500">Con Retraso</p>
-                            <p class="text-lg font-bold text-red-600">${conRetraso}</p>
-                        </div>
-                        <div class="bg-yellow-50 p-3 rounded-lg">
-                            <p class="text-xs text-gray-500">Incidencias</p>
-                            <p class="text-lg font-bold text-yellow-600">${totalIncidencias}</p>
-                        </div>
-                    </div>
-                    <div class="text-sm text-gray-600 mb-4 space-y-1">
-                        <p class="truncate"><strong class="text-gray-700">Operador:</strong> ${operador}</p>
-                        <p><strong class="text-gray-700">Fecha Despacho:</strong> ${fechaDespacho}</p>
-                    </div>
-                    <div class="flex space-x-2">
-                      <button onclick="verInformeDetalle(${id})"
-                                 class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors duration-200">
-                            Ver Detalle
-                        </button>
-                      <button onclick="eliminarInforme(${id})"
-                                 class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium transition-colors duration-200"
-                                title="Eliminar informe">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-          `;
+                  <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                      <div class="p-5">
+                          <div class="flex justify-between items-start mb-3">
+                              <h3 class="font-bold text-lg text-blue-800 truncate" title="${titulo}">
+                                  ${titulo}
+                              </h3>
+                              <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                          ID: ${id || "N/A"}
+                              </span>
+                          </div>
+                          <div class="flex items-center text-sm text-gray-500 mb-4">
+                              <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                              </svg>
+                              <span class="truncate">${fechaFormateada}</span>
+                          </div>
+                          <div class="grid grid-cols-2 gap-3 mb-4">
+                              <div class="bg-gray-50 p-3 rounded-lg">
+                                  <p class="text-xs text-gray-500">Total Despachos</p>
+                                  <p class="text-lg font-bold">${totalDespachos}</p>
+                              </div>
+                              <div class="bg-green-50 p-3 rounded-lg">
+                                  <p class="text-xs text-gray-500">A Tiempo</p>
+                                  <p class="text-lg font-bold text-green-600">${aTiempo}</p>
+                              </div>
+                              <div class="bg-red-50 p-3 rounded-lg">
+                                  <p class="text-xs text-gray-500">Con Retraso</p>
+                                  <p class="text-lg font-bold text-red-600">${conRetraso}</p>
+                              </div>
+                              <div class="bg-yellow-50 p-3 rounded-lg">
+                                  <p class="text-xs text-gray-500">Incidencias</p>
+                                  <p class="text-lg font-bold text-yellow-600">${totalIncidencias}</p>
+                              </div>
+                          </div>
+                          <div class="text-sm text-gray-600 mb-4 space-y-1">
+                              <p class="truncate"><strong class="text-gray-700">Operador:</strong> ${operador}</p>
+                              <p><strong class="text-gray-700">Fecha Despacho:</strong> ${fechaDespacho}</p>
+                          </div>
+                          <div class="flex space-x-2">
+                            <button onclick="verInformeDetalle(${id})"
+                                       class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors duration-200">
+                                  Ver Detalle
+                              </button>
+                            <button onclick="eliminarInforme(${id})"
+                                       class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium transition-colors duration-200"
+                                      title="Eliminar informe">
+                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                  </svg>
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+                `;
         });
 
         html += `</div>`;
@@ -4459,11 +5463,11 @@
         if (title) title.textContent = "Cargando...";
         if (body) {
           body.innerHTML = `
-            <div class="text-center p-6">
-              <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-              <p class="mt-2 text-gray-500">Cargando detalles...</p>
-            </div>
-          `;
+                  <div class="text-center p-6">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                    <p class="mt-2 text-gray-500">Cargando detalles...</p>
+                  </div>
+                `;
         }
         openModal("modal-informe-detalle");
 
@@ -4503,66 +5507,66 @@
           }
 
           const resumenHtml = `
-          <div class="space-y-2">
-            <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <p><span class="font-medium text-gray-700">Fecha de creación:</span> ${escapeHtml(
-                  row.fecha_creacion || "",
-                )}</p>
-                <p><span class="font-medium text-gray-700">Fecha de despacho:</span> ${escapeHtml(
-                  row.fecha_despacho || "",
-                )}</p>
-                <p><span class="font-medium text-gray-700">Operador:</span> ${escapeHtml(
-                  row.operador_monitoreo || "",
-                )}</p>
-              </div>
-
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-                  <div class="bg-gray-100 p-4 rounded-lg text-center">
-                    <p class="text-sm font-medium text-gray-600">Total Despachos</p>
-                      <p class="text-2xl font-bold mt-1">${escapeHtml(
-                        row.total_despachos || 0,
+                <div class="space-y-2">
+                  <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      <p><span class="font-medium text-gray-700">Fecha de creación:</span> ${escapeHtml(
+                        row.fecha_creacion || "",
                       )}</p>
+                      <p><span class="font-medium text-gray-700">Fecha de despacho:</span> ${escapeHtml(
+                        row.fecha_despacho || "",
+                      )}</p>
+                      <p><span class="font-medium text-gray-700">Operador:</span> ${escapeHtml(
+                        row.operador_monitoreo || "",
+                      )}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                        <div class="bg-gray-100 p-4 rounded-lg text-center">
+                          <p class="text-sm font-medium text-gray-600">Total Despachos</p>
+                            <p class="text-2xl font-bold mt-1">${escapeHtml(
+                              row.total_despachos || 0,
+                            )}</p>
+                        </div>
+                        <div class="bg-green-100 p-4 rounded-lg text-center">
+                          <p class="text-sm font-medium text-green-700">A Tiempo</p>
+                          <p class="text-2xl font-bold text-green-800 mt-1">
+                              ${escapeHtml(row.a_tiempo || 0)}
+                          </p>
+                        </div>
+                        <div class="bg-red-100 p-4 rounded-lg text-center">
+                          <p class="text-sm font-medium text-red-700">Con Retraso</p>
+                          <p class="text-2xl font-bold text-red-800 mt-1">
+                              ${escapeHtml(row.con_retraso || 0)}
+                          </p>
+                        </div>
+                        <div class="bg-yellow-100 p-4 rounded-lg text-center">
+                          <p class="text-sm font-medium text-yellow-700">Incidencias</p>
+                          <p class="text-2xl font-bold text-yellow-800 mt-1">${escapeHtml(
+                            row.total_incidencias || 0,
+                          )}</p>
+                        </div>
+                    </div>
                   </div>
-                  <div class="bg-green-100 p-4 rounded-lg text-center">
-                    <p class="text-sm font-medium text-green-700">A Tiempo</p>
-                    <p class="text-2xl font-bold text-green-800 mt-1">
-                        ${escapeHtml(row.a_tiempo || 0)}
-                    </p>
-                  </div>
-                  <div class="bg-red-100 p-4 rounded-lg text-center">
-                    <p class="text-sm font-medium text-red-700">Con Retraso</p>
-                    <p class="text-2xl font-bold text-red-800 mt-1">
-                        ${escapeHtml(row.con_retraso || 0)}
-                    </p>
-                  </div>
-                  <div class="bg-yellow-100 p-4 rounded-lg text-center">
-                    <p class="text-sm font-medium text-yellow-700">Incidencias</p>
-                    <p class="text-2xl font-bold text-yellow-800 mt-1">${escapeHtml(
-                      row.total_incidencias || 0,
-                    )}</p>
-                  </div>
-              </div>
-            </div>
-          </div>
-          `;
+                </div>
+                `;
 
           let detallesHtml = "";
           if (Array.isArray(detalles) && detalles.length) {
             const head = `
-              <div class="overflow-x-auto rounded-xl border border-gray-200 mt-4">
-                <table class="min-w-full text-sm">
-                  <thead class="bg-gray-50 text-gray-700">
-                    <tr>
-                      <th class="text-left p-3">Folio</th>
-                      <th class="text-left p-3">Unidad</th>
-                      <th class="text-left p-3">Ruta</th>
-                      <th class="text-left p-3">Estatus</th>
-                      <th class="text-left p-3">Incidencias</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-gray-100 bg-white">
-            `;
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 mt-4">
+                      <table class="min-w-full text-sm">
+                        <thead class="bg-gray-50 text-gray-700">
+                          <tr>
+                            <th class="text-left p-3">Folio</th>
+                            <th class="text-left p-3">Unidad</th>
+                            <th class="text-left p-3">Ruta</th>
+                            <th class="text-left p-3">Estatus</th>
+                            <th class="text-left p-3">Incidencias</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 bg-white">
+                  `;
             const rows = detalles
               .slice(0, 200)
               .map((d) => {
@@ -4571,27 +5575,27 @@
                   ? d.incidencias.length
                   : 0;
                 return `
-                  <tr>
-                    <td class="p-3 whitespace-nowrap">${escapeHtml(
-                      d.folio || "",
-                    )}</td>
-                    <td class="p-3 whitespace-nowrap font-semibold">${escapeHtml(
-                      d.unidad || "",
-                    )}</td>
-                    <td class="p-3">${escapeHtml(ruta)}</td>
-                    <td class="p-3 whitespace-nowrap">${escapeHtml(
-                      d.estatus || "",
-                    )}</td>
-                    <td class="p-3 whitespace-nowrap">${inc}</td>
-                  </tr>
-                `;
+                        <tr>
+                          <td class="p-3 whitespace-nowrap">${escapeHtml(
+                            d.folio || "",
+                          )}</td>
+                          <td class="p-3 whitespace-nowrap font-semibold">${escapeHtml(
+                            d.unidad || "",
+                          )}</td>
+                          <td class="p-3">${escapeHtml(ruta)}</td>
+                          <td class="p-3 whitespace-nowrap">${escapeHtml(
+                            d.estatus || "",
+                          )}</td>
+                          <td class="p-3 whitespace-nowrap">${inc}</td>
+                        </tr>
+                      `;
               })
               .join("");
             const foot = `</tbody></table></div>`;
             detallesHtml = `
-              <h4 class="text-lg font-semibold text-gray-800 mt-6 mb-2">Detalle (primeros 200)</h4>
-              ${head}${rows}${foot}
-            `;
+                    <h4 class="text-lg font-semibold text-gray-800 mt-6 mb-2">Detalle (primeros 200)</h4>
+                    ${head}${rows}${foot}
+                  `;
           }
 
           if (body) body.innerHTML = `${resumenHtml}${detallesHtml}`;
@@ -4599,17 +5603,17 @@
           if (title) title.textContent = "Error";
           if (body)
             body.innerHTML = `
-              <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
-                <strong>No se pudo cargar el detalle:</strong> ${escapeHtml(
-                  String(err?.message || err),
-                )}
-              </div>
-            `;
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+                      <strong>No se pudo cargar el detalle:</strong> ${escapeHtml(
+                        String(err?.message || err),
+                      )}
+                    </div>
+                  `;
         }
       }
 
       async function eliminarInforme(id) {
-        if (userRole !== "editor") {
+        if (userRole !== "editor" && userRole !== "admin") {
           alert("No tienes permisos para eliminar informes.");
           return;
         }
@@ -4650,14 +5654,174 @@
       }
 
       /* ===========================
-   INIT
-=========================== */
+         TAB 7 Validaciones GPS
+      =========================== */
+      function renderValidacionesGPS() {
+        const tbody = document.getElementById("validaciones-table-body");
+        if (!tbody) return;
+
+        // Poblar filtros
+        populateValidacionesFilters();
+
+        // Renderizar tabla
+        renderValidacionesTable();
+      }
+
+      function populateValidacionesFilters() {
+        const selectCliente = document.getElementById(
+          "validaciones-filtro-cliente",
+        );
+        if (!selectCliente) return;
+
+        const clientes = [
+          ...new Set(
+            filteredDespachosData.map((d) => d.cliente).filter(Boolean),
+          ),
+        ].sort();
+
+        const currentValue = selectCliente.value;
+        selectCliente.innerHTML =
+          '<option value="">Todos los clientes</option>';
+        clientes.forEach((cliente) => {
+          selectCliente.innerHTML += `<option value="${escapeHtml(cliente)}">${escapeHtml(cliente)}</option>`;
+        });
+        selectCliente.value = currentValue;
+      }
+
+      function applyValidacionesFilters() {
+        renderValidacionesTable();
+      }
+
+      function renderValidacionesTable() {
+        const tbody = document.getElementById("validaciones-table-body");
+        if (!tbody) return;
+
+        // Obtener valores de filtros
+        const filtroUnidad = (
+          document.getElementById("validaciones-filtro-unidad")?.value || ""
+        )
+          .trim()
+          .toLowerCase();
+        const filtroCliente =
+          document.getElementById("validaciones-filtro-cliente")?.value || "";
+        const filtroEstado =
+          document.getElementById("validaciones-filtro-estado")?.value || "";
+
+        // Filtrar datos
+        let datosFiltrados = filteredDespachosData.filter((d) => {
+          // Filtro por unidad
+          if (
+            filtroUnidad &&
+            !String(d.unidad || "")
+              .toLowerCase()
+              .includes(filtroUnidad)
+          ) {
+            return false;
+          }
+
+          // Filtro por cliente
+          if (filtroCliente && d.cliente !== filtroCliente) {
+            return false;
+          }
+
+          // Filtro por estado
+          if (
+            filtroEstado === "validado" &&
+            !isGpsOperativo(d.gpsValidacionEstado)
+          ) {
+            return false;
+          }
+          if (
+            filtroEstado === "sin_validar" &&
+            isGpsOperativo(d.gpsValidacionEstado)
+          ) {
+            return false;
+          }
+
+          return true;
+        });
+
+        // Renderizar filas
+        if (datosFiltrados.length === 0) {
+          tbody.innerHTML = `
+                  <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                      No hay registros que coincidan con los filtros aplicados.
+                    </td>
+                  </tr>
+                `;
+          return;
+        }
+
+        tbody.innerHTML = datosFiltrados
+          .map((d, idx) => {
+            const gpsOk = isGpsOperativo(d.gpsValidacionEstado);
+            const statusClass = gpsOk
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800";
+            const statusText = gpsOk ? "Validado" : "Sin validación";
+            const validacionesTexto = gpsOk
+              ? formatGpsEstado(d.gpsValidacionEstado)
+              : "-";
+
+            return `
+                  <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                      ${escapeHtml(d.unidad || "N/A")}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-700">
+                      ${escapeHtml(d.cliente || "N/A")}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-700">
+                      ${escapeHtml(d.operadorMonitoreoId || "No asignado")}
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                        ${statusText}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-700">
+                      ${escapeHtml(validacionesTexto)}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-600">
+                      ${d.gpsValidacionTimestamp ? formatDateTime(d.gpsValidacionTimestamp) : "Sin registro"}
+                    </td>
+                  </tr>
+                `;
+          })
+          .join("");
+      }
+
+      /* ===========================
+         INIT
+      =========================== */
       (function init() {
-        // Siempre pedimos login para respetar roles, pero si hay sesión, la reusamos.
+        // Restore session if available
         try {
           const savedRole = sessionStorage.getItem("bitacoraUserRole");
-          if (savedRole && USER_ROLES[savedRole]) setUserRole(savedRole);
-        } catch (e) {}
+          const savedUnidades = sessionStorage.getItem("bitacoraUserUnidades");
+          const savedTabs = sessionStorage.getItem("bitacoraUserTabs");
+          const savedUsername = sessionStorage.getItem("bitacoraUsername");
+          
+          if (savedRole && savedUnidades && savedTabs && savedUsername) {
+            username = savedUsername;
+            userRole = savedRole;
+            userUnidades = JSON.parse(savedUnidades);
+            userTabs = JSON.parse(savedTabs);
+            
+            // Show user info in header
+            const userInfo = document.getElementById("user-info");
+            const usernameDisplay = document.getElementById("username-display");
+            if (userInfo && usernameDisplay) {
+              usernameDisplay.textContent = username;
+              userInfo.classList.remove("hidden");
+            }
+            
+            updateTabVisibility();
+          }
+        } catch (e) {
+          console.error('Error restoring session:', e);
+        }
 
         if (!userRole)
           document.getElementById("login-modal").classList.remove("hidden");

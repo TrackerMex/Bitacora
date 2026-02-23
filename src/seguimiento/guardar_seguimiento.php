@@ -87,6 +87,8 @@ try {
     }
   }
   $estatus = isset($data['estatus']) ? (string)$data['estatus'] : '';
+  $estatus_especial = isset($data['estatus_especial']) ? (string)$data['estatus_especial'] : null;
+  if ($estatus_especial === '') $estatus_especial = null;
   $observaciones = isset($data['observaciones']) ? (string)$data['observaciones'] : '';
 
   $conn->begin_transaction();
@@ -95,8 +97,8 @@ try {
       folio, unidad, fecha_programada,
       operador_monitoreo, gps_estado, gps_timestamp,
       real_salida_unidad, real_carga, real_salida, real_descarga,
-      confirmacion_entrega, estatus, observaciones
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+      confirmacion_entrega, estatus, estatus_especial, observaciones
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
       operador_monitoreo = VALUES(operador_monitoreo),
       gps_estado = VALUES(gps_estado),
@@ -107,6 +109,7 @@ try {
       real_descarga = VALUES(real_descarga),
       confirmacion_entrega = VALUES(confirmacion_entrega),
       estatus = VALUES(estatus),
+      estatus_especial = VALUES(estatus_especial),
       observaciones = VALUES(observaciones)";
 
   $stmt = $conn->prepare($sql);
@@ -115,7 +118,7 @@ try {
   }
 
   $stmt->bind_param(
-    'sssssssssssss',
+    'ssssssssssssss',
     $folio,
     $unidad,
     $fechaProgramada,
@@ -128,6 +131,7 @@ try {
     $realDescarga,
     $confirmacion,
     $estatus,
+    $estatus_especial,
     $observaciones
   );
 

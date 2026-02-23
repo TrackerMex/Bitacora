@@ -33,6 +33,7 @@ try {
       s.real_descarga,
       s.confirmacion_entrega,
       s.estatus,
+      s.estatus_especial,
       s.observaciones,
       GROUP_CONCAT(CONCAT(i.tipo, ' | ', i.severidad, ' | ', i.fecha, ' | ', COALESCE(i.direccion, '')) SEPARATOR ';;') AS incidencias
     FROM seguimiento_despacho s
