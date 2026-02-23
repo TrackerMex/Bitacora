@@ -42,8 +42,8 @@ try {
   }
 
   // Configuración de Google Sheets API
-  $apiKey = 'AIzaSyDUt__oU7d7NkHcJoIkTNNR9-MVmVJODhM';
-  $spreadsheetId = '1JX9wnA2Jkox3Dk0eYRXSJMiT8VHuoZ9uYfdGJu33CAc';
+  $apiKey = getEnvVar('GOOGLE_SHEETS_API_KEY');
+  $spreadsheetId = getEnvVar('GOOGLE_SHEETS_SPREADSHEET_ID');
   
   // Primero verificar en hoja "Usuarios" si existe
   $rangeUsuarios = 'Usuarios!A1:F100';
