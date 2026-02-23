@@ -24,7 +24,7 @@ try {
         throw new Exception('Parámetro "action" requerido');
     }
     
-    $allowed_actions = ['datos', 'contactos'];
+    $allowed_actions = ['datos', 'contactos', 'usuarios'];
     if (!in_array($action, $allowed_actions)) {
         throw new Exception('Acción no permitida');
     }
@@ -37,8 +37,9 @@ try {
     }
     
     $range = match($action) {
-        'datos' => getEnvVar('GOOGLE_SHEETS_RANGE_DATOS', 'Datos!A7:N1000'),
-        'contactos' => getEnvVar('GOOGLE_SHEETS_RANGE_CONTACTOS', 'Contactos!A7:N1000'),
+        'datos' => getEnvVar('GOOGLE_SHEETS_RANGE_DATOS', 'Datos!A6:N1000'),
+        'contactos' => getEnvVar('GOOGLE_SHEETS_RANGE_CONTACTOS', 'Contactos!A6:N1000'),
+        'usuarios' => getEnvVar('GOOGLE_SHEETS_RANGE_USUARIOS', 'Usuarios!A2:F1000'),
         default => ''
     };
     
@@ -85,7 +86,7 @@ try {
 } catch (Exception $e) {
     http_response_code(400);
     $response['success'] = false;
-    $response['message'] = DEBUG ? $e->getMessage() : 'Error al obtener datos';
+    $response['message'] = $e->getMessage(); // DEBUG: mostrar error real temporalmente
 }
 
 echo json_encode($response, JSON_UNESCAPED_UNICODE);
