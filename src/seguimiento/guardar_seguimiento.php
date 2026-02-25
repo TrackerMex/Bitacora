@@ -78,6 +78,11 @@ try {
   $realSalida = to_mysql_datetime_or_null($data['realSalida'] ?? null);
   $realDescarga = to_mysql_datetime_or_null($data['realDescarga'] ?? null);
 
+  $citaSalidaUnidad = to_mysql_datetime_or_null($data['citaSalidaUnidad'] ?? null);
+  $citaCarga = to_mysql_datetime_or_null($data['citaCarga'] ?? null);
+  $citaSalida = to_mysql_datetime_or_null($data['citaSalida'] ?? null);
+  $citaDescarga = to_mysql_datetime_or_null($data['citaDescarga'] ?? null);
+
   $confirmacion = null;
   if (array_key_exists('confirmacionEntrega', $data)) {
     $c = $data['confirmacionEntrega'];
@@ -97,8 +102,9 @@ try {
       folio, unidad, fecha_programada,
       operador_monitoreo, gps_estado, gps_timestamp,
       real_salida_unidad, real_carga, real_salida, real_descarga,
+      cita_salida_unidad, cita_carga, cita_salida, cita_descarga,
       confirmacion_entrega, estatus, estatus_especial, observaciones
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
       operador_monitoreo = VALUES(operador_monitoreo),
       gps_estado = VALUES(gps_estado),
@@ -107,6 +113,10 @@ try {
       real_carga = VALUES(real_carga),
       real_salida = VALUES(real_salida),
       real_descarga = VALUES(real_descarga),
+      cita_salida_unidad = VALUES(cita_salida_unidad),
+      cita_carga = VALUES(cita_carga),
+      cita_salida = VALUES(cita_salida),
+      cita_descarga = VALUES(cita_descarga),
       confirmacion_entrega = VALUES(confirmacion_entrega),
       estatus = VALUES(estatus),
       estatus_especial = VALUES(estatus_especial),
@@ -118,7 +128,7 @@ try {
   }
 
   $stmt->bind_param(
-    'ssssssssssssss',
+    'ssssssssssssssssss',
     $folio,
     $unidad,
     $fechaProgramada,
@@ -129,6 +139,10 @@ try {
     $realCarga,
     $realSalida,
     $realDescarga,
+    $citaSalidaUnidad,
+    $citaCarga,
+    $citaSalida,
+    $citaDescarga,
     $confirmacion,
     $estatus,
     $estatus_especial,
