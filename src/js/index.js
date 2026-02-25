@@ -1198,11 +1198,8 @@ document.addEventListener("DOMContentLoaded", () => {
           d.fechaProgramada === fechaNueva,
       );
       if (newIndex !== -1) {
-        const sel = document.getElementById("unidad-selector");
-        if (sel) {
-          sel.value = String(newIndex);
-          renderSeguimientoForm(newIndex);
-        }
+        _syncUnidadSelectorByIndex(newIndex);
+        renderSeguimientoForm(newIndex);
       }
 
       closeModal("edit-fecha-programada-modal");
@@ -1299,31 +1296,67 @@ function filterByCliente() {
   });
 }
 function populateUnidadSelector() {
-  const sel = document.getElementById("unidad-selector");
-  if (!sel) return;
+  const nombreSel = document.getElementById("unidad-nombre-selector");
+  const tramoSel = document.getElementById("unidad-tramo-selector");
+  if (!nombreSel) return;
 
-  const unidadCount = {};
-  const unidadIndex = {};
+  // Collect unique unit names preserving order of first appearance
+  const seen = new Set();
+  const uniqueUnidades = [];
   filteredDespachosData.forEach((d) => {
-    const unidadNombre = String(d.unidad || "").trim();
-    unidadCount[unidadNombre] = (unidadCount[unidadNombre] || 0) + 1;
-    unidadIndex[unidadNombre] = 0;
+    const nombre = String(d.unidad || "").trim();
+    if (nombre && !seen.has(nombre)) {
+      seen.add(nombre);
+      uniqueUnidades.push(nombre);
+    }
   });
 
-  sel.innerHTML = '<option value="">-- Seleccione unidad --</option>';
-  filteredDespachosData.forEach((d, i) => {
-    const unidadNombre = String(d.unidad || "").trim();
-    const tieneMultiplesTramos = unidadCount[unidadNombre] > 1;
-    unidadIndex[unidadNombre] = (unidadIndex[unidadNombre] || 0) + 1;
-    const numeroTramo = unidadIndex[unidadNombre];
-    const tramoLabel = tieneMultiplesTramos ? ` - Tramo ${numeroTramo}` : "";
-
-    sel.innerHTML += `<option value="${i}">${escapeHtml(
-      d.unidad,
-    )}${tramoLabel}</option>`;
+  nombreSel.innerHTML = '<option value="">-- Seleccione unidad --</option>';
+  uniqueUnidades.forEach((nombre) => {
+    nombreSel.innerHTML += `<option value="${escapeHtml(nombre)}">${escapeHtml(nombre)}</option>`;
   });
+
+  // Reset tramo selector
+  tramoSel.innerHTML = "";
+  tramoSel.classList.add("hidden");
+
   document.getElementById("consulta-btn").disabled = true;
   document.getElementById("seguimiento-form-container").classList.add("hidden");
+}
+
+function handleUnidadNombreSelection(ev) {
+  const nombre = ev.target.value;
+  const tramoSel = document.getElementById("unidad-tramo-selector");
+  const btn = document.getElementById("consulta-btn");
+
+  // Reset tramo selector and form
+  tramoSel.innerHTML = "";
+  tramoSel.classList.add("hidden");
+  btn.disabled = true;
+  document.getElementById("seguimiento-form-container").classList.add("hidden");
+
+  if (!nombre) return;
+
+  // Find all tramos for this unit
+  const tramos = [];
+  filteredDespachosData.forEach((d, i) => {
+    if (String(d.unidad || "").trim() === nombre) {
+      tramos.push({ idx: i, num: tramos.length + 1 });
+    }
+  });
+
+  if (tramos.length === 1) {
+    // Single tramo: auto-select and render immediately
+    btn.disabled = false;
+    renderSeguimientoForm(tramos[0].idx);
+  } else {
+    // Multiple tramos: show tramo selector
+    tramoSel.innerHTML = '<option value="">-- Seleccione tramo --</option>';
+    tramos.forEach((t) => {
+      tramoSel.innerHTML += `<option value="${t.idx}">Tramo ${t.num}</option>`;
+    });
+    tramoSel.classList.remove("hidden");
+  }
 }
 
 function handleUnidadSelection(ev) {
@@ -1340,9 +1373,66 @@ function handleUnidadSelection(ev) {
   renderSeguimientoForm(Number(idx));
 }
 
+function _syncUnidadSelectorByIndex(index) {
+  const d = filteredDespachosData[index];
+  if (!d) return;
+  const nombre = String(d.unidad || "").trim();
+
+  const nombreSel = document.getElementById("unidad-nombre-selector");
+  const tramoSel = document.getElementById("unidad-tramo-selector");
+  const btn = document.getElementById("consulta-btn");
+  if (!nombreSel) return;
+
+  nombreSel.value = nombre;
+
+  // Rebuild tramo list for this unit
+  const tramos = [];
+  filteredDespachosData.forEach((d2, i) => {
+    if (String(d2.unidad || "").trim() === nombre) {
+      tramos.push({ idx: i, num: tramos.length + 1 });
+    }
+  });
+
+  if (tramos.length > 1) {
+    tramoSel.innerHTML = '<option value="">-- Seleccione tramo --</option>';
+    tramos.forEach((t) => {
+      tramoSel.innerHTML += `<option value="${t.idx}">Tramo ${t.num}</option>`;
+    });
+    tramoSel.value = String(index);
+    tramoSel.classList.remove("hidden");
+  } else {
+    tramoSel.classList.add("hidden");
+    tramoSel.innerHTML = "";
+  }
+
+  if (btn) btn.disabled = false;
+}
+
+function _getCurrentUnidadIdx() {
+  const tramoSel = document.getElementById("unidad-tramo-selector");
+  const nombreSel = document.getElementById("unidad-nombre-selector");
+
+  // If tramo selector is visible, use its value
+  if (
+    tramoSel &&
+    !tramoSel.classList.contains("hidden") &&
+    tramoSel.value !== ""
+  ) {
+    return Number(tramoSel.value);
+  }
+
+  // Single-tramo case: find the index by unit name
+  const nombre = nombreSel ? nombreSel.value : "";
+  if (!nombre) return null;
+  const found = filteredDespachosData.findIndex(
+    (d) => String(d.unidad || "").trim() === nombre,
+  );
+  return found >= 0 ? found : null;
+}
+
 function showUnitData() {
-  const idx = document.getElementById("unidad-selector").value;
-  if (idx === "") return;
+  const idx = _getCurrentUnidadIdx();
+  if (idx === null) return;
   const d = filteredDespachosData[Number(idx)];
   document.getElementById("modal-body").innerHTML = `
                 <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -2306,7 +2396,7 @@ function executeSaveSeguimiento(index) {
 
   saveAllData();
   renderAllTabs();
-  document.getElementById("unidad-selector").value = String(index);
+  _syncUnidadSelectorByIndex(index);
   renderSeguimientoForm(index);
 
   saveSeguimientoToDb(filteredDespachosData[index]).catch((err) => {

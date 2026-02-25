@@ -469,13 +469,21 @@
           <div
             class="flex flex-wrap items-center justify-between gap-3 mb-6 p-4 border rounded-lg bg-gray-50"
           >
-            <div class="flex items-center flex-grow max-w-xl gap-3">
-              <label for="unidad-selector" class="sr-only"
+            <div class="flex items-center flex-grow max-w-2xl gap-3 flex-wrap">
+              <label for="unidad-nombre-selector" class="sr-only"
                 >Seleccionar unidad</label
               >
               <select
-                id="unidad-selector"
-                class="p-2 border rounded-lg flex-grow"
+                id="unidad-nombre-selector"
+                class="p-2 border rounded-lg flex-grow min-w-[160px]"
+                onchange="handleUnidadNombreSelection(event)"
+              ></select>
+              <label for="unidad-tramo-selector" class="sr-only"
+                >Seleccionar tramo</label
+              >
+              <select
+                id="unidad-tramo-selector"
+                class="p-2 border rounded-lg hidden"
                 onchange="handleUnidadSelection(event)"
               ></select>
               <button
