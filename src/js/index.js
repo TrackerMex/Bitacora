@@ -579,6 +579,7 @@ function convertSheetDataToObjects(data) {
   };
   const fallbackHeaders = [
     "fecha",
+    "folio",
     "unidad",
     "placas",
     "id_equipos",
@@ -647,7 +648,7 @@ function processData(sheetRows) {
   allDespachosData = sheetRows.map((row, idx) => {
     const fechaProg = excelDateToYYYYMMDD(row["fecha"]);
     const base = {
-      folio: row["folio"] || idx + 1,
+      folio: row["folio"] || "",
       fechaProgramada: fechaProg,
       unidad: row["unidad"] || "N/A",
       placas: row["placas"] || "N/A",
