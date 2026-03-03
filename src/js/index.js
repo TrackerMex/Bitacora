@@ -302,6 +302,43 @@ function updateEstatusFromForm() {
   if (porcentajeEl) {
     porcentajeEl.textContent = progresoCalculado + "%";
   }
+
+  // Actualizar posición del camión
+  const progressTruck = document.getElementById("progress-truck");
+  if (progressTruck) {
+    progressTruck.style.left = `calc(${progresoCalculado}% - 12px)`;
+  }
+
+  // Actualizar badges de progreso individuales
+  updateProgressBadges(data);
+}
+
+function updateProgressBadges(data) {
+  const badges = document.querySelectorAll(".progress-badge");
+  if (badges.length !== 4) return;
+
+  const etapas = [
+    { campo: data.realSalidaUnidad, iconCompleto: "✅", iconPendiente: "⏱️" },
+    { campo: data.realCarga, iconCompleto: "✅", iconPendiente: "📦" },
+    { campo: data.realSalida, iconCompleto: "✅", iconPendiente: "🚚" },
+    { campo: data.realDescarga, iconCompleto: "✅", iconPendiente: "📥" },
+  ];
+
+  badges.forEach((badge, index) => {
+    const etapa = etapas[index];
+    const hasValue = etapa.campo && String(etapa.campo).trim();
+    const icon = badge.querySelector(".progress-icon");
+
+    if (hasValue) {
+      badge.className =
+        "progress-badge text-center p-2 rounded-lg bg-green-100 border-2 border-green-500 transition-all duration-300";
+      if (icon) icon.textContent = etapa.iconCompleto;
+    } else {
+      badge.className =
+        "progress-badge text-center p-2 rounded-lg bg-gray-100 border-2 border-gray-300 opacity-50 transition-all duration-300";
+      if (icon) icon.textContent = etapa.iconPendiente;
+    }
+  });
 }
 function renderEstatusBadge(estatus) {
   const badges = {
@@ -420,6 +457,8 @@ function changeTab(index) {
     if (btn && !btn.classList.contains("hidden")) {
       btn.classList.toggle("tab-active", i === index);
       btn.classList.toggle("text-gray-500", i !== index);
+      // Actualizar atributos ARIA
+      btn.setAttribute("aria-selected", i === index ? "true" : "false");
     }
     if (tab) tab.classList.toggle("hidden", i !== index);
   }
@@ -792,7 +831,7 @@ function renderDatosGenerales() {
 
     mostrados++;
     const tramoLabel = tieneMultiplesTramos
-      ? ` - Tramo ${numeroTramo}${filtroMaxTramos > 0 && unidadCount[unidadNombre] > filtroMaxTramos ? ` de ${unidadCount[unidadNombre]}` : ""}`
+      ? ` - xd ${numeroTramo}${filtroMaxTramos > 0 && unidadCount[unidadNombre] > filtroMaxTramos ? ` de ${unidadCount[unidadNombre]}` : ""}`
       : "";
 
     c.innerHTML += `
@@ -907,7 +946,7 @@ function renderOrigenDestino() {
     const tieneMultiplesTramos = unidadCount[unidadNombre] > 1;
     unidadIndex[unidadNombre] = (unidadIndex[unidadNombre] || 0) + 1;
     const numeroTramo = unidadIndex[unidadNombre];
-    const tramoLabel = tieneMultiplesTramos ? ` - Tramo ${numeroTramo}` : "";
+    const tramoLabel = tieneMultiplesTramos ? ` - xd ${numeroTramo}` : "";
 
     const origenUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       d.origen || "",
@@ -1287,7 +1326,7 @@ function filterByCliente() {
     const tieneMultiplesTramos = unidadCount[unidadNombre] > 1;
     unidadIndex[unidadNombre] = (unidadIndex[unidadNombre] || 0) + 1;
     const numeroTramo = unidadIndex[unidadNombre];
-    const tramoLabel = tieneMultiplesTramos ? ` - Tramo ${numeroTramo}` : "";
+    const tramoLabel = tieneMultiplesTramos ? ` - xd ${numeroTramo}` : "";
 
     const opt = document.createElement("option");
     opt.value = d.index;
@@ -1812,11 +1851,11 @@ function renderSeguimientoForm(index) {
                 </optgroup>`;
 
   const timeField = (label, name, realIso, progIso) => {
-    const hasValue = realIso && realIso.trim();
-    const containerClass = hasValue
+    const hasProgramada = progIso && progIso.trim();
+    const containerClass = hasProgramada
       ? "field-programada"
       : "field-no-programada";
-    const badgeHtml = hasValue
+    const badgeHtml = hasProgramada
       ? ""
       : `
                   <span class="badge-no-programada" id="badge-${name}">
@@ -1851,6 +1890,8 @@ function renderSeguimientoForm(index) {
                       value="${formatForInput(progIso)}"
                       class="w-full p-2 border border-gray-300 rounded-md text-sm bg-gray-50"
                       ${readOnly}
+                      onchange="updateTimeFieldStatus('${name}'); updateEstatusFromForm();"
+                      oninput="updateTimeFieldStatus('${name}')"
                     />
                   </div>
                 </div>
@@ -1934,9 +1975,35 @@ function renderSeguimientoForm(index) {
                         <span class="text-sm font-medium text-gray-600">Progreso del Despacho:</span>
                         <span id="progreso-porcentaje" class="text-sm font-bold text-indigo-600">${calcularProgreso(d)}%</span>
                       </div>
-                      <div class="progress-bar mb-3">
-                        <div class="progress-fill" style="width: ${calcularProgreso(d)}%"></div>
+                      <div style="position: relative; margin-bottom: 1.5rem;">
+                        <div class="progress-bar">
+                          <div class="progress-fill" style="width: ${calcularProgreso(d)}%"></div>
+                        </div>
+                        <div id="progress-truck" style="position: absolute; top: -8px; left: calc(${calcularProgreso(d)}% - 12px); transition: left 0.3s ease; font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); transform: scaleX(-1);">
+                          🚚
+                        </div>
                       </div>
+                      
+                      <!-- Badges de progreso por etapa -->
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                        <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realSalidaUnidad && String(d.realSalidaUnidad).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
+                          <div class="progress-icon text-xl mb-1">${d.realSalidaUnidad && String(d.realSalidaUnidad).trim() ? "✅" : "⏱️"}</div>
+                          <div class="text-xs font-medium text-gray-700">Salida Unidad</div>
+                        </div>
+                        <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realCarga && String(d.realCarga).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
+                          <div class="progress-icon text-xl mb-1">${d.realCarga && String(d.realCarga).trim() ? "✅" : "📦"}</div>
+                          <div class="text-xs font-medium text-gray-700">Carga</div>
+                        </div>
+                        <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realSalida && String(d.realSalida).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
+                          <div class="progress-icon text-xl mb-1">${d.realSalida && String(d.realSalida).trim() ? "✅" : "🚚"}</div>
+                          <div class="text-xs font-medium text-gray-700">Salida Carga</div>
+                        </div>
+                        <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realDescarga && String(d.realDescarga).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
+                          <div class="progress-icon text-xl mb-1">${d.realDescarga && String(d.realDescarga).trim() ? "✅" : "📥"}</div>
+                          <div class="text-xs font-medium text-gray-700">Descarga</div>
+                        </div>
+                      </div>
+                      
                       <div id="estatus-badge-container">
                         ${renderEstatusBadge(calcularEstatusAutomatico(d))}
                       </div>
@@ -2130,15 +2197,20 @@ function isGpsOperativo(gpsValidacionEstado) {
   }
 }
 function updateTimeFieldStatus(fieldName) {
-  const input = document.querySelector(`input[name="${fieldName}"]`);
   const container = document.getElementById(`container-${fieldName}`);
   const badge = document.getElementById(`badge-${fieldName}`);
 
-  if (!input || !container) return;
+  if (!container) return;
 
-  const hasValue = input.value && input.value.trim();
+  // Verificar el campo PROGRAMADO (cita) en lugar del campo real
+  const progFieldName = fieldName.replace(/^real/, "cita");
+  const progInput = document.querySelector(`input[name="${progFieldName}"]`);
 
-  if (hasValue) {
+  if (!progInput) return;
+
+  const hasProgramada = progInput.value && progInput.value.trim();
+
+  if (hasProgramada) {
     container.className = "field-programada p-4 transition-all duration-300";
     if (badge) badge.style.display = "none";
   } else {
@@ -2151,10 +2223,12 @@ function renderEstatusBadge(estatus) {
   const badges = {
     Programado:
       '<span class="badge-estatus badge-programado">⚙️ Programado</span>',
-    "En ruta":
-      '<span class="badge-estatus badge-en-ruta">🚛 En Tránsito</span>',
+    "En ruta": '<span class="badge-estatus badge-en-ruta">🚛 En Ruta</span>',
+    Cargando: '<span class="badge-estatus badge-cargando">📦 Cargando</span>',
+    "Salida de Carga":
+      '<span class="badge-estatus badge-salida-carga">🚚 Salida de Carga</span>',
     "Despacho realizado":
-      '<span class="badge-estatus badge-realizado">✅ Entregado Exitosamente</span>',
+      '<span class="badge-estatus badge-realizado">✅ Despacho Realizado</span>',
     "Despacho No realizado":
       '<span class="badge-estatus badge-no-realizado">❌ No Entregado</span>',
     Cancelado:
@@ -2785,7 +2859,7 @@ function renderRegistroDespacho() {
     const tieneMultiplesTramos = unidadCount[unidadNombre] > 1;
     unidadIndex[unidadNombre] = (unidadIndex[unidadNombre] || 0) + 1;
     const numeroTramo = unidadIndex[unidadNombre];
-    const tramoLabel = tieneMultiplesTramos ? ` - Tramo ${numeroTramo}` : "";
+    const tramoLabel = tieneMultiplesTramos ? ` - xd ${numeroTramo}` : "";
 
     const gpsOk = isGpsOperativo(d.gpsValidacionEstado);
     const dotClass = gpsOk ? "bg-green-500" : "bg-red-500";
@@ -2794,9 +2868,12 @@ function renderRegistroDespacho() {
     uc.className = "board-cell unit-cell";
     uc.setAttribute("data-label", "Unidad");
     uc.innerHTML = `
-                  <div class="flex items-center justify-center gap-2">
+                  <div class="flex items-center gap-2">
                     <span class="inline-block w-3 h-3 rounded-full ${dotClass}" title="${gpsOk ? "GPS validado" : "Sin validación GPS"}"></span>
-                    <strong>${escapeHtml(d.unidad)}${tramoLabel}</strong>
+                    <div class="flex flex-col">
+                      <strong>${escapeHtml(d.unidad)}</strong>
+                      <span class="text-xs text-gray-500">${tramoLabel}</span>
+                    </div>
                     <button
                       onclick="showGpsDetailsModal(${realIndex})"
                       class="ml-2 text-indigo-600 hover:text-indigo-800 transition"
