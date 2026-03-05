@@ -37,7 +37,7 @@ try {
     }
     
     $range = match($action) {
-        'datos' => getEnvVar('GOOGLE_SHEETS_RANGE_DATOS', 'Datos!A6:N1000'),
+        'datos' => getEnvVar('GOOGLE_SHEETS_RANGE_DATOS', 'Datos!A6:P1000'),
         'contactos' => getEnvVar('GOOGLE_SHEETS_RANGE_CONTACTOS', 'Contactos!A6:N1000'),
         'usuarios' => getEnvVar('GOOGLE_SHEETS_RANGE_USUARIOS', 'Usuarios!A2:F1000'),
         default => ''

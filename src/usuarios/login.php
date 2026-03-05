@@ -115,7 +115,7 @@ try {
           $unidadesArray = ['*'];
         } else {
           // Obtener datos de la hoja "Datos" para encontrar unidades asignadas
-          $rangeDatos = 'Datos!A1:O1000';
+          $rangeDatos = 'Datos!A1:P1000';
           $getUrlDatos = "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/values/{$rangeDatos}?key={$apiKey}";
           
           $ch2 = curl_init($getUrlDatos);
@@ -135,8 +135,8 @@ try {
                 $datosRow = $datosRows[$j];
                 
                 // Columna B = Unidad (índice 1), Columna O = Lector Responsable (índice 14)
-                $lectorEmail = isset($datosRow[14]) ? trim(strtolower((string)$datosRow[14])) : '';
-                $unidad = isset($datosRow[1]) ? trim((string)$datosRow[1]) : '';
+                $lectorEmail = isset($datosRow[15]) ? trim(strtolower((string)$datosRow[15])) : '';
+                $unidad = isset($datosRow[2]) ? trim((string)$datosRow[2]) : '';
                 
                 // Si el email coincide, agregar la unidad
                 if ($lectorEmail === strtolower($email) && $unidad !== '') {
