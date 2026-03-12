@@ -45,6 +45,7 @@
     # Descomentar en producción
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 </IfModule>
 
 # ========================
@@ -135,8 +136,8 @@ Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
     # NO reescribir archivos PHP backend
     RewriteCond %{REQUEST_URI} !\.php$ [NC]
     
-    # NO reescribir directorios del backend (api, seguimiento, informe, contactos)
-    RewriteCond %{REQUEST_URI} !^/bitacora_/src/(api|seguimiento|informe|contactos)/ [NC]
+    # NO reescribir directorios del backend (api, seguimiento, informe, contactos, usuarios)
+    RewriteCond %{REQUEST_URI} !^/bitacora_/src/(api|seguimiento|informe|contactos|usuarios|origen_destino|db)/ [NC]
     
     # Redirect SPA 404s to index.php
     RewriteRule ^ index.php [QSA,L]
