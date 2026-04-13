@@ -4727,7 +4727,7 @@
           cell.setAttribute("data-label", t.label);
           cell.innerHTML = `<p class="text-xs">Prog: ${formatDateTime(
             t.cita,
-          )}</p><p class="font-semibold">Real: ${
+          )}</p><p class="font-semibold text-xs">Real: ${
             t.real ? formatDateTime(t.real) : "-"
           }</p>`;
           row.appendChild(cell);
