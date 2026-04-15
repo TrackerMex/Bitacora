@@ -103,8 +103,15 @@ try {
           $tabsParts = explode(',', $rowTabs);
           foreach ($tabsParts as $tab) {
             $tabNum = intval(trim($tab));
-            $tabsArray[] = $tabNum;
+            if ($tabNum >= 0 && !in_array($tabNum, $tabsArray, true)) {
+              $tabsArray[] = $tabNum;
+            }
           }
+        }
+
+        // Compatibilidad: asegurar acceso a nueva pestaña de rutas fijas (tab 8)
+        if (($rowRole === 'admin' || $rowRole === 'editor') && !in_array(8, $tabsArray, true)) {
+          $tabsArray[] = 8;
         }
         
         // Ahora buscar las unidades asignadas en la hoja "Datos" (columna O = Lector Responsable)

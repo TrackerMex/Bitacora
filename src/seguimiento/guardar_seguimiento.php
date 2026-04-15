@@ -119,6 +119,22 @@ try {
     $observaciones = isset($data["observaciones"])
         ? (string) $data["observaciones"]
         : "";
+    $rutaPlantillaCodigo = isset($data["rutaPlantillaCodigo"])
+        ? (string) $data["rutaPlantillaCodigo"]
+        : "";
+    $rutaPlantillaNombre = isset($data["rutaPlantillaNombre"])
+        ? (string) $data["rutaPlantillaNombre"]
+        : "";
+    if ($rutaPlantillaCodigo !== "") {
+        $suffix = " [RUTA:" . $rutaPlantillaCodigo;
+        if ($rutaPlantillaNombre !== "") {
+            $suffix .= "|" . $rutaPlantillaNombre;
+        }
+        $suffix .= "]";
+        if (strpos($observaciones, $suffix) === false) {
+            $observaciones = trim($observaciones . " " . $suffix);
+        }
+    }
 
     $conn->begin_transaction();
 
