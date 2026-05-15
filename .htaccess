@@ -48,6 +48,10 @@
 
 </IfModule>
 
+<IfModule mod_setenvif.c>
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
 # ========================
 # Headers de seguridad
 # ========================
@@ -136,8 +140,8 @@ Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
     # NO reescribir archivos PHP backend
     RewriteCond %{REQUEST_URI} !\.php$ [NC]
     
-    # NO reescribir directorios del backend (api, seguimiento, informe, contactos, usuarios)
-    RewriteCond %{REQUEST_URI} !^/bitacora_/src/(api|seguimiento|informe|contactos|usuarios|origen_destino|db)/ [NC]
+    # NO reescribir directorios del backend (api, seguimiento, informe, contactos, usuarios, admin)
+    RewriteCond %{REQUEST_URI} !^/bitacora_/src/(api|seguimiento|informe|contactos|usuarios|origen_destino|db|admin)/ [NC]
     
     # Redirect SPA 404s to index.php
     RewriteRule ^ index.php [QSA,L]

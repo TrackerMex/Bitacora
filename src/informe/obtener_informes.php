@@ -15,6 +15,30 @@ $response = [
     'count' => 0
 ];
 
+function parse_id_list($value) {
+    $ids = [];
+    foreach (explode(',', (string)$value) as $part) {
+        $id = intval(trim($part));
+        if ($id > 0) {
+            $ids[] = $id;
+        }
+    }
+    return array_values(array_unique($ids));
+}
+
+function bind_statement_params($stmt, $types, $params) {
+    if ($types === '' || count($params) === 0) {
+        return;
+    }
+
+    $refs = [$types];
+    foreach ($params as $key => $value) {
+        $params[$key] = $value;
+        $refs[] = &$params[$key];
+    }
+    call_user_func_array([$stmt, 'bind_param'], $refs);
+}
+
 try {
     require_once __DIR__ . '/../db/db.php';
     
@@ -27,22 +51,46 @@ try {
         exit();
     }
     
-    $sql = "SELECT id, titulo, fecha_creacion, fecha_despacho, total_despachos, a_tiempo, con_retraso, en_ruta, programados, total_incidencias, operador_monitoreo, datos_informe 
-            FROM informes_guardados 
-            ORDER BY fecha_creacion DESC 
-            LIMIT 100";
-    
-    $result = $conn->query($sql);
-    
-    if (!$result) {
-        throw new Exception("Error en consulta: " . $conn->error);
+    $cliente_ids = parse_id_list($_GET['cliente_ids'] ?? '');
+    $where = '';
+    $types = '';
+    $params = [];
+    if (count($cliente_ids) > 0) {
+        $placeholders = implode(',', array_fill(0, count($cliente_ids), '?'));
+        $where = "WHERE cliente_id IN ($placeholders)";
+        $types = str_repeat('i', count($cliente_ids));
+        foreach ($cliente_ids as $id) {
+            $params[] = $id;
+        }
+    } elseif (isset($_GET['cliente_ids'])) {
+        $where = 'WHERE 1 = 0';
     }
+
+    $sql = "SELECT id, cliente_id, titulo, fecha_creacion, fecha_despacho, total_despachos, a_tiempo, con_retraso, en_ruta, programados, total_incidencias, operador_monitoreo, datos_informe
+            FROM informes_guardados
+            $where
+            ORDER BY fecha_creacion DESC
+            LIMIT 100";
+
+    $stmt = $conn->prepare($sql);
+
+    if (!$stmt) {
+        throw new Exception("Error preparando consulta: " . $conn->error);
+    }
+    bind_statement_params($stmt, $types, $params);
+
+    if (!$stmt->execute()) {
+        throw new Exception("Error en consulta: " . $stmt->error);
+    }
+
+    $result = $stmt->get_result();
     
     $informes = [];
     $count = 0;
     
     while ($row = $result->fetch_assoc()) {
         $row['id'] = intval($row['id']);
+        $row['cliente_id'] = $row['cliente_id'] !== null ? intval($row['cliente_id']) : null;
         $row['total_despachos'] = intval($row['total_despachos']);
         $row['a_tiempo'] = intval($row['a_tiempo']);
         $row['con_retraso'] = intval($row['con_retraso']);
@@ -67,7 +115,7 @@ try {
     $response['data'] = $informes;
     $response['count'] = $count;
     
-    $result->free();
+    $stmt->close();
     
 } catch (Exception $e) {
     $response['message'] = 'Error: ' . $e->getMessage();

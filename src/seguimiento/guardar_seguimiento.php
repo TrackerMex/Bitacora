@@ -53,6 +53,66 @@ function to_mysql_datetime_or_null($value)
     }
 }
 
+function resolve_despacho($conn, $despachoId, $folio, $unidad, $fechaProgramada)
+{
+    $despachoId = intval($despachoId);
+
+    if ($despachoId > 0) {
+        $stmt = $conn->prepare(
+            "SELECT id, cliente_id FROM despachos WHERE id = ? LIMIT 1",
+        );
+        if (!$stmt) {
+            throw new Exception("Error preparando despacho: " . $conn->error);
+        }
+        $stmt->bind_param("i", $despachoId);
+        if (!$stmt->execute()) {
+            throw new Exception("Error consultando despacho: " . $stmt->error);
+        }
+        $res = $stmt->get_result();
+        $row = $res ? $res->fetch_assoc() : null;
+        $stmt->close();
+        if ($row) {
+            return [
+                "despacho_id" => intval($row["id"]),
+                "cliente_id" => intval($row["cliente_id"]),
+            ];
+        }
+    }
+
+    $stmt = $conn->prepare(
+        "SELECT d.id, d.cliente_id
+           FROM despachos d
+           INNER JOIN unidades u ON u.id = d.unidad_id
+          WHERE d.folio = ?
+            AND u.economico = ?
+            AND d.fecha_programada = ?
+          ORDER BY d.tramo_numero ASC, d.id ASC
+          LIMIT 1",
+    );
+    if (!$stmt) {
+        throw new Exception("Error preparando búsqueda de despacho: " . $conn->error);
+    }
+    $stmt->bind_param("sss", $folio, $unidad, $fechaProgramada);
+    if (!$stmt->execute()) {
+        throw new Exception("Error buscando despacho: " . $stmt->error);
+    }
+    $res = $stmt->get_result();
+    $row = $res ? $res->fetch_assoc() : null;
+    $stmt->close();
+
+    if (!$row) {
+        return [
+            "despacho_id" => null,
+            "cliente_id" => null,
+        ];
+    }
+
+    return [
+        "despacho_id" => intval($row["id"]),
+        "cliente_id" => intval($row["cliente_id"]),
+    ];
+}
+
 try {
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
         throw new Exception("Método no permitido. Use POST.");
@@ -72,6 +132,7 @@ try {
         ? (string) $data["fechaProgramada"]
         : "";
     $fechaProgramada = to_mysql_date($fechaProgramadaRaw);
+    $despachoInputId = $data["despachoId"] ?? ($data["despacho_id"] ?? 0);
 
     if ($folio === "" || $unidad === "" || $fechaProgramada === "") {
         throw new Exception(
@@ -122,14 +183,26 @@ try {
 
     $conn->begin_transaction();
 
+    $despacho = resolve_despacho(
+        $conn,
+        $despachoInputId,
+        $folio,
+        $unidad,
+        $fechaProgramada,
+    );
+    $despachoId = $despacho["despacho_id"];
+    $clienteId = $despacho["cliente_id"];
+
     $sql = "INSERT INTO seguimiento_despacho (
-      folio, unidad, fecha_programada,
+      cliente_id, despacho_id, folio, unidad, fecha_programada,
       operador_monitoreo, gps_estado, gps_timestamp,
       real_salida_unidad, real_carga, real_salida, real_descarga,
       cita_salida_unidad, cita_carga, cita_salida, cita_descarga,
       confirmacion_entrega, estatus, estatus_especial, observaciones
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
+      cliente_id = VALUES(cliente_id),
+      despacho_id = VALUES(despacho_id),
       operador_monitoreo = VALUES(operador_monitoreo),
       gps_estado = VALUES(gps_estado),
       gps_timestamp = VALUES(gps_timestamp),
@@ -152,7 +225,9 @@ try {
     }
 
     $stmt->bind_param(
-        "ssssssssssssssssss",
+        "iissssssssssssssssss",
+        $clienteId,
+        $despachoId,
         $folio,
         $unidad,
         $fechaProgramada,
@@ -179,12 +254,18 @@ try {
     $stmt->close();
 
     $stmtId = $conn->prepare(
-        "SELECT id FROM seguimiento_despacho WHERE folio = ? AND unidad = ? AND fecha_programada = ? LIMIT 1",
+        $despachoId
+            ? "SELECT id FROM seguimiento_despacho WHERE despacho_id = ? LIMIT 1"
+            : "SELECT id FROM seguimiento_despacho WHERE folio = ? AND unidad = ? AND fecha_programada = ? LIMIT 1",
     );
     if (!$stmtId) {
         throw new Exception("Error preparando SELECT id: " . $conn->error);
     }
-    $stmtId->bind_param("sss", $folio, $unidad, $fechaProgramada);
+    if ($despachoId) {
+        $stmtId->bind_param("i", $despachoId);
+    } else {
+        $stmtId->bind_param("sss", $folio, $unidad, $fechaProgramada);
+    }
     if (!$stmtId->execute()) {
         throw new Exception("Error ejecutando SELECT id: " . $stmtId->error);
     }

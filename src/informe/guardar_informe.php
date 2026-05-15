@@ -50,6 +50,9 @@ try {
     $programados = intval($data['programados'] ?? 0);
     $total_incidencias = intval($data['total_incidencias'] ?? 0);
     $operador_monitoreo = $data['operador_monitoreo'] ?? 'Desconocido';
+    $cliente_id = isset($data['cliente_id']) && intval($data['cliente_id']) > 0
+        ? intval($data['cliente_id'])
+        : null;
     
     if (is_array($datos_informe)) {
         $datos_informe = json_encode($datos_informe, JSON_UNESCAPED_UNICODE);
@@ -57,12 +60,18 @@ try {
     
     $conn->begin_transaction();
 
-    $selectSql = "SELECT id FROM informes_guardados WHERE fecha_despacho = ? ORDER BY id DESC LIMIT 1";
+    $selectSql = $cliente_id === null
+        ? "SELECT id FROM informes_guardados WHERE fecha_despacho = ? AND cliente_id IS NULL ORDER BY id DESC LIMIT 1"
+        : "SELECT id FROM informes_guardados WHERE fecha_despacho = ? AND cliente_id = ? ORDER BY id DESC LIMIT 1";
     $selectStmt = $conn->prepare($selectSql);
     if (!$selectStmt) {
         throw new Exception("Error en la preparación (select): " . $conn->error);
     }
-    $selectStmt->bind_param("s", $fecha_despacho);
+    if ($cliente_id === null) {
+        $selectStmt->bind_param("s", $fecha_despacho);
+    } else {
+        $selectStmt->bind_param("si", $fecha_despacho, $cliente_id);
+    }
     if (!$selectStmt->execute()) {
         throw new Exception("Error al ejecutar (select): " . $selectStmt->error);
     }
@@ -74,8 +83,8 @@ try {
     $selectStmt->close();
 
     if ($existingId) {
-        $updateSql = "UPDATE informes_guardados 
-            SET titulo = ?, total_despachos = ?, a_tiempo = ?, con_retraso = ?, en_ruta = ?, programados = ?, total_incidencias = ?, datos_informe = ?, operador_monitoreo = ?
+        $updateSql = "UPDATE informes_guardados
+            SET cliente_id = ?, titulo = ?, total_despachos = ?, a_tiempo = ?, con_retraso = ?, en_ruta = ?, programados = ?, total_incidencias = ?, datos_informe = ?, operador_monitoreo = ?
             WHERE id = ?";
         $updateStmt = $conn->prepare($updateSql);
         if (!$updateStmt) {
@@ -83,7 +92,8 @@ try {
         }
 
         $updateStmt->bind_param(
-            "siiiiiissi",
+            "isiiiiiissi",
+            $cliente_id,
             $titulo,
             $total_despachos,
             $a_tiempo,
@@ -111,16 +121,17 @@ try {
             'fecha_despacho' => $fecha_despacho
         ], JSON_UNESCAPED_UNICODE);
     } else {
-        $insertSql = "INSERT INTO informes_guardados 
-            (titulo, fecha_despacho, total_despachos, a_tiempo, con_retraso, en_ruta, programados, total_incidencias, datos_informe, operador_monitoreo) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $insertSql = "INSERT INTO informes_guardados
+            (cliente_id, titulo, fecha_despacho, total_despachos, a_tiempo, con_retraso, en_ruta, programados, total_incidencias, datos_informe, operador_monitoreo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $insertStmt = $conn->prepare($insertSql);
         if (!$insertStmt) {
             throw new Exception("Error en la preparación (insert): " . $conn->error);
         }
 
         $insertStmt->bind_param(
-            "ssiiiiisss",
+            "issiiiiisss",
+            $cliente_id,
             $titulo,
             $fecha_despacho,
             $total_despachos,

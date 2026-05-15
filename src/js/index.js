@@ -100,7 +100,7 @@ async function enviarIncidencia(datosIncidencia) {
       body: JSON.stringify({
         titulo: datosIncidencia.titulo,
         descripcion: datosIncidencia.cuerpo,
-        fecha: new Date().toISOString(),
+        fecha: dayjs().format("YYYY-MM-DD HH:mm:ss"),
         direccion: datosIncidencia.direccion || "",
       }),
     });
@@ -361,18 +361,12 @@ function renderEstatusBadge(estatus) {
 function formatDateTime(iso) {
   if (!iso || !dayjs(iso).isValid()) return "-";
   const d = dayjs(iso);
-  const date = d.format("DD/MM/YYYY");
-  const hour = d.hour();
-  const minute = d.format("mm");
-  const second = d.format("ss");
-  const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  const ampm = hour < 12 ? "a.m." : "p.m.";
-  return `${date} ${String(hour12).padStart(2, "0")}:${minute}:${second} ${ampm}`;
+  return d.format("YYYY-MM-DD HH:mm:ss");
 }
 function formatForInput(iso) {
   if (!iso) return "";
   const d = dayjs(iso);
-  return d.isValid() ? d.format("YYYY-MM-DDTHH:mm:ss") : "";
+  return d.isValid() ? d.format("YYYY-MM-DD HH:mm:ss") : "";
 }
 
 function checkTimeDeviation(prog, real) {
@@ -1102,7 +1096,7 @@ function openEditFechaProgramadaModal(index) {
   document.getElementById("efp-index").value = index;
   document.getElementById("efp-unidad-display").value = d.unidad || "";
   document.getElementById("efp-fecha-actual-display").value = d.fechaProgramada
-    ? dayjs(d.fechaProgramada).format("DD/MM/YYYY")
+    ? dayjs(d.fechaProgramada).format("YYYY-MM-DD HH:mm:ss")
     : "";
   document.getElementById("efp-fecha-nueva").value = d.fechaProgramada || "";
 
@@ -3177,7 +3171,7 @@ function downloadReportAsExcel() {
   if (!lastInformeData.length) return alert("No hay datos para exportar.");
   const rows = lastInformeData.map((d) => ({
     Fecha: d.fechaProgramada
-      ? dayjs(d.fechaProgramada).format("DD/MM/YYYY")
+      ? dayjs(d.fechaProgramada).format("YYYY-MM-DD HH:mm:ss")
       : "",
     Folio: d.folio,
     Unidad: d.unidad,
@@ -3208,7 +3202,7 @@ function exportUpdatedSheet() {
   if (!allDespachosData.length) return alert("No hay datos para exportar.");
   const rows = allDespachosData.map((d) => ({
     Fecha: d.fechaProgramada
-      ? dayjs(d.fechaProgramada).format("DD/MM/YYYY")
+      ? dayjs(d.fechaProgramada).format("YYYY-MM-DD HH:mm:ss")
       : "",
     Folio: d.folio,
     Unidad: d.unidad,

@@ -47,3 +47,6 @@ backups/
 
 # Session files
 sessions/
+
+# Agents
+.agents/
