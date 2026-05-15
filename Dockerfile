@@ -21,9 +21,9 @@ RUN chown -R www-data:www-data /var/www/html/bitacora_ \
 RUN printf '%s\n' \
     '<VirtualHost *:80>' \
     '    ServerAdmin webmaster@localhost' \
-    '    DocumentRoot /var/www/html' \
+    '    DocumentRoot /var/www/html/bitacora_' \
     '' \
-    '    RedirectMatch 302 ^/$ /bitacora_/' \
+    '    Alias /bitacora_ /var/www/html/bitacora_' \
     '' \
     '    <Directory /var/www/html/bitacora_>' \
     '        Options -Indexes +FollowSymLinks' \
