@@ -8,24 +8,24 @@ RUN apt-get update \
     && a2enmod rewrite headers expires deflate \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www/html/bitacora_
+WORKDIR /var/www/html
 
-COPY . /var/www/html/bitacora_/
+COPY . /var/www/html/
 
-RUN chown -R www-data:www-data /var/www/html/bitacora_ \
-    && find /var/www/html/bitacora_ -type d -exec chmod 755 {} \; \
-    && find /var/www/html/bitacora_ -type f -exec chmod 644 {} \; \
-    && mkdir -p /var/www/html/bitacora_/logs /var/www/html/bitacora_/backups \
-    && chown -R www-data:www-data /var/www/html/bitacora_/logs /var/www/html/bitacora_/backups
+RUN chown -R www-data:www-data /var/www/html \
+    && find /var/www/html -type d -exec chmod 755 {} \; \
+    && find /var/www/html -type f -exec chmod 644 {} \; \
+    && mkdir -p /var/www/html/logs /var/www/html/backups \
+    && chown -R www-data:www-data /var/www/html/logs /var/www/html/backups
 
 RUN printf '%s\n' \
     '<VirtualHost *:80>' \
     '    ServerAdmin webmaster@localhost' \
-    '    DocumentRoot /var/www/html/bitacora_' \
+    '    DocumentRoot /var/www/html' \
     '' \
-    '    Alias /bitacora_ /var/www/html/bitacora_' \
+    '    Alias /bitacora_ /var/www/html' \
     '' \
-    '    <Directory /var/www/html/bitacora_>' \
+    '    <Directory /var/www/html>' \
     '        Options -Indexes +FollowSymLinks' \
     '        AllowOverride All' \
     '        Require all granted' \
