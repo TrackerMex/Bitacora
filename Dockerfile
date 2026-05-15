@@ -23,7 +23,9 @@ RUN printf '%s\n' \
     '    ServerAdmin webmaster@localhost' \
     '    DocumentRoot /var/www/html' \
     '' \
-    '    Alias /bitacora_ /var/www/html' \
+    '    DirectoryIndex index.php index.html' \
+    '    RedirectMatch 301 ^/bitacora_$ /bitacora_/' \
+    '    Alias /bitacora_/ /var/www/html/' \
     '' \
     '    <Directory /var/www/html>' \
     '        Options -Indexes +FollowSymLinks' \

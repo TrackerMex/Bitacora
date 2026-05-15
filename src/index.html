@@ -2211,7 +2211,7 @@
 
             try {
                 const response = await fetch(
-                    "/bitacora_/src/usuarios/login.php",
+                    "/src/usuarios/login.php",
                     {
                         method: "POST",
                         headers: {
@@ -2339,7 +2339,7 @@
             }
 
             const query = params.toString();
-            return `/bitacora_/src/despachos/obtener_despachos.php${query ? `?${query}` : ""}`;
+            return `/src/despachos/obtener_despachos.php${query ? `?${query}` : ""}`;
         }
 
         async function loadDataFromMySQL(isInitialLoad = true) {
@@ -2363,7 +2363,7 @@
 
         async function loadEmergencyContactsFromSheet() {
             const url =
-                "/bitacora_/src/api/google-sheets-proxy.php?action=contactos";
+                "/src/api/google-sheets-proxy.php?action=contactos";
 
             try {
                 const response = await fetch(url);
@@ -3215,7 +3215,7 @@
 
                     try {
                         const response = await fetch(
-                            "/bitacora_/src/origen_destino/actualizar_origen_destino.php",
+                            "/src/origen_destino/actualizar_origen_destino.php",
                             {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
@@ -3345,7 +3345,7 @@
                 try {
                     // 1. Actualizar MySQL
                     const response = await fetch(
-                        "/bitacora_/src/seguimiento/actualizar_fecha_programada.php",
+                        "/src/seguimiento/actualizar_fecha_programada.php",
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -3370,7 +3370,7 @@
 
                     // 2. Actualizar Google Sheets (en paralelo, no bloquea el flujo)
                     const sheetsPromise = fetch(
-                        "/bitacora_/src/api/actualizar_fecha_sheets.php",
+                        "/src/api/actualizar_fecha_sheets.php",
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -4785,9 +4785,9 @@
         }
 
         const SEGUIMIENTO_SAVE_ENDPOINT =
-            "/bitacora_/src/seguimiento/guardar_seguimiento.php";
+            "/src/seguimiento/guardar_seguimiento.php";
         const SEGUIMIENTO_LOAD_ENDPOINT =
-            "/bitacora_/src/seguimiento/obtener_seguimiento.php";
+            "/src/seguimiento/obtener_seguimiento.php";
 
         let seguimientosDbCache = {
             loaded: false,
@@ -4812,7 +4812,7 @@
 
         async function loadOrigenDestinoFromDb() {
             const res = await fetch(
-                `/bitacora_/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
+                `/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
                 { cache: "no-store" },
             );
             let json = null;
@@ -5800,7 +5800,7 @@
         };
 
         const EMERGENCY_911_ENDPOINT =
-            "/bitacora_/src/contactos/obtener_numeros_emergencia.php";
+            "/src/contactos/obtener_numeros_emergencia.php";
 
         function normalizeEmergency911Row(r) {
             const estado = (r?.estado ?? "").toString().trim().toUpperCase();
@@ -6317,7 +6317,7 @@
                 };
 
                 const res = await fetch(
-                    "/bitacora_/src/informe/guardar_informe.php",
+                    "/src/informe/guardar_informe.php",
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -6541,7 +6541,7 @@
                 }
                 const query = params.toString();
                 const res = await fetch(
-                    `/bitacora_/src/informe/obtener_informes.php${query ? `?${query}` : ""}`,
+                    `/src/informe/obtener_informes.php${query ? `?${query}` : ""}`,
                     { cache: "no-store" },
                 );
                 const text = await res.text();
@@ -6929,7 +6929,7 @@
 
             try {
                 const res = await fetch(
-                    "/bitacora_/src/informe/eliminar_informe.php",
+                    "/src/informe/eliminar_informe.php",
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -7133,3 +7133,4 @@
         })();
     </script>
 </html>
+
