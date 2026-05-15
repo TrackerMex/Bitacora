@@ -151,9 +151,13 @@ try {
   }
 
   $email = isset($data['username']) ? strtolower(trim((string)$data['username'])) : '';
+  if ($email === '' && isset($data['email'])) {
+    $email = strtolower(trim((string)$data['email']));
+  }
   $password = isset($data['password']) ? trim((string)$data['password']) : '';
 
   if ($email === '' || $password === '') {
+    http_response_code(422);
     throw new Exception('Faltan campos requeridos: email y password');
   }
 
@@ -175,10 +179,12 @@ try {
   $stmt->close();
 
   if (!$user || !password_verify($password, (string)$user['password_hash'])) {
+    http_response_code(401);
     throw new Exception('Email o contraseña incorrectos');
   }
 
   if (intval($user['activo']) !== 1) {
+    http_response_code(403);
     throw new Exception('Usuario desactivado. Contacte al administrador.');
   }
 
@@ -212,7 +218,9 @@ try {
   $response['expires_at'] = $expires_at;
 
 } catch (Exception $e) {
-  http_response_code(400);
+  if (http_response_code() < 400) {
+    http_response_code(400);
+  }
   $response['success'] = false;
   $response['message'] = $e->getMessage();
 } finally {
