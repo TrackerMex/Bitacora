@@ -7,6 +7,13 @@ ini_set('max_execution_time', 30);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 $response = [
     'success' => false,
@@ -41,6 +48,7 @@ function bind_statement_params($stmt, $types, $params) {
 
 try {
     require_once __DIR__ . '/../db/db.php';
+    require_once __DIR__ . '/informe_auth.php';
     
     $tableCheck = $conn->query("SHOW TABLES LIKE 'informes_guardados'");
     
@@ -51,11 +59,30 @@ try {
         exit();
     }
     
+    $auth_user = informes_get_auth_user($conn, false);
+    $has_created_by = informes_column_exists($conn, 'created_by_usuario_id');
     $cliente_ids = parse_id_list($_GET['cliente_ids'] ?? '');
     $where = '';
     $types = '';
     $params = [];
-    if (count($cliente_ids) > 0) {
+
+    if ($has_created_by && $auth_user && $auth_user['role'] !== 'admin') {
+        $where = 'WHERE created_by_usuario_id = ?';
+        $types = 'i';
+        $params[] = $auth_user['id'];
+    } elseif ($auth_user && $auth_user['role'] !== 'admin') {
+        $allowed_cliente_ids = informes_get_user_cliente_ids($conn, $auth_user['id'], $auth_user['role']);
+        if (count($allowed_cliente_ids) > 0) {
+            $placeholders = implode(',', array_fill(0, count($allowed_cliente_ids), '?'));
+            $where = "WHERE cliente_id IN ($placeholders)";
+            $types = str_repeat('i', count($allowed_cliente_ids));
+            foreach ($allowed_cliente_ids as $id) {
+                $params[] = $id;
+            }
+        } else {
+            $where = 'WHERE 1 = 0';
+        }
+    } elseif (count($cliente_ids) > 0) {
         $placeholders = implode(',', array_fill(0, count($cliente_ids), '?'));
         $where = "WHERE cliente_id IN ($placeholders)";
         $types = str_repeat('i', count($cliente_ids));
@@ -66,7 +93,8 @@ try {
         $where = 'WHERE 1 = 0';
     }
 
-    $sql = "SELECT id, cliente_id, titulo, fecha_creacion, fecha_despacho, total_despachos, a_tiempo, con_retraso, en_ruta, programados, total_incidencias, operador_monitoreo, datos_informe
+    $createdBySelect = $has_created_by ? ', created_by_usuario_id' : '';
+    $sql = "SELECT id, cliente_id $createdBySelect, titulo, fecha_creacion, fecha_despacho, total_despachos, a_tiempo, con_retraso, en_ruta, programados, total_incidencias, operador_monitoreo, datos_informe
             FROM informes_guardados
             $where
             ORDER BY fecha_creacion DESC
@@ -91,6 +119,9 @@ try {
     while ($row = $result->fetch_assoc()) {
         $row['id'] = intval($row['id']);
         $row['cliente_id'] = $row['cliente_id'] !== null ? intval($row['cliente_id']) : null;
+        if (isset($row['created_by_usuario_id'])) {
+            $row['created_by_usuario_id'] = $row['created_by_usuario_id'] !== null ? intval($row['created_by_usuario_id']) : null;
+        }
         $row['total_despachos'] = intval($row['total_despachos']);
         $row['a_tiempo'] = intval($row['a_tiempo']);
         $row['con_retraso'] = intval($row['con_retraso']);
