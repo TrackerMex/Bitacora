@@ -1774,6 +1774,17 @@
                 : extra;
         }
 
+        const BITACORA_PRODUCTION_SRC =
+            "https://bitacora.trackergps.cloud/src";
+
+        function phpApiPath(path) {
+            const cleanPath = String(path || "").replace(/^\/+/, "");
+            if (window.location.protocol === "file:") {
+                return `${BITACORA_PRODUCTION_SRC}/${cleanPath}`;
+            }
+            return `/src/${cleanPath}`;
+        }
+
         function setUserRole(role, unidades = [], tabs = [], clientes = []) {
             userRole = role;
             userUnidades = unidades;
@@ -2397,11 +2408,19 @@
             }
 
             const query = params.toString();
-            return `/src/contactos/obtener_directorio_monitoreo.php${query ? `?${query}` : ""}`;
+            if (!query) {
+                return "";
+            }
+            return phpApiPath(
+                `contactos/obtener_directorio_monitoreo.php?${query}`,
+            );
         }
 
         async function loadEmergencyContactsFromDatabase() {
             const url = buildEmergencyContactsUrl();
+            if (!url) {
+                return [];
+            }
 
             try {
                 const response = await fetch(url);
@@ -5944,7 +5963,7 @@
                 container.innerHTML = `
             <div class="col-span-full text-center p-10 bg-orange-50 border-2 border-orange-200 rounded-xl">
               <p class="text-lg font-medium text-orange-800 mb-2">No hay contactos disponibles</p>
-              <p class="text-sm text-orange-600">Verifica la conexión con Google Sheets o añade datos en la pestaña CONTACTOS_EMERGENCIA</p>
+              <p class="text-sm text-orange-600">Selecciona un solo cliente o registra contactos en el Directorio de Monitoreo del Planificador.</p>
             </div>
           `;
                 return;
@@ -6053,8 +6072,7 @@
                     if (items && items.length > 0) {
                         emergencyContactsCache.items = items;
                     } else {
-                        emergencyContactsCache.items =
-                            EMERGENCYCONTACTS.slice();
+                        emergencyContactsCache.items = [];
                     }
 
                     emergencyContactsCache.key = cacheKey;
@@ -6064,8 +6082,7 @@
                 renderEmergencyContacts(emergencyContactsCache.items);
             } catch (error) {
                 console.error("Error cargando contactos:", error);
-                // Fallback inmediato
-                renderEmergencyContacts(EMERGENCYCONTACTS);
+                renderEmergencyContacts([]);
             }
         }
         let incExecutiveFilterMode = "selected";
@@ -7126,4 +7143,3 @@
         })();
     </script>
 </html>
-
