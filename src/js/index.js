@@ -1,4 +1,4 @@
-const USER_ROLES = {
+﻿const USER_ROLES = {
   editor: {
     username: "user",
     password: "editor",
@@ -11,6 +11,13 @@ let userRole = null;
 let userUnidades = [];
 let userTabs = [];
 let username = "";
+let bitacoraAuthToken = "";
+
+function getAuthHeaders(extra = {}) {
+  return bitacoraAuthToken
+    ? { ...extra, Authorization: `Bearer ${bitacoraAuthToken}` }
+    : extra;
+}
 
 function setUserRole(role, unidades = [], tabs = []) {
   userRole = role;
@@ -21,6 +28,7 @@ function setUserRole(role, unidades = [], tabs = []) {
     sessionStorage.setItem("bitacoraUserUnidades", JSON.stringify(unidades));
     sessionStorage.setItem("bitacoraUserTabs", JSON.stringify(tabs));
     sessionStorage.setItem("bitacoraUsername", username);
+    sessionStorage.setItem("bitacoraAuthToken", bitacoraAuthToken);
   } catch (e) {}
   const loginModal = document.getElementById("login-modal");
   if (loginModal) loginModal.classList.add("hidden");
@@ -40,12 +48,14 @@ function handleLogout() {
   userUnidades = [];
   userTabs = [];
   username = "";
+  bitacoraAuthToken = "";
 
   try {
     sessionStorage.removeItem("bitacoraUserRole");
     sessionStorage.removeItem("bitacoraUserUnidades");
     sessionStorage.removeItem("bitacoraUserTabs");
     sessionStorage.removeItem("bitacoraUsername");
+    sessionStorage.removeItem("bitacoraAuthToken");
   } catch (e) {}
 
   const userInfo = document.getElementById("user-info");
@@ -104,8 +114,8 @@ async function enviarIncidencia(datosIncidencia) {
         direccion: datosIncidencia.direccion || "",
       }),
     });
-    if (response.ok) console.log("Incidencia enviada con éxito");
-    else console.warn("Make respondió con error HTTP:", response.status);
+    if (response.ok) console.log("Incidencia enviada con Ã©xito");
+    else console.warn("Make respondiÃ³ con error HTTP:", response.status);
   } catch (error) {
     console.error("Error al conectar con Make:", error);
   }
@@ -303,7 +313,7 @@ function updateEstatusFromForm() {
     porcentajeEl.textContent = progresoCalculado + "%";
   }
 
-  // Actualizar posición del camión
+  // Actualizar posiciÃ³n del camiÃ³n
   const progressTruck = document.getElementById("progress-truck");
   if (progressTruck) {
     progressTruck.style.left = `calc(${progresoCalculado}% - 12px)`;
@@ -318,10 +328,10 @@ function updateProgressBadges(data) {
   if (badges.length !== 4) return;
 
   const etapas = [
-    { campo: data.realSalidaUnidad, iconCompleto: "✅", iconPendiente: "⏱️" },
-    { campo: data.realCarga, iconCompleto: "✅", iconPendiente: "📦" },
-    { campo: data.realSalida, iconCompleto: "✅", iconPendiente: "🚚" },
-    { campo: data.realDescarga, iconCompleto: "✅", iconPendiente: "📥" },
+    { campo: data.realSalidaUnidad, iconCompleto: "âœ…", iconPendiente: "â±ï¸" },
+    { campo: data.realCarga, iconCompleto: "âœ…", iconPendiente: "ðŸ“¦" },
+    { campo: data.realSalida, iconCompleto: "âœ…", iconPendiente: "ðŸšš" },
+    { campo: data.realDescarga, iconCompleto: "âœ…", iconPendiente: "ðŸ“¥" },
   ];
 
   badges.forEach((badge, index) => {
@@ -343,17 +353,17 @@ function updateProgressBadges(data) {
 function renderEstatusBadge(estatus) {
   const badges = {
     Programado:
-      '<span class="badge-estatus badge-programado">⚙️ Programado</span>',
-    "En ruta": '<span class="badge-estatus badge-en-ruta">🚛 En Ruta</span>',
-    Cargando: '<span class="badge-estatus badge-cargando">📦 Cargando</span>',
+      '<span class="badge-estatus badge-programado">âš™ï¸ Programado</span>',
+    "En ruta": '<span class="badge-estatus badge-en-ruta">ðŸš› En Ruta</span>',
+    Cargando: '<span class="badge-estatus badge-cargando">ðŸ“¦ Cargando</span>',
     "Salida de Carga":
-      '<span class="badge-estatus badge-salida-carga">🚚 Salida de Carga</span>',
+      '<span class="badge-estatus badge-salida-carga">ðŸšš Salida de Carga</span>',
     "Despacho realizado":
-      '<span class="badge-estatus badge-realizado">✅ Despacho Realizado</span>',
+      '<span class="badge-estatus badge-realizado">âœ… Despacho Realizado</span>',
     "Despacho No realizado":
-      '<span class="badge-estatus badge-no-realizado">❌ No Entregado</span>',
+      '<span class="badge-estatus badge-no-realizado">âŒ No Entregado</span>',
     Cancelado:
-      '<span class="badge-estatus badge-cancelado">🚫 Cancelado</span>',
+      '<span class="badge-estatus badge-cancelado">ðŸš« Cancelado</span>',
   };
   return badges[estatus] || "";
 }
@@ -388,7 +398,7 @@ async function handleLogin(event) {
   if (errorMessage) errorMessage.classList.add("hidden");
 
   try {
-    const response = await fetch("/bitacora_/src/usuarios/login.php", {
+    const response = await fetch("/src/usuarios/login.php", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -404,20 +414,21 @@ async function handleLogin(event) {
     if (!data.success) {
       if (errorMessage) {
         errorMessage.textContent =
-          data.message || "Usuario o contraseña incorrectos.";
+          data.message || "Usuario o contraseÃ±a incorrectos.";
         errorMessage.classList.remove("hidden");
       }
       return false;
     }
 
     username = data.user.username;
+    bitacoraAuthToken = data.token || "";
     setUserRole(data.user.role, data.user.unidades, data.user.tabs);
 
     processData(allDespachosData);
   } catch (error) {
     console.error("Login error:", error);
     if (errorMessage) {
-      errorMessage.textContent = "Error al iniciar sesión. Intenta de nuevo.";
+      errorMessage.textContent = "Error al iniciar sesiÃ³n. Intenta de nuevo.";
       errorMessage.classList.remove("hidden");
     }
   }
@@ -442,7 +453,7 @@ function changeTab(index) {
   }
   const allowed = userTabs;
   if (!allowed.includes(index)) {
-    alert("No tienes permiso para acceder a esta pestaña.");
+    alert("No tienes permiso para acceder a esta pestaÃ±a.");
     return;
   }
   for (let i = 0; i < 8; i++) {
@@ -476,7 +487,7 @@ window.onclick = (ev) => {
 };
 
 async function loadDataFromGoogleSheets(isInitialLoad = true) {
-  const url = "/bitacora_/src/api/google-sheets-proxy.php?action=datos";
+  const url = "/src/api/google-sheets-proxy.php?action=datos";
   const response = await fetch(url);
   const apiResponse = await response.json();
   const values = apiResponse.data || [];
@@ -484,82 +495,47 @@ async function loadDataFromGoogleSheets(isInitialLoad = true) {
   processData(jsonData);
 }
 
-async function loadEmergencyContactsFromSheet() {
-  const url = "/bitacora_/src/api/google-sheets-proxy.php?action=contactos";
+function buildEmergencyContactsUrl() {
+  const params = new URLSearchParams();
+  const sourceRows = lastInformeData.length ? lastInformeData : filteredDespachosData;
+  const clienteId =
+    getSingleClienteIdFromRows(lastInformeData) ||
+    getSingleClienteIdFromRows(filteredDespachosData);
+
+  if (clienteId) {
+    params.set("cliente_id", String(clienteId));
+  } else {
+    const clientes = [
+      ...new Set(
+        (sourceRows || [])
+          .map((row) => String(row?.cliente || "").trim())
+          .filter(Boolean),
+      ),
+    ];
+    if (clientes.length === 1) {
+      params.set("cliente", clientes[0]);
+    }
+  }
+
+  const query = params.toString();
+  return `/src/contactos/obtener_directorio_monitoreo.php${query ? `?${query}` : ""}`;
+}
+
+async function loadEmergencyContactsFromDatabase() {
+  const url = buildEmergencyContactsUrl();
 
   try {
     const response = await fetch(url);
     const apiResponse = await response.json();
-    const data = { values: apiResponse.data || [] };
-
-    if (!data.values || data.values.length < 2) {
-      return [];
+    if (!response.ok || !apiResponse.success) {
+      throw new Error(apiResponse.message || "No se pudo cargar el directorio");
     }
-
-    const rows = data.values;
-    const headers = rows[0].map((h) =>
-      (h || "")
-        .toString()
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-záéíóúñü\s]/g, ""),
-    );
-
-    // Mapear tus encabezados exactos:
-    const headerMap = {
-      "nombre contacto": "label",
-      nombre: "label",
-      "cargo/posicion": "cargo",
-      cargo: "cargo",
-      "area/departamento": "departamento",
-      departamento: "departamento",
-      "prioridad contacto": "prioridad",
-      prioridad: "prioridad",
-      telefonos: "telefonos",
-      correos: "correos",
-      accionesatomar: "acciones",
-      acciones: "acciones",
-      observaciones: "observaciones",
-    };
-
-    const records = rows.slice(1).map((row) => {
-      const obj = {};
-
-      headers.forEach((header, i) => {
-        const normalizedHeader =
-          Object.keys(headerMap).find(
-            (key) => header.includes(key) || key.includes(header),
-          ) || header;
-
-        obj[headerMap[normalizedHeader] || normalizedHeader] = row[i] || "";
-      });
-
-      return {
-        label: obj.label || "Contacto",
-        nombre: obj.nombre || obj.label || "",
-        cargo: obj.cargo || "",
-        departamento: obj.departamento || "",
-        prioridad: obj.prioridad || "Normal",
-        telefonos: (obj.telefonos || "")
-          .split(/[\n,;|]/) // Soporta comas, punto-coma, saltos de línea
-          .map((t) => t.trim())
-          .filter(Boolean),
-        correos: (obj.correos || "")
-          .split(/[\n,;|]/)
-          .map((c) => c.trim())
-          .filter(Boolean),
-        acciones: obj.acciones || "",
-        observaciones: obj.observaciones || "",
-      };
-    });
-
-    return records.filter((r) => r.nombre && r.nombre.trim());
+    return (apiResponse.data || []).filter((r) => r.nombre && r.nombre.trim());
   } catch (error) {
     console.error("Error cargando contactos de emergencia:", error);
     return [];
   }
 }
-
 function convertSheetDataToObjects(data) {
   if (data.length < 1) return [];
   const columnMap = {
@@ -568,7 +544,7 @@ function convertSheetDataToObjects(data) {
     "salida carga programada": "salida_carga_prog",
     "descarga programada": "descarga_prog",
     "id equipos": "id_equipos",
-    teléfono: "telefono",
+    telÃ©fono: "telefono",
     telefono: "telefono",
   };
   const fallbackHeaders = [
@@ -603,7 +579,7 @@ function convertSheetDataToObjects(data) {
     rows = data;
   } else {
     console.warn(
-      "[Bitácora] La primera fila del proxy son datos, no encabezados. Usando mapeo fijo por índice. Corrige GOOGLE_SHEETS_RANGE_DATOS en .env del servidor para incluir la fila de headers.",
+      "[BitÃ¡cora] La primera fila del proxy son datos, no encabezados. Usando mapeo fijo por Ã­ndice. Corrige GOOGLE_SHEETS_RANGE_DATOS en .env del servidor para incluir la fila de headers.",
     );
     headers = fallbackHeaders;
     rows = data;
@@ -647,7 +623,7 @@ function processData(sheetRows) {
       unidad: row["unidad"] || "N/A",
       placas: row["placas"] || "N/A",
       operador: row["operador"] || "N/A",
-      telefono: row["teléfono"] || row["telefono"] || "N/A",
+      telefono: row["telÃ©fono"] || row["telefono"] || "N/A",
       ruta: row["ruta"] || "N/A",
       origen: row["origen"] || "N/A",
       destino: row["destino"] || "N/A",
@@ -1031,7 +1007,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         const response = await fetch(
-          "/bitacora_/src/origen_destino/actualizar_origen_destino.php",
+          "/src/origen_destino/actualizar_origen_destino.php",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -1085,7 +1061,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ── Editar Fecha Programada ─────────────────────────────────────────────
+// â”€â”€ Editar Fecha Programada â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openEditFechaProgramadaModal(index) {
   const d = filteredDespachosData[index];
   if (!d) return;
@@ -1142,7 +1118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       // 1. Actualizar MySQL
       const response = await fetch(
-        "/bitacora_/src/seguimiento/actualizar_fecha_programada.php",
+        "/src/seguimiento/actualizar_fecha_programada.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1164,7 +1140,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 2. Actualizar Google Sheets (en paralelo, no bloquea el flujo)
       const sheetsPromise = fetch(
-        "/bitacora_/src/api/actualizar_fecha_sheets.php",
+        "/src/api/actualizar_fecha_sheets.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1183,7 +1159,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 3. Actualizar estado en memoria
 
-      // Función auxiliar para actualizar cita* de un registro
+      // FunciÃ³n auxiliar para actualizar cita* de un registro
       function actualizarCitas(rec) {
         rec.fechaProgramada = fechaNueva;
         rec.citaSalidaUnidad = swapDatePart(rec.citaSalidaUnidad, fechaNueva);
@@ -1247,9 +1223,9 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         alert(
           "Fecha actualizada en base de datos.\n\n" +
-            "⚠️ No se pudo actualizar Google Sheets: " +
+            "âš ï¸ No se pudo actualizar Google Sheets: " +
             sheetsResult.message +
-            "\n\nVerifica que GOOGLE_APPS_SCRIPT_URL esté configurado en el .env.",
+            "\n\nVerifica que GOOGLE_APPS_SCRIPT_URL estÃ© configurado en el .env.",
         );
       }
     } catch (error) {
@@ -1261,7 +1237,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-// ── Fin: Editar Fecha Programada ────────────────────────────────────────
+// â”€â”€ Fin: Editar Fecha Programada â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function renderClienteFilter() {
   const container = document.getElementById("cliente-filter-container");
@@ -1476,7 +1452,7 @@ function showUnitData() {
                   <p><strong>Unidad:</strong></p><p>${escapeHtml(d.unidad)}</p>
                   <p><strong>Placas:</strong></p><p>${escapeHtml(d.placas)}</p>
                   <p><strong>Operador:</strong></p><p>${escapeHtml(d.operador)}</p>
-                  <p><strong>Teléfono:</strong></p><p>${escapeHtml(d.telefono)}</p>
+                  <p><strong>TelÃ©fono:</strong></p><p>${escapeHtml(d.telefono)}</p>
                   <p><strong>Ruta:</strong></p><p>${escapeHtml(d.ruta)}</p>
                   <p><strong>Origen:</strong></p><p>${escapeHtml(d.origen)}</p>
                   <p><strong>Destino:</strong></p><p>${escapeHtml(d.destino)}</p>
@@ -1487,23 +1463,23 @@ function showUnitData() {
 
 function getIncidenciaSeveridad(tipo) {
   const map = {
-    "Desconexión de batería": "Rojo",
-    "Botón de pánico": "Rojo",
-    Persecución: "Rojo",
+    "DesconexiÃ³n de baterÃ­a": "Rojo",
+    "BotÃ³n de pÃ¡nico": "Rojo",
+    PersecuciÃ³n: "Rojo",
     "Accidente vehicular propio": "Rojo",
     "Robo o asalto": "Rojo",
     "Despacho No Recibido": "Rojo",
-    "Ausencia de actualización": "Naranja",
+    "Ausencia de actualizaciÃ³n": "Naranja",
     "Parada no autorizada": "Naranja",
-    "Operador no contesta más de 2 veces": "Naranja",
-    "Detención por faltas al reglamento de tránsito": "Naranja",
-    "Falla mecánica": "Naranja",
+    "Operador no contesta mÃ¡s de 2 veces": "Naranja",
+    "DetenciÃ³n por faltas al reglamento de trÃ¡nsito": "Naranja",
+    "Falla mecÃ¡nica": "Naranja",
     "Ponchadura de llantas": "Naranja",
     "Cierres carreteros": "Naranja",
-    "Condiciones climatológicas": "Naranja",
+    "Condiciones climatolÃ³gicas": "Naranja",
     "Sin contacto con el operador": "Naranja",
-    "Desvío de ruta": "Naranja",
-    "Vehículo sospechoso": "Naranja",
+    "DesvÃ­o de ruta": "Naranja",
+    "VehÃ­culo sospechoso": "Naranja",
     "Salida a destiempo": "Verde",
     "Desconocimiento de lugar de entrega": "Verde",
     "Mala actitud del Operador": "Verde",
@@ -1535,12 +1511,12 @@ function renderIncidencias(incs, despachoIndex, isEditor) {
                   <div class="text-sm p-2 rounded-md ${cls} flex items-center justify-between gap-3">
                     <div class="min-w-0">
                       <strong>${escapeHtml(tipo)}</strong>
-                      <span class="opacity-80">— ${formatDateTime(
+                      <span class="opacity-80">â€” ${formatDateTime(
                         inc && inc.fecha ? inc.fecha : "",
                       )}</span>
                       ${
                         inc && inc.direccion
-                          ? `<div class="text-xs opacity-80 mt-1">Dirección: ${escapeHtml(
+                          ? `<div class="text-xs opacity-80 mt-1">DirecciÃ³n: ${escapeHtml(
                               inc.direccion,
                             )}</div>`
                           : ``
@@ -1576,108 +1552,108 @@ function deleteIncidencia(despachoIndex, incIndex) {
 }
 
 const INCIDENCIA_PROTOCOLOS = {
-  "Desconexión de batería": {
-    nivel: "Crítica",
+  "DesconexiÃ³n de baterÃ­a": {
+    nivel: "CrÃ­tica",
     pasos: [
-      "Verificar si hubo corte de energía/tamper y hora del último ping válido.",
-      "Llamar al operador (1 intento inmediato). Si no responde en 5–10 min → tratar como Crítica.",
-      "Escalar a Seguridad patrimonial + Jefe de tráfico.",
-      "Activar seguimiento alterno (último punto, geocercas dinámicas, etc.).",
-      "Si coincide con desvío/parada/zona de riesgo → proceder como “Robo/Asalto”.",
+      "Verificar si hubo corte de energÃ­a/tamper y hora del Ãºltimo ping vÃ¡lido.",
+      "Llamar al operador (1 intento inmediato). Si no responde en 5â€“10 min â†’ tratar como CrÃ­tica.",
+      "Escalar a Seguridad patrimonial + Jefe de trÃ¡fico.",
+      "Activar seguimiento alterno (Ãºltimo punto, geocercas dinÃ¡micas, etc.).",
+      "Si coincide con desvÃ­o/parada/zona de riesgo â†’ proceder como â€œRobo/Asaltoâ€.",
     ],
   },
-  "Botón de pánico": {
-    nivel: "Crítica",
+  "BotÃ³n de pÃ¡nico": {
+    nivel: "CrÃ­tica",
     pasos: [
-      "Confirmar evento en plataforma (hora, ubicación, velocidad, rumbo).",
+      "Confirmar evento en plataforma (hora, ubicaciÃ³n, velocidad, rumbo).",
       "Escalar de inmediato a Seguridad + Operaciones.",
-      "Intentar contacto breve con el operador (pregunta cerrada y validación con palabra clave, si existe).",
+      "Intentar contacto breve con el operador (pregunta cerrada y validaciÃ³n con palabra clave, si existe).",
       "Mantener rastreo en vivo y registrar cambios de ruta/paradas.",
       "Activar protocolo externo (911) y notificar aseguradora/cliente si corresponde.",
     ],
   },
-  Persecución: {
-    nivel: "Crítica",
+  PersecuciÃ³n: {
+    nivel: "CrÃ­tica",
     pasos: [
       "Escalar inmediato a Seguridad + Operaciones.",
       "Mantener rastreo en vivo; guardar evidencias (ruta, timestamps, eventos).",
-      "Indicar al operador dirigirse a punto seguro sin detenerse (según política).",
-      "Activar autoridades/911 según política y ubicación.",
-      "Comunicación controlada y bitácora detallada.",
+      "Indicar al operador dirigirse a punto seguro sin detenerse (segÃºn polÃ­tica).",
+      "Activar autoridades/911 segÃºn polÃ­tica y ubicaciÃ³n.",
+      "ComunicaciÃ³n controlada y bitÃ¡cora detallada.",
     ],
   },
   "Accidente vehicular propio": {
-    nivel: "Crítica",
+    nivel: "CrÃ­tica",
     pasos: [
       "Confirmar estado del operador y ocupantes (lesiones / necesidad de emergencia).",
-      "Si hay lesionados: activar emergencias (911) según política.",
+      "Si hay lesionados: activar emergencias (911) segÃºn polÃ­tica.",
       "Escalar a Operaciones + Seguridad (y aseguradora).",
-      "Coordinar grúa/taller y continuidad (transbordo si aplica).",
+      "Coordinar grÃºa/taller y continuidad (transbordo si aplica).",
       "Cierre con reporte y evidencias.",
     ],
   },
   "Robo o asalto": {
-    nivel: "Crítica",
+    nivel: "CrÃ­tica",
     pasos: [
       "Escalar inmediato a Seguridad + Operaciones (y aseguradora).",
       "Mantener seguimiento en vivo y preservar evidencias.",
-      "Activar autoridades/911 según política y ubicación.",
+      "Activar autoridades/911 segÃºn polÃ­tica y ubicaciÃ³n.",
       "Gestionar comunicaciones con cliente y continuidad (plan alterno).",
     ],
   },
   "Despacho No Recibido": {
-    nivel: "Crítica",
+    nivel: "CrÃ­tica",
     pasos: [
       "Confirmar datos del despacho: unidad, folio, destino, ventana de entrega y contacto del cliente.",
-      "Validar estatus en plataforma (última ubicación GPS, ruta, geocerca de entrega, tiempos).",
-      "Contactar al operador (mínimo 2 intentos) y documentar hora/resultado.",
+      "Validar estatus en plataforma (Ãºltima ubicaciÃ³n GPS, ruta, geocerca de entrega, tiempos).",
+      "Contactar al operador (mÃ­nimo 2 intentos) y documentar hora/resultado.",
       "Contactar al cliente / punto de entrega para confirmar si hay intento de entrega o rechazo.",
-      "Solicitar evidencia disponible: confirmación verbal, fotos, sello, firma, número de recepción o referencia (si aplica).",
-      "Si hay discrepancia (cliente indica NO recibido) y la unidad estuvo en zona de entrega: escalar a Seguridad/Tráfico y activar investigación interna.",
-      "Si NO hay ubicación consistente o hay señales de riesgo: escalar inmediatamente a Seguridad según política y activar cadena de comunicación.",
-      "Registrar en observaciones el resumen y acordar siguientes pasos (reintento, retorno, aclaración, levantamiento de reporte).",
+      "Solicitar evidencia disponible: confirmaciÃ³n verbal, fotos, sello, firma, nÃºmero de recepciÃ³n o referencia (si aplica).",
+      "Si hay discrepancia (cliente indica NO recibido) y la unidad estuvo en zona de entrega: escalar a Seguridad/TrÃ¡fico y activar investigaciÃ³n interna.",
+      "Si NO hay ubicaciÃ³n consistente o hay seÃ±ales de riesgo: escalar inmediatamente a Seguridad segÃºn polÃ­tica y activar cadena de comunicaciÃ³n.",
+      "Registrar en observaciones el resumen y acordar siguientes pasos (reintento, retorno, aclaraciÃ³n, levantamiento de reporte).",
     ],
   },
 
-  "Ausencia de actualización": {
+  "Ausencia de actualizaciÃ³n": {
     nivel: "Relevante",
     pasos: [
-      "Confirmar último ping y calidad de señal.",
+      "Confirmar Ãºltimo ping y calidad de seÃ±al.",
       "Contactar operador y/o proveedor GPS si hay falla general.",
-      "Escalar según umbrales y contexto (zona/horario/carga).",
+      "Escalar segÃºn umbrales y contexto (zona/horario/carga).",
     ],
   },
   "Parada no autorizada": {
     nivel: "Relevante",
     pasos: [
-      "Validar duración y lugar (geocerca, punto autorizado, etc.).",
-      "Contactar: motivo + tiempo estimado + confirmación de integridad (unidad/carga).",
-      "Si no hay contacto o se prolonga: escalar a Tráfico; si hay riesgo → Seguridad.",
+      "Validar duraciÃ³n y lugar (geocerca, punto autorizado, etc.).",
+      "Contactar: motivo + tiempo estimado + confirmaciÃ³n de integridad (unidad/carga).",
+      "Si no hay contacto o se prolonga: escalar a TrÃ¡fico; si hay riesgo â†’ Seguridad.",
       "Registrar y ajustar ETA.",
     ],
   },
-  "Operador no contesta más de 2 veces": {
+  "Operador no contesta mÃ¡s de 2 veces": {
     nivel: "Relevante",
     pasos: [
-      "Hacer 2 intentos en 5–7 min por canales distintos.",
-      "Revisar simultáneamente: desvío, paradas, ausencia de actualización, geocercas.",
-      "Escalar a Tráfico; si hay condiciones de riesgo → Seguridad.",
+      "Hacer 2 intentos en 5â€“7 min por canales distintos.",
+      "Revisar simultÃ¡neamente: desvÃ­o, paradas, ausencia de actualizaciÃ³n, geocercas.",
+      "Escalar a TrÃ¡fico; si hay condiciones de riesgo â†’ Seguridad.",
     ],
   },
-  "Detención por faltas al reglamento de tránsito": {
+  "DetenciÃ³n por faltas al reglamento de trÃ¡nsito": {
     nivel: "Relevante",
     pasos: [
-      "Confirmar ubicación y estatus (¿detenido formalmente o infracción?).",
-      "Escalar a Tráfico/Legal interno (según estructura).",
+      "Confirmar ubicaciÃ³n y estatus (Â¿detenido formalmente o infracciÃ³n?).",
+      "Escalar a TrÃ¡fico/Legal interno (segÃºn estructura).",
       "Ajustar ETA y notificar cliente si afecta ventana.",
       "Registrar evidencia y datos de la autoridad (si aplica).",
     ],
   },
-  "Falla mecánica": {
+  "Falla mecÃ¡nica": {
     nivel: "Relevante",
     pasos: [
       "Indicar al operador ubicarse en punto seguro y activar intermitentes.",
-      "Coordinar asistencia vial y plan de continuidad (grúa/transbordo).",
+      "Coordinar asistencia vial y plan de continuidad (grÃºa/transbordo).",
       "Actualizar ETA y notificar afectaciones.",
       "Si zona de riesgo: involucrar Seguridad.",
     ],
@@ -1685,52 +1661,52 @@ const INCIDENCIA_PROTOCOLOS = {
   "Ponchadura de llantas": {
     nivel: "Relevante",
     pasos: [
-      "Confirmar ubicación segura para detenerse.",
+      "Confirmar ubicaciÃ³n segura para detenerse.",
       "Activar asistencia y evaluar transbordo si impacta.",
-      "Registrar tiempo fuera de operación y ajustar ETA.",
+      "Registrar tiempo fuera de operaciÃ³n y ajustar ETA.",
     ],
   },
   "Cierres carreteros": {
     nivel: "Relevante",
     pasos: [
       "Confirmar tramo afectado y ruta alterna autorizada.",
-      "Aprobar desvío formal.",
+      "Aprobar desvÃ­o formal.",
       "Ajustar ETA, notificar cliente y registrar causa externa.",
     ],
   },
-  "Condiciones climatológicas": {
+  "Condiciones climatolÃ³gicas": {
     nivel: "Relevante",
     pasos: [
-      "Evaluar riesgo: reducir velocidad/pausar operación según política.",
+      "Evaluar riesgo: reducir velocidad/pausar operaciÃ³n segÃºn polÃ­tica.",
       "Ajustar ruta/ETA y notificar al cliente.",
       "Definir punto seguro si se decide paro preventivo.",
-      "Registrar evento para análisis.",
+      "Registrar evento para anÃ¡lisis.",
     ],
   },
   "Sin contacto con el operador": {
     nivel: "Relevante",
     pasos: [
-      "Hacer 2 intentos (llamada + mensaje) en 5–7 min.",
-      "Verificar si hay zonas sin cobertura / ausencia de actualización.",
-      "Escalar a Coordinador/Tráfico; si condición sospechosa → Seguridad.",
-      "Definir acción (punto seguro / verificación física, según operación).",
+      "Hacer 2 intentos (llamada + mensaje) en 5â€“7 min.",
+      "Verificar si hay zonas sin cobertura / ausencia de actualizaciÃ³n.",
+      "Escalar a Coordinador/TrÃ¡fico; si condiciÃ³n sospechosa â†’ Seguridad.",
+      "Definir acciÃ³n (punto seguro / verificaciÃ³n fÃ­sica, segÃºn operaciÃ³n).",
     ],
   },
-  "Desvío de ruta": {
+  "DesvÃ­o de ruta": {
     nivel: "Relevante",
     pasos: [
       "Medir distancia/tiempo fuera de ruta y si se aleja del destino.",
       "Contactar operador: motivo, ruta alterna y nueva ETA.",
-      "Si no hay justificación o no responde: escalar; si empeora → Seguridad.",
+      "Si no hay justificaciÃ³n o no responde: escalar; si empeora â†’ Seguridad.",
       "Actualizar ETA y notificar si impacta entrega.",
     ],
   },
-  "Vehículo sospechoso": {
+  "VehÃ­culo sospechoso": {
     nivel: "Relevante",
     pasos: [
-      "Contactar operador y pedir descripción breve (sin distraer).",
-      "Indicar mantenerse en vías principales y dirigirse a punto seguro.",
-      "Escalar a Seguridad para acompañamiento remoto.",
+      "Contactar operador y pedir descripciÃ³n breve (sin distraer).",
+      "Indicar mantenerse en vÃ­as principales y dirigirse a punto seguro.",
+      "Escalar a Seguridad para acompaÃ±amiento remoto.",
       "Monitorear patrones: velocidad, paradas, cambios bruscos.",
     ],
   },
@@ -1738,7 +1714,7 @@ const INCIDENCIA_PROTOCOLOS = {
   "Salida a destiempo": {
     nivel: "Ordinaria",
     pasos: [
-      "Recalcular ETA y notificar al cliente/almacén.",
+      "Recalcular ETA y notificar al cliente/almacÃ©n.",
       "Identificar causa y corregir.",
       "Registrar para mejora (KPI puntualidad).",
     ],
@@ -1754,10 +1730,10 @@ const INCIDENCIA_PROTOCOLOS = {
   "Mala actitud del Operador": {
     nivel: "Ordinaria",
     pasos: [
-      "Interacción breve y profesional: recordar procedimiento.",
+      "InteracciÃ³n breve y profesional: recordar procedimiento.",
       "Registrar incidente y evidencias (si aplica).",
       "Escalar a Supervisor/Operaciones para seguimiento.",
-      "Si hay negativa a cumplir instrucciones críticas → elevar nivel según riesgo.",
+      "Si hay negativa a cumplir instrucciones crÃ­ticas â†’ elevar nivel segÃºn riesgo.",
     ],
   },
 };
@@ -1784,7 +1760,7 @@ function showProtocoloPorTipo(tipo) {
   }
 
   const badgeClass =
-    item.nivel === "Crítica"
+    item.nivel === "CrÃ­tica"
       ? "bg-red-100 text-red-800"
       : item.nivel === "Relevante"
         ? "bg-orange-100 text-orange-800"
@@ -1818,28 +1794,28 @@ function renderSeguimientoForm(index) {
 
   const incidenciaOptions = `
                 <option value="">-- Seleccione incidencia --</option>
-                <optgroup label="🔴 Críticas (Rojo)">
-                  <option>Desconexión de batería</option>
-                  <option>Botón de pánico</option>
-                  <option>Persecución</option>
+                <optgroup label="ðŸ”´ CrÃ­ticas (Rojo)">
+                  <option>DesconexiÃ³n de baterÃ­a</option>
+                  <option>BotÃ³n de pÃ¡nico</option>
+                  <option>PersecuciÃ³n</option>
                   <option>Accidente vehicular propio</option>
                   <option>Robo o asalto</option>
                   <option>Despacho No Recibido</option>
                 </optgroup>
-                <optgroup label="🟠 Relevantes (Naranja)">
-                  <option>Ausencia de actualización</option>
+                <optgroup label="ðŸŸ  Relevantes (Naranja)">
+                  <option>Ausencia de actualizaciÃ³n</option>
                   <option>Parada no autorizada</option>
-                  <option>Operador no contesta más de 2 veces</option>
-                  <option>Detención por faltas al reglamento de tránsito</option>
-                  <option>Falla mecánica</option>
+                  <option>Operador no contesta mÃ¡s de 2 veces</option>
+                  <option>DetenciÃ³n por faltas al reglamento de trÃ¡nsito</option>
+                  <option>Falla mecÃ¡nica</option>
                   <option>Ponchadura de llantas</option>
                   <option>Cierres carreteros</option>
-                  <option>Condiciones climatológicas</option>
+                  <option>Condiciones climatolÃ³gicas</option>
                   <option>Sin contacto con el operador</option>
-                  <option>Desvío de ruta</option>
-                  <option>Vehículo sospechoso</option>
+                  <option>DesvÃ­o de ruta</option>
+                  <option>VehÃ­culo sospechoso</option>
                 </optgroup>
-                <optgroup label="🟢 Ordinarias (Verde)">
+                <optgroup label="ðŸŸ¢ Ordinarias (Verde)">
                   <option>Salida a destiempo</option>
                   <option>Desconocimiento de lugar de entrega</option>
                   <option>Mala actitud del Operador</option>
@@ -1895,7 +1871,7 @@ function renderSeguimientoForm(index) {
 
   container.innerHTML = `
                  <form id="form-seguimiento" class="space-y-6">
-                   <!-- Encabezado: info del despacho + botón editar fecha -->
+                   <!-- Encabezado: info del despacho + botÃ³n editar fecha -->
                    
 
                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1922,11 +1898,11 @@ function renderSeguimientoForm(index) {
                     </div>
 
                     <div class="bg-gray-50 border rounded-xl p-4">
-                      <label class="block text-sm font-semibold text-gray-700 mb-2">Validación GPS y accesorios</label>
+                      <label class="block text-sm font-semibold text-gray-700 mb-2">ValidaciÃ³n GPS y accesorios</label>
                       <div class="space-y-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
                         ${renderGpsCheckboxes(d.gpsValidacionEstado, disabled)}
                       </div>
-                      <p class="mt-3 text-xs text-gray-500">Última validación: <span class="font-semibold">${
+                      <p class="mt-3 text-xs text-gray-500">Ãšltima validaciÃ³n: <span class="font-semibold">${
                         d.gpsValidacionTimestamp
                           ? formatDateTime(d.gpsValidacionTimestamp)
                           : "Sin registro"
@@ -1964,7 +1940,7 @@ function renderSeguimientoForm(index) {
                   <div class="bg-gray-50 border-2 rounded-xl p-4">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Estatus del Despacho</label>
 
-                    <!-- Estatus automático calculado -->
+                    <!-- Estatus automÃ¡tico calculado -->
                     <div class="bg-white border-2 border-indigo-200 rounded-lg p-4 mb-3">
                       <div class="flex items-center justify-between mb-2">
                         <span class="text-sm font-medium text-gray-600">Progreso del Despacho:</span>
@@ -1975,26 +1951,26 @@ function renderSeguimientoForm(index) {
                           <div class="progress-fill" style="width: ${calcularProgreso(d)}%"></div>
                         </div>
                         <div id="progress-truck" style="position: absolute; top: -8px; left: calc(${calcularProgreso(d)}% - 12px); transition: left 0.3s ease; font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); transform: scaleX(-1);">
-                          🚚
+                          ðŸšš
                         </div>
                       </div>
                       
                       <!-- Badges de progreso por etapa -->
                       <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
                         <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realSalidaUnidad && String(d.realSalidaUnidad).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
-                          <div class="progress-icon text-xl mb-1">${d.realSalidaUnidad && String(d.realSalidaUnidad).trim() ? "✅" : "⏱️"}</div>
+                          <div class="progress-icon text-xl mb-1">${d.realSalidaUnidad && String(d.realSalidaUnidad).trim() ? "âœ…" : "â±ï¸"}</div>
                           <div class="text-xs font-medium text-gray-700">Salida Unidad</div>
                         </div>
                         <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realCarga && String(d.realCarga).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
-                          <div class="progress-icon text-xl mb-1">${d.realCarga && String(d.realCarga).trim() ? "✅" : "📦"}</div>
+                          <div class="progress-icon text-xl mb-1">${d.realCarga && String(d.realCarga).trim() ? "âœ…" : "ðŸ“¦"}</div>
                           <div class="text-xs font-medium text-gray-700">Carga</div>
                         </div>
                         <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realSalida && String(d.realSalida).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
-                          <div class="progress-icon text-xl mb-1">${d.realSalida && String(d.realSalida).trim() ? "✅" : "🚚"}</div>
+                          <div class="progress-icon text-xl mb-1">${d.realSalida && String(d.realSalida).trim() ? "âœ…" : "ðŸšš"}</div>
                           <div class="text-xs font-medium text-gray-700">Salida Carga</div>
                         </div>
                         <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realDescarga && String(d.realDescarga).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
-                          <div class="progress-icon text-xl mb-1">${d.realDescarga && String(d.realDescarga).trim() ? "✅" : "📥"}</div>
+                          <div class="progress-icon text-xl mb-1">${d.realDescarga && String(d.realDescarga).trim() ? "âœ…" : "ðŸ“¥"}</div>
                           <div class="text-xs font-medium text-gray-700">Descarga</div>
                         </div>
                       </div>
@@ -2014,16 +1990,16 @@ function renderSeguimientoForm(index) {
                           d.estatus === "Cancelado"
                             ? "selected"
                             : ""
-                        }>🚫 Cancelado</option>
+                        }>ðŸš« Cancelado</option>
                         <option value="Despacho No realizado" ${
                           d.estatus_especial === "Despacho No realizado" ||
                           d.estatus === "Despacho No realizado"
                             ? "selected"
                             : ""
-                        }>❌ Despacho No realizado</option>
+                        }>âŒ Despacho No realizado</option>
                       </select>
                       <p class="text-xs text-gray-500 mt-1">
-                        Solo seleccione si el despacho fue cancelado o no se realizó. El estatus normal se calcula automáticamente.
+                        Solo seleccione si el despacho fue cancelado o no se realizÃ³. El estatus normal se calcula automÃ¡ticamente.
                       </p>
                     </div>
                   </div>
@@ -2051,7 +2027,7 @@ function renderSeguimientoForm(index) {
 
                           <div id="incidencia-direccion-wrapper" class="hidden w-full md:w-[32rem]">
 
-                          <label class="block text-sm font-medium text-gray-700">Dirección de ocurrencia</label>
+                          <label class="block text-sm font-medium text-gray-700">DirecciÃ³n de ocurrencia</label>
 
                           <input
 
@@ -2059,7 +2035,7 @@ function renderSeguimientoForm(index) {
 
                             type="text"
 
-                            placeholder="Ej. Km 43 Aut. México-Querétaro, Col. ..., Municipio, Estado"
+                            placeholder="Ej. Km 43 Aut. MÃ©xico-QuerÃ©taro, Col. ..., Municipio, Estado"
 
                             class="mt-1 w-full p-2 border rounded-md"
 
@@ -2069,7 +2045,7 @@ function renderSeguimientoForm(index) {
 
                           <p class="text-xs text-gray-500 mt-1">
 
-                            Se guardará junto a la incidencia y se verá en el Informe Ejecutivo.
+                            Se guardarÃ¡ junto a la incidencia y se verÃ¡ en el Informe Ejecutivo.
 
                           </p>
 
@@ -2115,10 +2091,10 @@ function updateGuardarButtonState(index) {
 
 function renderGpsCheckboxes(currentValue, disabled) {
   const opciones = [
-    { id: "boton_panico", label: "Botón de pánico" },
+    { id: "boton_panico", label: "BotÃ³n de pÃ¡nico" },
     { id: "paro_motor_puerta", label: "Paro de motor de puerta" },
     { id: "paro_motor", label: "Paro de motor" },
-    { id: "camaras", label: "Cámaras" },
+    { id: "camaras", label: "CÃ¡maras" },
     { id: "desactivar_puertas", label: "Desactivar puertas" },
   ];
 
@@ -2165,13 +2141,13 @@ function formatGpsEstado(gpsValidacionEstado) {
 
   try {
     const items = JSON.parse(gpsValidacionEstado);
-    if (!Array.isArray(items) || items.length === 0) return "Sin validación";
+    if (!Array.isArray(items) || items.length === 0) return "Sin validaciÃ³n";
 
     const labels = {
-      boton_panico: "Botón de pánico",
+      boton_panico: "BotÃ³n de pÃ¡nico",
       paro_motor_puerta: "Paro de motor de puerta",
       paro_motor: "Paro de motor",
-      camaras: "Cámaras",
+      camaras: "CÃ¡maras",
       desactivar_puertas: "Desactivar puertas",
     };
 
@@ -2217,17 +2193,17 @@ function updateTimeFieldStatus(fieldName) {
 function renderEstatusBadge(estatus) {
   const badges = {
     Programado:
-      '<span class="badge-estatus badge-programado">⚙️ Programado</span>',
-    "En ruta": '<span class="badge-estatus badge-en-ruta">🚛 En Ruta</span>',
-    Cargando: '<span class="badge-estatus badge-cargando">📦 Cargando</span>',
+      '<span class="badge-estatus badge-programado">âš™ï¸ Programado</span>',
+    "En ruta": '<span class="badge-estatus badge-en-ruta">ðŸš› En Ruta</span>',
+    Cargando: '<span class="badge-estatus badge-cargando">ðŸ“¦ Cargando</span>',
     "Salida de Carga":
-      '<span class="badge-estatus badge-salida-carga">🚚 Salida de Carga</span>',
+      '<span class="badge-estatus badge-salida-carga">ðŸšš Salida de Carga</span>',
     "Despacho realizado":
-      '<span class="badge-estatus badge-realizado">✅ Despacho Realizado</span>',
+      '<span class="badge-estatus badge-realizado">âœ… Despacho Realizado</span>',
     "Despacho No realizado":
-      '<span class="badge-estatus badge-no-realizado">❌ No Entregado</span>',
+      '<span class="badge-estatus badge-no-realizado">âŒ No Entregado</span>',
     Cancelado:
-      '<span class="badge-estatus badge-cancelado">🚫 Cancelado</span>',
+      '<span class="badge-estatus badge-cancelado">ðŸš« Cancelado</span>',
   };
   return badges[estatus] || "";
 }
@@ -2246,13 +2222,13 @@ function showGpsDetailsModal(index) {
   const titleEl = document.getElementById("gps-details-modal-title");
   const bodyEl = document.getElementById("gps-details-modal-body");
 
-  titleEl.textContent = `Validación GPS - ${d.unidad}`;
+  titleEl.textContent = `ValidaciÃ³n GPS - ${d.unidad}`;
 
   const gpsOk = isGpsOperativo(d.gpsValidacionEstado);
   const statusClass = gpsOk
     ? "bg-green-100 text-green-800"
     : "bg-red-100 text-red-800";
-  const statusText = gpsOk ? "Validado" : "Sin validación";
+  const statusText = gpsOk ? "Validado" : "Sin validaciÃ³n";
 
   let validacionesHtml =
     '<p class="text-gray-500 italic">Sin validaciones registradas</p>';
@@ -2261,10 +2237,10 @@ function showGpsDetailsModal(index) {
     try {
       const items = JSON.parse(d.gpsValidacionEstado);
       const labels = {
-        boton_panico: "Botón de pánico",
+        boton_panico: "BotÃ³n de pÃ¡nico",
         paro_motor_puerta: "Paro de motor de puerta",
         paro_motor: "Paro de motor",
-        camaras: "Cámaras",
+        camaras: "CÃ¡maras",
         desactivar_puertas: "Desactivar puertas",
       };
 
@@ -2314,7 +2290,7 @@ function showGpsDetailsModal(index) {
                         <p class="text-gray-800">${escapeHtml(d.operadorMonitoreoId || "No asignado")}</p>
                       </div>
                       <div>
-                        <span class="font-medium text-gray-600">Última actualización:</span>
+                        <span class="font-medium text-gray-600">Ãšltima actualizaciÃ³n:</span>
                         <p class="text-gray-800">${d.gpsValidacionTimestamp ? formatDateTime(d.gpsValidacionTimestamp) : "Sin registro"}</p>
                       </div>
                     </div>
@@ -2337,7 +2313,7 @@ function addIncidencia(index) {
   const direccion = (dirInput?.value || "").trim();
 
   if (!direccion)
-    return alert("Ingrese la dirección de ocurrencia de la incidencia.");
+    return alert("Ingrese la direcciÃ³n de ocurrencia de la incidencia.");
 
   const d = filteredDespachosData[index];
   if (!d) return;
@@ -2381,13 +2357,13 @@ function addIncidencia(index) {
         `Folio: ${String(d.folio || "")}`,
         `Fecha programada: ${d.fechaProgramada || ""}`,
         `Operador: ${d.operador || "N/A"}`,
-        `Teléfono: ${d.telefono || "N/A"}`,
+        `TelÃ©fono: ${d.telefono || "N/A"}`,
         `Ruta: ${d.ruta || "N/A"}`,
         `Origen: ${d.origen || "N/A"}`,
         `Destino: ${d.destino || "N/A"}`,
         `Severidad: ${incObj.severidad}`,
         `Estatus: ${d.estatus || "Programado"}`,
-        `Dirección: ${incObj.direccion || "N/A"}`,
+        `DirecciÃ³n: ${incObj.direccion || "N/A"}`,
       ].join("\n"),
       direccion: incObj.direccion || "",
       unidad: d.unidad || "",
@@ -2474,9 +2450,9 @@ function executeSaveSeguimiento(index) {
 }
 
 const SEGUIMIENTO_SAVE_ENDPOINT =
-  "/bitacora_/src/seguimiento/guardar_seguimiento.php";
+  "/src/seguimiento/guardar_seguimiento.php";
 const SEGUIMIENTO_LOAD_ENDPOINT =
-  "/bitacora_/src/seguimiento/obtener_seguimiento.php";
+  "/src/seguimiento/obtener_seguimiento.php";
 
 let seguimientosDbCache = {
   loaded: false,
@@ -2501,7 +2477,7 @@ function applyOrigenDestinoToArray(arr) {
 
 async function loadOrigenDestinoFromDb() {
   const res = await fetch(
-    `/bitacora_/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
+    `/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
     { cache: "no-store" },
   );
   let json = null;
@@ -2864,7 +2840,7 @@ function renderRegistroDespacho() {
     uc.setAttribute("data-label", "Unidad");
     uc.innerHTML = `
                   <div class="flex items-center gap-2">
-                    <span class="inline-block w-3 h-3 rounded-full ${dotClass}" title="${gpsOk ? "GPS validado" : "Sin validación GPS"}"></span>
+                    <span class="inline-block w-3 h-3 rounded-full ${dotClass}" title="${gpsOk ? "GPS validado" : "Sin validaciÃ³n GPS"}"></span>
                     <div class="flex flex-col">
                       <strong>${escapeHtml(d.unidad)}</strong>
                       <span class="text-xs text-gray-500">${tramoLabel}</span>
@@ -2872,7 +2848,7 @@ function renderRegistroDespacho() {
                     <button
                       onclick="showGpsDetailsModal(${realIndex})"
                       class="ml-2 text-indigo-600 hover:text-indigo-800 transition"
-                      title="Ver detalles de validación GPS"
+                      title="Ver detalles de validaciÃ³n GPS"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -3225,7 +3201,7 @@ function exportUpdatedSheet() {
     Incidencias: (d.incidencias || [])
       .map((i) => `${i.tipo} (${formatDateTime(i.fecha)})`)
       .join("; "),
-    "Dirección de Incidencias": (d.incidencias || [])
+    "DirecciÃ³n de Incidencias": (d.incidencias || [])
       .map((i) => i.direccion || "N/A")
       .join("; "),
   }));
@@ -3262,7 +3238,7 @@ let emergency911Cache = {
 };
 
 const EMERGENCY_911_ENDPOINT =
-  "/bitacora_/src/contactos/obtener_numeros_emergencia.php";
+  "/src/contactos/obtener_numeros_emergencia.php";
 
 function normalizeEmergency911Row(r) {
   const estado = (r?.estado ?? "").toString().trim().toUpperCase();
@@ -3306,10 +3282,10 @@ async function openEmergency911Modal() {
       : [];
 
   if (!emergency911Cache.loaded) {
-    if (statusEl) statusEl.textContent = "Cargando números de emergencia…";
+    if (statusEl) statusEl.textContent = "Cargando nÃºmeros de emergenciaâ€¦";
     if (tbodyEl)
       tbodyEl.innerHTML =
-        '<tr><td class="px-4 py-4 text-gray-500" colspan="3">Cargando…</td></tr>';
+        '<tr><td class="px-4 py-4 text-gray-500" colspan="3">Cargandoâ€¦</td></tr>';
 
     try {
       const dbRows = await loadEmergency911RowsFromDb();
@@ -3320,7 +3296,7 @@ async function openEmergency911Modal() {
       );
     } catch (err) {
       console.warn(
-        "No se pudo cargar números 911 desde BD, usando embebido.",
+        "No se pudo cargar nÃºmeros 911 desde BD, usando embebido.",
         err,
       );
       emergency911Cache.rows = fallback
@@ -3399,7 +3375,7 @@ function renderEmergency911Table() {
     `<tr><td class="px-4 py-4 text-gray-500" colspan="3">Sin resultados.</td></tr>`;
 }
 
-let emergencyContactsCache = { loaded: false, items: [] };
+let emergencyContactsCache = { key: "", loaded: false, items: [] };
 
 function renderEmergencyContacts(items) {
   const container = document.getElementById("emergency-contacts-body");
@@ -3408,7 +3384,7 @@ function renderEmergencyContacts(items) {
     container.innerHTML = `
             <div class="col-span-full text-center p-10 bg-orange-50 border-2 border-orange-200 rounded-xl">
               <p class="text-lg font-medium text-orange-800 mb-2">No hay contactos disponibles</p>
-              <p class="text-sm text-orange-600">Verifica la conexión con Google Sheets o añade datos en la pestaña CONTACTOS_EMERGENCIA</p>
+              <p class="text-sm text-orange-600">Verifica la conexiÃ³n con Google Sheets o aÃ±ade datos en la pestaÃ±a CONTACTOS_EMERGENCIA</p>
             </div>
           `;
     return;
@@ -3432,7 +3408,7 @@ function renderEmergencyContacts(items) {
                 )}" class="text-blue-600 hover:text-blue-800 font-medium">${tel}</a>`,
             )
             .join(", ")
-        : "Sin teléfono";
+        : "Sin telÃ©fono";
 
       const correosHtml = contacto.correos.length
         ? contacto.correos
@@ -3465,18 +3441,18 @@ function renderEmergencyContacts(items) {
               </div>
 
               <div class="space-y-2 text-sm mb-4">
-                <div><strong>📞 Teléfonos:</strong> ${telefonosHtml}</div>
-                <div><strong>✉️ Correos:</strong> ${correosHtml}</div>
+                <div><strong>ðŸ“ž TelÃ©fonos:</strong> ${telefonosHtml}</div>
+                <div><strong>âœ‰ï¸ Correos:</strong> ${correosHtml}</div>
                 ${
                   contacto.acciones
-                    ? `<div><strong>⚡ Acciones:</strong> ${escapeHtml(
+                    ? `<div><strong>âš¡ Acciones:</strong> ${escapeHtml(
                         contacto.acciones,
                       )}</div>`
                     : ""
                 }
                 ${
                   contacto.observaciones
-                    ? `<div class="text-xs text-gray-600"><strong>📝 Observaciones:</strong> ${escapeHtml(
+                    ? `<div class="text-xs text-gray-600"><strong>ðŸ“ Observaciones:</strong> ${escapeHtml(
                         contacto.observaciones,
                       )}</div>`
                     : ""
@@ -3503,11 +3479,9 @@ async function openEmergencyContactsModal() {
   openModal("emergency-contacts-modal");
 
   try {
-    if (
-      !emergencyContactsCache.loaded ||
-      !emergencyContactsCache.items.length
-    ) {
-      const items = await loadEmergencyContactsFromSheet();
+    const cacheKey = buildEmergencyContactsUrl();
+    if (emergencyContactsCache.key !== cacheKey || !emergencyContactsCache.loaded) {
+      const items = await loadEmergencyContactsFromDatabase();
 
       if (items && items.length > 0) {
         emergencyContactsCache.items = items;
@@ -3515,6 +3489,7 @@ async function openEmergencyContactsModal() {
         emergencyContactsCache.items = EMERGENCYCONTACTS.slice();
       }
 
+      emergencyContactsCache.key = cacheKey;
       emergencyContactsCache.loaded = true;
     }
 
@@ -3651,10 +3626,10 @@ function renderIncidenciasExecutiveReport() {
 
       const badgeText =
         sevLower === "rojo"
-          ? "🔴 CRÍTICA"
+          ? "ðŸ”´ CRÃTICA"
           : sevLower === "naranja"
-            ? "🟠 RELEVANTE"
-            : "🟢 ORDINARIA";
+            ? "ðŸŸ  RELEVANTE"
+            : "ðŸŸ¢ ORDINARIA";
 
       return `
                     <tr class="${incidenciaClass}">
@@ -3712,7 +3687,7 @@ async function guardarInformeEnBD() {
     new Date().toISOString().split("T")[0];
 
   const titulo = prompt(
-    "Ingrese un título para el informe:",
+    "Ingrese un tÃ­tulo para el informe:",
     `Informe de Despachos - ${fechaDespacho} - Operador: ${operadorMonitoreo} - Total: ${total}`,
   );
 
@@ -3739,9 +3714,9 @@ async function guardarInformeEnBD() {
       datos_informe: lastInformeData,
     };
 
-    const res = await fetch("/bitacora_/src/informe/guardar_informe.php", {
+    const res = await fetch("/src/informe/guardar_informe.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(payload),
     });
 
@@ -3752,7 +3727,7 @@ async function guardarInformeEnBD() {
       data = JSON.parse(text);
     } catch (e) {
       throw new Error(
-        `Respuesta inválida del servidor (no JSON). Inicio: ${text.substring(
+        `Respuesta invÃ¡lida del servidor (no JSON). Inicio: ${text.substring(
           0,
           200,
         )}`,
@@ -3763,9 +3738,9 @@ async function guardarInformeEnBD() {
       throw new Error(data?.message || `Error HTTP ${res.status}`);
     }
 
-    alert(`✅ Informe guardado correctamente (ID: ${data.id})`);
+    alert(`âœ… Informe guardado correctamente (ID: ${data.id})`);
   } catch (error) {
-    alert(`❌ Error al guardar en BD: ${error.message}`);
+    alert(`âŒ Error al guardar en BD: ${error.message}`);
   } finally {
     if (btnGuardar) {
       btnGuardar.textContent = originalText || "Guardar Informe";
@@ -3939,8 +3914,9 @@ async function cargarInformesGuardados() {
               `;
 
   try {
-    const res = await fetch("/bitacora_/src/informe/obtener_informes.php", {
+    const res = await fetch("/src/informe/obtener_informes.php", {
       cache: "no-store",
+      headers: getAuthHeaders(),
     });
     const text = await res.text();
     let data;
@@ -3948,7 +3924,7 @@ async function cargarInformesGuardados() {
       data = JSON.parse(text);
     } catch (e) {
       throw new Error(
-        `Respuesta inválida del servidor (no JSON). Inicio: ${text.substring(
+        `Respuesta invÃ¡lida del servidor (no JSON). Inicio: ${text.substring(
           0,
           200,
         )}`,
@@ -4011,8 +3987,8 @@ function mostrarInformes(informes, container) {
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                       </svg>
                       <h3 class="text-lg font-medium text-gray-700">No hay informes guardados</h3>
-                      <p class="text-gray-500 mt-2">Los informes que guardes aparecerán aquí.</p>
-                      <p class="text-gray-400 text-sm mt-1">Ve a la pestaña "06. Informe Ejecutivo" para crear uno.</p>
+                      <p class="text-gray-500 mt-2">Los informes que guardes aparecerÃ¡n aquÃ­.</p>
+                      <p class="text-gray-400 text-sm mt-1">Ve a la pestaÃ±a "06. Informe Ejecutivo" para crear uno.</p>
                   </div>
                 `;
     return;
@@ -4035,7 +4011,7 @@ function mostrarInformes(informes, container) {
 
   informes.forEach((informe) => {
     const id = parseInt(informe.id, 10) || 0;
-    const titulo = informe.titulo?.toString() || "Sin título";
+    const titulo = informe.titulo?.toString() || "Sin tÃ­tulo";
     const fechaDespacho =
       informe.fecha_despacho?.toString() || "No especificada";
     const operador =
@@ -4130,7 +4106,7 @@ function mostrarInformes(informes, container) {
 
 async function verInformeDetalle(id) {
   const numericId = parseInt(id, 10);
-  if (!numericId || numericId <= 0) return alert("ID de informe inválido.");
+  if (!numericId || numericId <= 0) return alert("ID de informe invÃ¡lido.");
 
   const body = document.getElementById("modal-informe-body");
   const title = document.getElementById("modal-informe-titulo");
@@ -4148,7 +4124,7 @@ async function verInformeDetalle(id) {
   try {
     const res = await fetch(
       `informe/obtener_informe_detalle.php?id=${encodeURIComponent(numericId)}`,
-      { cache: "no-store" },
+      { cache: "no-store", headers: getAuthHeaders() },
     );
     const text = await res.text();
     let payload;
@@ -4156,7 +4132,7 @@ async function verInformeDetalle(id) {
       payload = JSON.parse(text);
     } catch (e) {
       throw new Error(
-        `Respuesta inválida del servidor (no JSON). Inicio: ${text.substring(
+        `Respuesta invÃ¡lida del servidor (no JSON). Inicio: ${text.substring(
           0,
           200,
         )}`,
@@ -4182,7 +4158,7 @@ async function verInformeDetalle(id) {
                 <div class="space-y-2">
                   <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                      <p><span class="font-medium text-gray-700">Fecha de creación:</span> ${escapeHtml(
+                      <p><span class="font-medium text-gray-700">Fecha de creaciÃ³n:</span> ${escapeHtml(
                         row.fecha_creacion || "",
                       )}</p>
                       <p><span class="font-medium text-gray-700">Fecha de despacho:</span> ${escapeHtml(
@@ -4242,7 +4218,7 @@ async function verInformeDetalle(id) {
       const rows = detalles
         .slice(0, 200)
         .map((d) => {
-          const ruta = `${d.origen || ""} → ${d.destino || ""}`.trim();
+          const ruta = `${d.origen || ""} â†’ ${d.destino || ""}`.trim();
           const inc = Array.isArray(d.incidencias) ? d.incidencias.length : 0;
           return `
                         <tr>
@@ -4288,13 +4264,13 @@ async function eliminarInforme(id) {
     return;
   }
   const numericId = parseInt(id, 10);
-  if (!numericId || numericId <= 0) return alert("ID de informe inválido.");
-  if (!confirm(`¿Eliminar el informe ID ${numericId}?`)) return;
+  if (!numericId || numericId <= 0) return alert("ID de informe invÃ¡lido.");
+  if (!confirm(`Â¿Eliminar el informe ID ${numericId}?`)) return;
 
   try {
-    const res = await fetch("/bitacora_/src/informe/eliminar_informe.php", {
+    const res = await fetch("/src/informe/eliminar_informe.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ id: numericId }),
     });
     const text = await res.text();
@@ -4303,7 +4279,7 @@ async function eliminarInforme(id) {
       payload = JSON.parse(text);
     } catch (e) {
       throw new Error(
-        `Respuesta inválida del servidor (no JSON). Inicio: ${text.substring(
+        `Respuesta invÃ¡lida del servidor (no JSON). Inicio: ${text.substring(
           0,
           200,
         )}`,
@@ -4405,7 +4381,7 @@ function renderValidacionesTable() {
       const statusClass = gpsOk
         ? "bg-green-100 text-green-800"
         : "bg-red-100 text-red-800";
-      const statusText = gpsOk ? "Validado" : "Sin validación";
+      const statusText = gpsOk ? "Validado" : "Sin validaciÃ³n";
       const validacionesTexto = gpsOk
         ? formatGpsEstado(d.gpsValidacionEstado)
         : "-";
@@ -4443,9 +4419,11 @@ function renderValidacionesTable() {
     const savedUnidades = sessionStorage.getItem("bitacoraUserUnidades");
     const savedTabs = sessionStorage.getItem("bitacoraUserTabs");
     const savedUsername = sessionStorage.getItem("bitacoraUsername");
+    const savedToken = sessionStorage.getItem("bitacoraAuthToken");
 
     if (savedRole && savedUnidades && savedTabs && savedUsername) {
       username = savedUsername;
+      bitacoraAuthToken = savedToken || "";
       userRole = savedRole;
       userUnidades = JSON.parse(savedUnidades);
       userTabs = JSON.parse(savedTabs);
@@ -4467,3 +4445,5 @@ function renderValidacionesTable() {
     document.getElementById("login-modal").classList.remove("hidden");
   loadDataFromGoogleSheets(true);
 })();
+
+
