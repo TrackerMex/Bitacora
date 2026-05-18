@@ -2197,9 +2197,12 @@
       const clienteId =
         getSingleClienteIdFromRows(lastInformeData) ||
         getSingleClienteIdFromRows(filteredDespachosData);
+      const sessionClienteIds = getUserClienteIds();
 
       if (clienteId) {
         params.set("cliente_id", String(clienteId));
+      } else if (sessionClienteIds.length === 1) {
+        params.set("cliente_id", String(sessionClienteIds[0]));
       } else {
         const clientes = [
           ...new Set(
@@ -2210,6 +2213,13 @@
         ];
         if (clientes.length === 1) {
           params.set("cliente", clientes[0]);
+        } else if ((userClientes || []).length === 1) {
+          const clienteNombre = String(
+            userClientes[0]?.nombre ?? userClientes[0]?.cliente ?? "",
+          ).trim();
+          if (clienteNombre) {
+            params.set("cliente", clienteNombre);
+          }
         }
       }
 
@@ -2327,7 +2337,7 @@
         console.warn(
           "[Bitácora] La primera fila del proxy son datos, no encabezados. Usando mapeo fijo por índice. Corrige GOOGLE_SHEETS_RANGE_DATOS en .env del servidor para incluir la fila de headers.",
         );
-        headers = fallbackHeaderss;
+        headers = fallbackHeaders;
         rows = data;
       }
 
