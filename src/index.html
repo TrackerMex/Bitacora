@@ -2132,10 +2132,6 @@
     function closeModal(id) {
       document.getElementById(id).classList.add("hidden");
     }
-    window.onclick = (ev) => {
-      if (ev.target.classList.contains("modal"))
-        ev.target.classList.add("hidden");
-    };
 
     function getUserClienteIds() {
       return (userClientes || [])
