@@ -4102,6 +4102,17 @@
             const disabled = isEditor ? "" : "disabled";
             const readOnly = isEditor ? "" : "readonly";
 
+            const origenUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                d.origen || "",
+            )}`;
+            const destinoUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                d.destino || "",
+            )}`;
+
+            const lugardeCargaUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                d.lugarCarga || "",
+            )}`;
+
             const incidenciaOptions = `
                 <option value="">-- Seleccione incidencia --</option>
                 <optgroup label="🔴 Críticas (Rojo)">
