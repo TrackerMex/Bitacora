@@ -4225,15 +4225,21 @@
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
                     <div class="bg-gray-50 border rounded-xl p-4">
                       <p class="text-xs font-semibold text-gray-500 mb-1">ORIGEN</p>
-                      <p class="text-sm text-gray-800">${escapeHtml(d.origen || "N/A")}</p>
+                      <a href="${origenUrl}" target="_blank" class="text-blue-600 underline">
+                      ${escapeHtml(d.origen || "N/A")}
+                      </a>
                     </div>
                     <div class="bg-gray-50 border rounded-xl p-4">
                       <p class="text-xs font-semibold text-gray-500 mb-1">LUGAR DE CARGA</p>
-                      <p class="text-sm text-gray-800">${escapeHtml(d.lugarCarga || "N/A")}</p>
+                      <a href="${lugarCargaUrl}" target="_blank" class="text-blue-600 underline">
+                      ${escapeHtml(d.lugarCarga || "N/A")}
+                      </a>
                     </div>
                     <div class="bg-gray-50 border rounded-xl p-4">
                       <p class="text-xs font-semibold text-gray-500 mb-1">DESTINO</p>
-                      <p class="text-sm text-gray-800">${escapeHtml(d.destino || "N/A")}</p>
+                      <a href="${destinoUrl}" target="_blank" class="text-blue-600 underline">
+                      ${escapeHtml(d.destino || "N/A")}
+                      </a>
                     </div>
                   </div>
 
@@ -7204,7 +7210,9 @@
             clone.classList.remove("hidden");
 
             clone
-                .querySelectorAll("[data-pdf-exclude], button, input, select, textarea")
+                .querySelectorAll(
+                    "[data-pdf-exclude], button, input, select, textarea",
+                )
                 .forEach((el) => el.remove());
 
             const originalCanvases = tab.querySelectorAll("canvas");
@@ -7450,7 +7458,9 @@
 
         async function saveElementAsPdf(element, filename) {
             if (!window.html2canvas || !window.jspdf?.jsPDF) {
-                throw new Error("No se pudieron cargar las librerias para PDF.");
+                throw new Error(
+                    "No se pudieron cargar las librerias para PDF.",
+                );
             }
 
             if (document.fonts?.ready) await document.fonts.ready;
@@ -7459,7 +7469,9 @@
 
             const disabledStyles = [];
             document
-                .querySelectorAll('style:not([data-pdf-style]), link[rel="stylesheet"]')
+                .querySelectorAll(
+                    'style:not([data-pdf-style]), link[rel="stylesheet"]',
+                )
                 .forEach((node) => {
                     disabledStyles.push({
                         node,
@@ -7487,10 +7499,12 @@
                     },
                 });
             } finally {
-                disabledStyles.reverse().forEach(({ node, parent, nextSibling }) => {
-                    if (!parent) return;
-                    parent.insertBefore(node, nextSibling);
-                });
+                disabledStyles
+                    .reverse()
+                    .forEach(({ node, parent, nextSibling }) => {
+                        if (!parent) return;
+                        parent.insertBefore(node, nextSibling);
+                    });
             }
 
             const { jsPDF } = window.jspdf;
@@ -7606,7 +7620,8 @@
                 emptyMessage:
                     "No hay datos para exportar en el Informe Ejecutivo.",
                 hasData:
-                    Array.isArray(lastInformeData) && lastInformeData.length > 0,
+                    Array.isArray(lastInformeData) &&
+                    lastInformeData.length > 0,
             });
         }
 
@@ -7620,7 +7635,8 @@
                 emptyMessage:
                     "No hay datos para exportar en el Informe Ejecutivo.",
                 hasData:
-                    Array.isArray(lastInformeData) && lastInformeData.length > 0,
+                    Array.isArray(lastInformeData) &&
+                    lastInformeData.length > 0,
             });
         }
     </script>
