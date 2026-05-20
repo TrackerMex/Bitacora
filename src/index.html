@@ -16,9 +16,8 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2"></script>
         <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
         <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-        <!--<script src="js/downloadKpisTabAsHTML.js" defer></script>
-    <script src="js/downloadInformeTabsHTML.js" defer></script>-->
-
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
             rel="stylesheet"
@@ -665,6 +664,7 @@
                 <div id="tab-4" class="tab-content-item hidden">
                     <div
                         class="flex items-center justify-between flex-wrap gap-3 mb-4"
+                        data-pdf-exclude="true"
                     >
                         <h2 class="text-2xl font-semibold mb-4 text-gray-800">
                             KPIs de Cumplimiento
@@ -672,11 +672,11 @@
 
                         <button
                             type="button"
-                            onclick="downloadKpisTabAsHTML()"
+                            onclick="downloadKpisTabAsPDF(this)"
                             class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800"
-                            title="Descarga esta pestaña (KPIs + gráficos) en HTML"
+                            title="Descarga esta pestaña (KPIs + gráficos) en PDF"
                         >
-                            Descargar HTML
+                            Descargar PDF
                         </button>
                     </div>
 
@@ -784,6 +784,7 @@
                 <div id="tab-5" class="tab-content-item hidden">
                     <div
                         class="flex items-center justify-between flex-wrap gap-3 mb-4"
+                        data-pdf-exclude="true"
                     >
                         <h2 class="text-2xl font-semibold text-gray-800">
                             Informe Ejecutivo
@@ -791,14 +792,14 @@
 
                         <button
                             type="button"
-                            onclick="downloadInformeTabAsHTML()"
+                            onclick="downloadInformeTabAsPDF(this)"
                             class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800"
-                            title="Descarga esta pestaña (Informe Ejecutivo) en HTML"
+                            title="Descarga esta pestaña (Informe Ejecutivo) en PDF"
                         >
-                            Descargar HTML
+                            Descargar PDF
                         </button>
                     </div>
-                    <div class="mb-6">
+                    <div class="mb-6" data-pdf-exclude="true">
                         <h3 class="text-sm font-medium text-gray-700 mb-3">
                             Filtro por fecha de despacho:
                         </h3>
@@ -939,7 +940,10 @@
                         </div>
                     </div>
 
-                    <div class="mt-8 text-right border-t pt-6 space-x-3">
+                    <div
+                        class="mt-8 text-right border-t pt-6 space-x-3"
+                        data-pdf-exclude="true"
+                    >
                         <button
                             id="download-excel-report-btn"
                             onclick="downloadReportAsExcel()"
@@ -7140,15 +7144,49 @@
             else loadDataFromMySQL(true);
         })();
 
-        function downloadKpisTabAsHTML() {
-            const tab = document.getElementById("tab-4");
-            if (!tab)
-                return alert("No se encontró el contenedor #tab-4 (KPIs).");
-            const clone = tab.cloneNode(true);
-            const btnInClone = clone.querySelector(
-                'button[onclick="downloadKpisTabAsHTML()"]',
+        function getSelectedPdfDate() {
+            return (
+                document.getElementById("date-filter")?.value ||
+                dayjs().format("YYYY-MM-DD")
             );
-            if (btnInClone) btnInClone.remove();
+        }
+
+        function getInformePdfSubtitle() {
+            const dateWindow = getIncExecutiveDateWindow();
+            const from = dateWindow.from || "";
+            const to = dateWindow.to || "";
+
+            if (incExecutiveFilterMode === "all") return "Periodo: Todo";
+            if (from && to && from === to) return `Fecha: ${from}`;
+            if (from && to) return `Periodo: ${from} al ${to}`;
+            if (from) return `Periodo: desde ${from}`;
+            if (to) return `Periodo: hasta ${to}`;
+            return `Fecha: ${getSelectedPdfDate()}`;
+        }
+
+        function setPdfButtonState(button, isLoading) {
+            if (!button) return;
+            if (isLoading) {
+                button.dataset.originalText = button.textContent.trim();
+                button.textContent = "Generando PDF...";
+                button.disabled = true;
+                button.classList.add("opacity-70", "cursor-wait");
+                return;
+            }
+
+            button.textContent = button.dataset.originalText || "Descargar PDF";
+            button.disabled = false;
+            button.classList.remove("opacity-70", "cursor-wait");
+        }
+
+        function cloneTabForPdf(tab) {
+            const clone = tab.cloneNode(true);
+            clone.classList.remove("hidden");
+
+            clone
+                .querySelectorAll("[data-pdf-exclude], button, input, select, textarea")
+                .forEach((el) => el.remove());
+
             const originalCanvases = tab.querySelectorAll("canvas");
             const cloneCanvases = clone.querySelectorAll("canvas");
             for (
@@ -7156,97 +7194,212 @@
                 i < Math.min(originalCanvases.length, cloneCanvases.length);
                 i++
             ) {
-                const c = originalCanvases[i];
+                const canvas = originalCanvases[i];
                 try {
-                    const dataUrl = c.toDataURL("image/png");
                     const img = document.createElement("img");
-                    img.src = dataUrl;
-                    img.alt = c.id || `grafico_${i + 1}`;
+                    img.src = canvas.toDataURL("image/png");
+                    img.alt = canvas.id || `grafico_${i + 1}`;
+                    img.style.display = "block";
                     img.style.maxWidth = "100%";
                     img.style.height = "auto";
-                    if (c.width) img.width = c.width;
-                    if (c.height) img.height = c.height;
+                    if (canvas.width) img.width = canvas.width;
+                    if (canvas.height) img.height = canvas.height;
                     cloneCanvases[i].replaceWith(img);
                 } catch (e) {
                     console.warn("No se pudo convertir un canvas a imagen.", e);
                     cloneCanvases[i].remove();
                 }
             }
-            const inlineStyles = Array.from(document.querySelectorAll("style"))
-                .map((s) => s.innerHTML)
-                .join("\n\n");
-            const tailwindCdn = `<script src="https://cdn.tailwindcss.com"><\/script>`;
-            const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">`;
-            const selectedDate =
-                document.getElementById("date-filter")?.value || "";
-            const safeDate = selectedDate || dayjs().format("YYYY-MM-DD");
-            const filename = `KPIs_${safeDate}.html`;
-            const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KPIs de Cumplimiento - ${escapeHtml(safeDate)}</title>${fontLink}${tailwindCdn}<style>${inlineStyles}</style></head><body class="bg-gray-100"><div class="container mx-auto p-4 md:p-8"><div class="bg-white p-6 rounded-xl shadow-md"><h1 class="text-2xl font-extrabold text-gray-900">KPIs de Cumplimiento</h1><p class="text-sm text-gray-500">Fecha: ${escapeHtml(safeDate)}</p>${clone.innerHTML}</div></div></body></html>`;
-            const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
+
+            clone.querySelectorAll(".overflow-x-auto").forEach((el) => {
+                el.classList.remove("overflow-x-auto");
+                el.style.overflow = "visible";
+            });
+
+            clone.querySelectorAll("table").forEach((table) => {
+                table.style.width = "100%";
+                table.style.tableLayout = "auto";
+                table.style.borderCollapse = "collapse";
+            });
+
+            clone.querySelectorAll("th, td").forEach((cell) => {
+                cell.style.wordBreak = "break-word";
+                cell.style.verticalAlign = "top";
+            });
+
+            return clone;
         }
 
-        function downloadInformeTabAsHTML() {
-            const tab = document.getElementById("tab-5");
-            if (!tab)
-                return alert(
-                    "No se encontró el contenedor #tab-5 (Informe Ejecutivo).",
-                );
-            const clone = tab.cloneNode(true);
-            const btnInClone = clone.querySelector(
-                'button[onclick="downloadInformeTabAsHTML()"]',
-            );
-            if (btnInClone) btnInClone.remove();
-            const originalCanvases = tab.querySelectorAll("canvas");
-            const cloneCanvases = clone.querySelectorAll("canvas");
-            for (
-                let i = 0;
-                i < Math.min(originalCanvases.length, cloneCanvases.length);
-                i++
-            ) {
-                const c = originalCanvases[i];
-                try {
-                    const dataUrl = c.toDataURL("image/png");
-                    const img = document.createElement("img");
-                    img.src = dataUrl;
-                    img.alt = c.id || `grafico_${i + 1}`;
-                    img.style.maxWidth = "100%";
-                    img.style.height = "auto";
-                    cloneCanvases[i].replaceWith(img);
-                } catch (e) {
-                    console.warn(
-                        "No se pudo convertir un canvas a imagen (tab-5).",
-                        e,
-                    );
-                    cloneCanvases[i].remove();
-                }
+        function buildPdfContainer(title, subtitle, clone) {
+            const container = document.createElement("div");
+            container.className = "pdf-export-root";
+            container.style.position = "fixed";
+            container.style.left = "-10000px";
+            container.style.top = "0";
+            container.style.width = "794px";
+            container.style.minHeight = "1123px";
+            container.style.padding = "32px";
+            container.style.background = "#f9fafb";
+            container.style.color = "#111827";
+            container.style.fontFamily = "Inter, Arial, sans-serif";
+            container.style.fontSize = "12px";
+            container.style.lineHeight = "1.45";
+            container.style.boxSizing = "border-box";
+
+            const style = document.createElement("style");
+            style.textContent = `
+                .pdf-export-root * { box-sizing: border-box; }
+                .pdf-export-root [class*="shadow"] { box-shadow: none !important; }
+                .pdf-export-root canvas { max-width: 100% !important; }
+                .pdf-export-root img { page-break-inside: avoid; break-inside: avoid; }
+                .pdf-export-root table { page-break-inside: auto; }
+                .pdf-export-root tr { page-break-inside: avoid; break-inside: avoid; }
+                .pdf-export-root th, .pdf-export-root td { padding: 7px 8px !important; }
+                .pdf-export-root .grid { gap: 12px !important; }
+            `;
+
+            const sheet = document.createElement("div");
+            sheet.style.background = "#ffffff";
+            sheet.style.border = "1px solid #e5e7eb";
+            sheet.style.borderRadius = "12px";
+            sheet.style.padding = "24px";
+            sheet.style.boxShadow = "0 8px 24px rgba(15, 23, 42, 0.08)";
+            sheet.style.boxSizing = "border-box";
+
+            const header = document.createElement("div");
+            header.style.marginBottom = "18px";
+            header.innerHTML = `
+                <h1 style="margin:0;color:#111827;font-size:24px;font-weight:800;line-height:1.2;">${escapeHtml(title)}</h1>
+                <p style="margin:6px 0 0;color:#6b7280;font-size:12px;">${escapeHtml(subtitle)}</p>
+            `;
+
+            sheet.appendChild(header);
+            sheet.appendChild(clone);
+            container.appendChild(style);
+            container.appendChild(sheet);
+            document.body.appendChild(container);
+            return container;
+        }
+
+        async function saveElementAsPdf(element, filename) {
+            if (!window.html2canvas || !window.jspdf?.jsPDF) {
+                throw new Error("No se pudieron cargar las librerias para PDF.");
             }
-            const inlineStyles = Array.from(document.querySelectorAll("style"))
-                .map((s) => s.innerHTML)
-                .join("\n\n");
-            const tailwindCdn = `<script src="https://cdn.tailwindcss.com"><\/script>`;
-            const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">`;
-            const selectedDate =
-                document.getElementById("date-filter")?.value || "";
-            const safeDate = selectedDate || dayjs().format("YYYY-MM-DD");
-            const filename = `Informe_Ejecutivo_${safeDate}.html`;
-            const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Informe Ejecutivo - ${escapeHtml(safeDate)}</title>${fontLink}${tailwindCdn}<style>${inlineStyles}</style></head><body class="bg-gray-100"><div class="container mx-auto p-4 md:p-8"><div class="bg-white p-6 rounded-xl shadow-md"><h1 class="text-2xl font-extrabold text-gray-900">Informe Ejecutivo</h1><p class="text-sm text-gray-500">Fecha: ${escapeHtml(safeDate)}</p>${clone.innerHTML}</div></div></body></html>`;
-            const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
+
+            if (document.fonts?.ready) await document.fonts.ready;
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+
+            const canvas = await html2canvas(element, {
+                backgroundColor: "#f9fafb",
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight,
+            });
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            const imgWidth = pageWidth - margin * 2;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const pageContentHeight = pageHeight - margin * 2;
+            const imageData = canvas.toDataURL("image/png");
+
+            let remainingHeight = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imageData, "PNG", margin, margin, imgWidth, imgHeight);
+            remainingHeight -= pageContentHeight;
+
+            while (remainingHeight > 0) {
+                position += pageContentHeight;
+                pdf.addPage();
+                pdf.addImage(
+                    imageData,
+                    "PNG",
+                    margin,
+                    margin - position,
+                    imgWidth,
+                    imgHeight,
+                );
+                remainingHeight -= pageContentHeight;
+            }
+
+            pdf.save(filename);
+        }
+
+        async function downloadTabAsPDF(options) {
+            const {
+                tabId,
+                title,
+                subtitle,
+                filename,
+                button,
+                emptyMessage,
+                hasData,
+            } = options;
+
+            if (!hasData) {
+                alert(emptyMessage);
+                return;
+            }
+
+            const tab = document.getElementById(tabId);
+            if (!tab) {
+                alert(`No se encontro el contenedor ${tabId}.`);
+                return;
+            }
+
+            let container = null;
+            setPdfButtonState(button, true);
+            try {
+                const clone = cloneTabForPdf(tab);
+                container = buildPdfContainer(title, subtitle, clone);
+                await saveElementAsPdf(container, filename);
+            } catch (e) {
+                console.error("Error generando PDF:", e);
+                alert(
+                    e?.message ||
+                        "No se pudo generar el PDF. Intenta de nuevo.",
+                );
+            } finally {
+                if (container) container.remove();
+                setPdfButtonState(button, false);
+            }
+        }
+
+        async function downloadKpisTabAsPDF(button) {
+            const safeDate = getSelectedPdfDate();
+            await downloadTabAsPDF({
+                tabId: "tab-4",
+                title: "KPIs de Cumplimiento",
+                subtitle: `Fecha: ${safeDate}`,
+                filename: `KPIs_${safeDate}.pdf`,
+                button,
+                emptyMessage: "No hay datos para exportar en KPIs.",
+                hasData:
+                    Array.isArray(filteredDespachosData) &&
+                    filteredDespachosData.length > 0,
+            });
+        }
+
+        async function downloadInformeTabAsPDF(button) {
+            const safeDate = getSelectedPdfDate();
+            await downloadTabAsPDF({
+                tabId: "tab-5",
+                title: "Informe Ejecutivo",
+                subtitle: getInformePdfSubtitle(),
+                filename: `Informe_Ejecutivo_${safeDate}.pdf`,
+                button,
+                emptyMessage:
+                    "No hay datos para exportar en el Informe Ejecutivo.",
+                hasData:
+                    Array.isArray(lastInformeData) && lastInformeData.length > 0,
+            });
         }
     </script>
 </html>
