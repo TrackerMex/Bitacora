@@ -7247,8 +7247,81 @@
             container.style.boxSizing = "border-box";
 
             const style = document.createElement("style");
+            style.setAttribute("data-pdf-style", "true");
             style.textContent = `
                 .pdf-export-root * { box-sizing: border-box; }
+                .pdf-export-root .hidden { display: none !important; }
+                .pdf-export-root .flex { display: flex !important; }
+                .pdf-export-root .grid { display: grid !important; }
+                .pdf-export-root .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+                .pdf-export-root .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                .pdf-export-root .lg\\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+                .pdf-export-root .lg\\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+                .pdf-export-root .lg\\:col-span-2 { grid-column: span 2 / span 2; }
+                .pdf-export-root .lg\\:col-span-3 { grid-column: span 3 / span 3; }
+                .pdf-export-root .items-center { align-items: center; }
+                .pdf-export-root .justify-between { justify-content: space-between; }
+                .pdf-export-root .text-left { text-align: left; }
+                .pdf-export-root .text-center { text-align: center; }
+                .pdf-export-root .gap-2 { gap: 8px; }
+                .pdf-export-root .gap-3 { gap: 12px; }
+                .pdf-export-root .gap-6 { gap: 18px; }
+                .pdf-export-root .p-4 { padding: 16px; }
+                .pdf-export-root .p-5 { padding: 18px; }
+                .pdf-export-root .p-6 { padding: 20px; }
+                .pdf-export-root .px-4 { padding-left: 12px; padding-right: 12px; }
+                .pdf-export-root .py-2 { padding-top: 7px; padding-bottom: 7px; }
+                .pdf-export-root .py-3 { padding-top: 9px; padding-bottom: 9px; }
+                .pdf-export-root .mb-1 { margin-bottom: 4px; }
+                .pdf-export-root .mb-4 { margin-bottom: 16px; }
+                .pdf-export-root .mb-8 { margin-bottom: 24px; }
+                .pdf-export-root .mt-1 { margin-top: 4px; }
+                .pdf-export-root .mt-3 { margin-top: 12px; }
+                .pdf-export-root .pl-4 { padding-left: 16px; }
+                .pdf-export-root .pt-2 { padding-top: 8px; }
+                .pdf-export-root .min-w-full { min-width: 100%; }
+                .pdf-export-root .w-full { width: 100%; }
+                .pdf-export-root .rounded-lg,
+                .pdf-export-root .rounded-xl { border-radius: 8px; }
+                .pdf-export-root .border { border: 1px solid #e5e7eb; }
+                .pdf-export-root .border-b { border-bottom: 1px solid #e5e7eb; }
+                .pdf-export-root .divide-y > :not([hidden]) ~ :not([hidden]) { border-top: 1px solid #e5e7eb; }
+                .pdf-export-root .bg-white { background-color: #ffffff !important; }
+                .pdf-export-root .bg-gray-50 { background-color: #f9fafb !important; }
+                .pdf-export-root .bg-gray-100 { background-color: #f3f4f6 !important; }
+                .pdf-export-root .bg-gray-800 { background-color: #1f2937 !important; }
+                .pdf-export-root .bg-green-600 { background-color: #16a34a !important; }
+                .pdf-export-root .bg-red-600 { background-color: #dc2626 !important; }
+                .pdf-export-root .bg-yellow-500 { background-color: #eab308 !important; }
+                .pdf-export-root .bg-yellow-600 { background-color: #ca8a04 !important; }
+                .pdf-export-root .bg-blue-400 { background-color: #60a5fa !important; }
+                .pdf-export-root .bg-blue-600 { background-color: #2563eb !important; }
+                .pdf-export-root .bg-slate-500 { background-color: #64748b !important; }
+                .pdf-export-root .bg-orange-500 { background-color: #f97316 !important; }
+                .pdf-export-root .text-white { color: #ffffff !important; }
+                .pdf-export-root .text-gray-400 { color: #9ca3af !important; }
+                .pdf-export-root .text-gray-500 { color: #6b7280 !important; }
+                .pdf-export-root .text-gray-600 { color: #4b5563 !important; }
+                .pdf-export-root .text-gray-700 { color: #374151 !important; }
+                .pdf-export-root .text-gray-800 { color: #1f2937 !important; }
+                .pdf-export-root .text-gray-900 { color: #111827 !important; }
+                .pdf-export-root .text-xs { font-size: 11px; }
+                .pdf-export-root .text-sm { font-size: 12px; }
+                .pdf-export-root .text-lg { font-size: 18px; }
+                .pdf-export-root .text-2xl { font-size: 24px; }
+                .pdf-export-root .text-3xl { font-size: 28px; }
+                .pdf-export-root .font-medium { font-weight: 500; }
+                .pdf-export-root .font-semibold { font-weight: 600; }
+                .pdf-export-root .font-bold { font-weight: 700; }
+                .pdf-export-root .font-extrabold { font-weight: 800; }
+                .pdf-export-root .opacity-80 { opacity: 0.8; }
+                .pdf-export-root .incidencia-rojo { background-color: #fee2e2 !important; }
+                .pdf-export-root .incidencia-naranja { background-color: #ffedd5 !important; }
+                .pdf-export-root .incidencia-verde { background-color: #dcfce7 !important; }
+                .pdf-export-root thead { background-color: #f9fafb; }
+                .pdf-export-root tbody { background-color: #ffffff; }
+                .pdf-export-root th { color: #374151; font-weight: 600; }
+                .pdf-export-root td { color: #374151; }
                 .pdf-export-root [class*="shadow"] { box-shadow: none !important; }
                 .pdf-export-root canvas { max-width: 100% !important; }
                 .pdf-export-root img { page-break-inside: avoid; break-inside: avoid; }
@@ -7290,14 +7363,41 @@
             await new Promise((resolve) => requestAnimationFrame(resolve));
             await new Promise((resolve) => requestAnimationFrame(resolve));
 
-            const canvas = await html2canvas(element, {
-                backgroundColor: "#f9fafb",
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                windowWidth: element.scrollWidth,
-                windowHeight: element.scrollHeight,
-            });
+            const disabledStyles = [];
+            document
+                .querySelectorAll('style:not([data-pdf-style]), link[rel="stylesheet"]')
+                .forEach((node) => {
+                    disabledStyles.push({
+                        node,
+                        parent: node.parentNode,
+                        nextSibling: node.nextSibling,
+                    });
+                    node.remove();
+                });
+
+            let canvas;
+            try {
+                canvas = await html2canvas(element, {
+                    backgroundColor: "#f9fafb",
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    windowWidth: element.scrollWidth,
+                    windowHeight: element.scrollHeight,
+                    onclone: (clonedDocument) => {
+                        clonedDocument
+                            .querySelectorAll(
+                                'style:not([data-pdf-style]), link[rel="stylesheet"]',
+                            )
+                            .forEach((node) => node.remove());
+                    },
+                });
+            } finally {
+                disabledStyles.reverse().forEach(({ node, parent, nextSibling }) => {
+                    if (!parent) return;
+                    parent.insertBefore(node, nextSibling);
+                });
+            }
 
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF("p", "mm", "a4");
