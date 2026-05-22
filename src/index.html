@@ -57,6 +57,11 @@
                 border-radius: 0.5rem;
                 overflow: hidden;
             }
+            .registro-board.has-actions {
+                grid-template-columns:
+                    minmax(160px, 1fr) repeat(5, minmax(160px, 1fr))
+                    minmax(140px, 0.8fr);
+            }
             .board-row {
                 display: contents;
             }
@@ -1573,13 +1578,13 @@
             class="modal hidden fixed inset-0 flex items-center justify-center z-50 p-4"
         >
             <div
-                class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden"
+                class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden"
             >
                 <div
                     class="flex justify-between items-center p-6 border-b bg-blue-50"
                 >
                     <h3 class="text-xl font-bold text-gray-800">
-                        Editar Origen y Destino
+                        Editar Tramo
                     </h3>
                     <button
                         onclick="closeModal('edit-origen-destino-modal')"
@@ -1590,6 +1595,11 @@
                 </div>
                 <div class="p-6">
                     <form id="form-edit-origen-destino" class="space-y-4">
+                        <input
+                            type="hidden"
+                            id="edit-despacho-id"
+                            name="despachoId"
+                        />
                         <input type="hidden" id="edit-folio" name="folio" />
                         <input type="hidden" id="edit-unidad" name="unidad" />
                         <input
@@ -1598,33 +1608,80 @@
                             name="fechaProgramada"
                         />
 
-                        <div>
-                            <label
-                                for="edit-unidad-display"
-                                class="block text-sm font-medium text-gray-700 mb-1"
-                                >Unidad</label
-                            >
-                            <input
-                                type="text"
-                                id="edit-unidad-display"
-                                disabled
-                                class="w-full p-2 border rounded-lg bg-gray-100 text-gray-700"
-                            />
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    for="edit-unidad-display"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                    >Unidad</label
+                                >
+                                <input
+                                    type="text"
+                                    id="edit-unidad-display"
+                                    disabled
+                                    class="w-full p-2 border rounded-lg bg-gray-100 text-gray-700"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    for="edit-tramo-display"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                    >Tramo</label
+                                >
+                                <input
+                                    type="text"
+                                    id="edit-tramo-display"
+                                    disabled
+                                    class="w-full p-2 border rounded-lg bg-gray-100 text-gray-700"
+                                />
+                            </div>
                         </div>
 
                         <div>
                             <label
-                                for="edit-origen"
+                                for="edit-ruta"
                                 class="block text-sm font-medium text-gray-700 mb-1"
-                                >Origen</label
+                                >Ruta</label
                             >
                             <textarea
-                                id="edit-origen"
-                                name="origen"
+                                id="edit-ruta"
+                                name="ruta"
                                 rows="2"
                                 class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Ingrese el origen"
+                                placeholder="Ingrese la ruta"
                             ></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    for="edit-origen"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                    >Origen</label
+                                >
+                                <textarea
+                                    id="edit-origen"
+                                    name="origen"
+                                    rows="2"
+                                    class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Ingrese el origen"
+                                ></textarea>
+                            </div>
+
+                            <div>
+                                <label
+                                    for="edit-lugar-carga"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                    >Lugar de carga</label
+                                >
+                                <textarea
+                                    id="edit-lugar-carga"
+                                    name="lugarCarga"
+                                    rows="2"
+                                    class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Ingrese el lugar de carga"
+                                ></textarea>
+                            </div>
                         </div>
 
                         <div>
@@ -1639,6 +1696,21 @@
                                 rows="2"
                                 class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Ingrese el destino"
+                            ></textarea>
+                        </div>
+
+                        <div>
+                            <label
+                                for="edit-instrucciones"
+                                class="block text-sm font-medium text-gray-700 mb-1"
+                                >Instrucciones especiales</label
+                            >
+                            <textarea
+                                id="edit-instrucciones"
+                                name="instrucciones"
+                                rows="3"
+                                class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Ingrese instrucciones especiales"
                             ></textarea>
                         </div>
 
@@ -1798,14 +1870,54 @@
                 : extra;
         }
 
-        const BITACORA_PRODUCTION_SRC = "https://bitacora.trackergps.cloud/";
+        function canManageTramos() {
+            const role = String(userRole || "").toLowerCase();
+            return !!role && role !== "lector";
+        }
+
+        function findFilteredDespachoIndex(target) {
+            if (!target) return -1;
+            const targetId = String(target.despachoId || "").trim();
+            if (targetId) {
+                return filteredDespachosData.findIndex(
+                    (item) => String(item.despachoId || "").trim() === targetId,
+                );
+            }
+
+            return filteredDespachosData.findIndex(
+                (item) =>
+                    item.folio === target.folio &&
+                    item.unidad === target.unidad &&
+                    item.fechaProgramada === target.fechaProgramada &&
+                    String(item.tramoNumero || "") ===
+                        String(target.tramoNumero || ""),
+            );
+        }
+
+        const BITACORA_PRODUCTION_SRC = "https://bitacora.trackergps.cloud/src";
+
+        function getLocalSrcBasePath() {
+            const pathname = window.location.pathname || "";
+            const srcIndex = pathname.indexOf("/src");
+            if (srcIndex >= 0) {
+                return pathname.slice(0, srcIndex + 4);
+            }
+            const firstSegment = pathname.split("/").filter(Boolean)[0] || "";
+            if (
+                firstSegment &&
+                ["localhost", "127.0.0.1"].includes(window.location.hostname)
+            ) {
+                return `/${firstSegment}/src`;
+            }
+            return "/src";
+        }
 
         function phpApiPath(path) {
             const cleanPath = String(path || "").replace(/^\/+/, "");
             if (window.location.protocol === "file:") {
                 return `${BITACORA_PRODUCTION_SRC}/${cleanPath}`;
             }
-            return `/src/${cleanPath}`;
+            return `${getLocalSrcBasePath()}/${cleanPath}`;
         }
 
         function setUserRole(role, unidades = [], tabs = [], clientes = []) {
@@ -2254,7 +2366,7 @@
             if (errorMessage) errorMessage.classList.add("hidden");
 
             try {
-                const response = await fetch("/src/usuarios/login.php", {
+                const response = await fetch(phpApiPath("usuarios/login.php"), {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -2377,7 +2489,9 @@
             }
 
             const query = params.toString();
-            return `/src/despachos/obtener_despachos.php${query ? `?${query}` : ""}`;
+            return phpApiPath(
+                `despachos/obtener_despachos.php${query ? `?${query}` : ""}`,
+            );
         }
 
         async function loadDataFromMySQL(isInitialLoad = true) {
@@ -3117,7 +3231,7 @@
                 unidadIndex[unidadNombre] = 0;
             });
 
-            const isEditor = userRole === "editor" || userRole === "admin";
+            const isEditor = canManageTramos();
 
             filteredDespachosData.forEach((d, index) => {
                 const unidadNombre = String(d.unidad || "").trim();
@@ -3141,12 +3255,22 @@
                 )}`;
 
                 const editButton = isEditor
-                    ? `<button
-                onclick="openEditOrigenDestinoModal(${index})"
-                class="mt-3 w-full bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
-              >
-                Editar Origen/Destino
-              </button>`
+                    ? `<div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onclick="openEditOrigenDestinoModal(${index})"
+                  class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
+                >
+                  Editar tramo
+                </button>
+                <button
+                  type="button"
+                  onclick="deleteTramo(${index})"
+                  class="bg-red-50 text-red-700 border border-red-200 px-3 py-2 rounded-lg hover:bg-red-100 text-sm font-medium transition"
+                >
+                  Eliminar tramo
+                </button>
+              </div>`
                     : "";
 
                 c.innerHTML += `
@@ -3187,21 +3311,123 @@
             const despacho = filteredDespachosData[index];
             if (!despacho) return;
 
+            document.getElementById("edit-despacho-id").value =
+                despacho.despachoId || "";
             document.getElementById("edit-folio").value = despacho.folio || "";
             document.getElementById("edit-unidad").value =
                 despacho.unidad || "";
             document.getElementById("edit-unidad-display").value =
                 despacho.unidad || "";
+            document.getElementById("edit-tramo-display").value =
+                despacho.tramoNumero
+                    ? `Tramo ${despacho.tramoNumero}`
+                    : "Tramo sin numero";
             document.getElementById("edit-fecha-programada").value =
                 despacho.fechaProgramada || "";
+            document.getElementById("edit-ruta").value = despacho.ruta || "";
             document.getElementById("edit-origen").value =
                 despacho.origen || "";
+            document.getElementById("edit-lugar-carga").value =
+                despacho.lugarCarga || "";
             document.getElementById("edit-destino").value =
                 despacho.destino || "";
+            document.getElementById("edit-instrucciones").value =
+                despacho.instruccionesEspeciales || "";
 
             document
                 .getElementById("edit-origen-destino-modal")
                 .classList.remove("hidden");
+        }
+
+        function updateTramoInMemory(despachoId, values) {
+            const id = String(despachoId || "").trim();
+            if (!id) return;
+
+            [allDespachosData, filteredDespachosData].forEach((arr) => {
+                arr.forEach((d) => {
+                    if (String(d.despachoId || "").trim() !== id) return;
+                    d.ruta = values.ruta;
+                    d.origen = values.origen;
+                    d.lugarCarga = values.lugarCarga;
+                    d.destino = values.destino;
+                    d.instruccionesEspeciales = values.instrucciones;
+                });
+            });
+        }
+
+        function removeTramoFromMemory(despachoId) {
+            const id = String(despachoId || "").trim();
+            if (!id) return;
+
+            allDespachosData = allDespachosData.filter(
+                (d) => String(d.despachoId || "").trim() !== id,
+            );
+            filteredDespachosData = filteredDespachosData.filter(
+                (d) => String(d.despachoId || "").trim() !== id,
+            );
+        }
+
+        function refreshAfterTramoChange() {
+            saveAllData();
+            filterByDate();
+        }
+
+        async function deleteTramo(index) {
+            if (!canManageTramos()) return;
+
+            const despacho = filteredDespachosData[index];
+            if (!despacho) return;
+
+            const despachoId = despacho.despachoId || "";
+            if (!despachoId) {
+                alert(
+                    "No se puede eliminar este tramo porque no tiene ID de despacho.",
+                );
+                return;
+            }
+
+            const tramoLabel = despacho.tramoNumero
+                ? `Tramo ${despacho.tramoNumero}`
+                : "este tramo";
+            const ok = confirm(
+                `Se ocultara ${tramoLabel} de la unidad ${despacho.unidad}. El historial y seguimientos no se borraran. ¿Deseas continuar?`,
+            );
+            if (!ok) return;
+
+            const motivo = prompt(
+                "Motivo de eliminacion del tramo (opcional):",
+                "",
+            );
+            if (motivo === null) return;
+
+            try {
+                const response = await fetch(
+                    phpApiPath("despachos/eliminar_tramo.php"),
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({
+                            despachoId,
+                            motivo: motivo.trim(),
+                        }),
+                    },
+                );
+
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(
+                        result.message || "No se pudo eliminar el tramo.",
+                    );
+                }
+
+                removeTramoFromMemory(despachoId);
+                refreshAfterTramoChange();
+            } catch (error) {
+                console.error("Error eliminando tramo:", error);
+                alert(error.message || "Error al eliminar el tramo.");
+            }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -3210,25 +3436,36 @@
                 form.addEventListener("submit", async (e) => {
                     e.preventDefault();
 
+                    const despachoId =
+                        document.getElementById("edit-despacho-id").value;
                     const folio = document.getElementById("edit-folio").value;
                     const unidad = document.getElementById("edit-unidad").value;
                     const fechaProgramada = document.getElementById(
                         "edit-fecha-programada",
                     ).value;
+                    const ruta = document
+                        .getElementById("edit-ruta")
+                        .value.trim();
                     const origen = document
                         .getElementById("edit-origen")
+                        .value.trim();
+                    const lugarCarga = document
+                        .getElementById("edit-lugar-carga")
                         .value.trim();
                     const destino = document
                         .getElementById("edit-destino")
                         .value.trim();
+                    const instrucciones = document
+                        .getElementById("edit-instrucciones")
+                        .value.trim();
 
-                    if (!folio || !unidad || !fechaProgramada) {
-                        alert("Error: Faltan datos del despacho");
+                    if (!despachoId || !folio || !unidad || !fechaProgramada) {
+                        alert("Error: Faltan datos del tramo");
                         return;
                     }
 
-                    if (!origen && !destino) {
-                        alert("Debe ingresar al menos un origen o destino");
+                    if (!destino) {
+                        alert("Debe ingresar el destino del tramo");
                         return;
                     }
 
@@ -3241,58 +3478,49 @@
 
                     try {
                         const response = await fetch(
-                            "/src/origen_destino/actualizar_origen_destino.php",
+                            phpApiPath("despachos/actualizar_tramo.php"),
                             {
                                 method: "POST",
-                                headers: { "Content-Type": "application/json" },
+                                headers: getAuthHeaders({
+                                    "Content-Type": "application/json",
+                                }),
                                 body: JSON.stringify({
+                                    despachoId,
                                     folio,
                                     unidad,
                                     fechaProgramada,
+                                    ruta,
                                     origen,
+                                    lugarCarga,
                                     destino,
+                                    instrucciones,
                                 }),
                             },
                         );
 
                         const result = await response.json();
 
-                        if (result.success) {
-                            // Actualizar en memoria sin recargar Sheets
-                            const origenDestinoKey = `${String(folio).trim()}|${String(unidad).trim()}|${String(fechaProgramada).trim()}`;
-                            origenDestinoDbCache.map.set(origenDestinoKey, {
-                                folio,
-                                unidad,
-                                fechaProgramada,
-                                origen,
-                                destino,
-                            });
-                            origenDestinoDbCache.loaded = true;
-
-                            [allDespachosData, filteredDespachosData].forEach(
-                                (arr) => {
-                                    arr.forEach((d) => {
-                                        const k = `${String(d.folio ?? "").trim()}|${String(d.unidad ?? "").trim()}|${String(d.fechaProgramada ?? "").trim()}`;
-                                        if (k === origenDestinoKey) {
-                                            d.origen = origen;
-                                            d.destino = destino;
-                                        }
-                                    });
-                                },
+                        if (!response.ok || !result.success) {
+                            throw new Error(
+                                result.message ||
+                                    "No se pudo actualizar el tramo.",
                             );
-
-                            closeModal("edit-origen-destino-modal");
-                            renderOrigenDestino();
-                        } else {
-                            alert("Error: " + result.message);
                         }
+
+                        updateTramoInMemory(despachoId, {
+                            ruta,
+                            origen,
+                            lugarCarga,
+                            destino,
+                            instrucciones,
+                        });
+                        closeModal("edit-origen-destino-modal");
+                        refreshAfterTramoChange();
                     } catch (error) {
-                        console.error(
-                            "Error al actualizar origen/destino:",
-                            error,
-                        );
+                        console.error("Error al actualizar tramo:", error);
                         alert(
-                            "Error al conectar con el servidor. Intente nuevamente.",
+                            error.message ||
+                                "Error al conectar con el servidor. Intente nuevamente.",
                         );
                     } finally {
                         submitBtn.disabled = false;
@@ -3371,7 +3599,7 @@
                 try {
                     // 1. Actualizar MySQL
                     const response = await fetch(
-                        "/src/seguimiento/actualizar_fecha_programada.php",
+                        phpApiPath("seguimiento/actualizar_fecha_programada.php"),
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -3396,7 +3624,7 @@
 
                     // 2. Actualizar Google Sheets (en paralelo, no bloquea el flujo)
                     const sheetsPromise = fetch(
-                        "/src/api/actualizar_fecha_sheets.php",
+                        phpApiPath("api/actualizar_fecha_sheets.php"),
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -4827,10 +5055,12 @@
             });
         }
 
-        const SEGUIMIENTO_SAVE_ENDPOINT =
-            "/src/seguimiento/guardar_seguimiento.php";
-        const SEGUIMIENTO_LOAD_ENDPOINT =
-            "/src/seguimiento/obtener_seguimiento.php";
+        const SEGUIMIENTO_SAVE_ENDPOINT = phpApiPath(
+            "seguimiento/guardar_seguimiento.php",
+        );
+        const SEGUIMIENTO_LOAD_ENDPOINT = phpApiPath(
+            "seguimiento/obtener_seguimiento.php",
+        );
 
         let seguimientosDbCache = {
             loaded: false,
@@ -4845,6 +5075,7 @@
         function applyOrigenDestinoToArray(arr) {
             if (!origenDestinoDbCache.loaded || !arr?.length) return;
             arr.forEach((d) => {
+                if (d.despachoId) return;
                 const key = `${String(d.folio ?? "").trim()}|${String(d.unidad ?? "").trim()}|${String(d.fechaProgramada ?? "").trim()}`;
                 const ov = origenDestinoDbCache.map.get(key);
                 if (!ov) return;
@@ -4855,7 +5086,9 @@
 
         async function loadOrigenDestinoFromDb() {
             const res = await fetch(
-                `/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
+                phpApiPath(
+                    `origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
+                ),
                 { cache: "no-store" },
             );
             let json = null;
@@ -5312,17 +5545,24 @@
 
             const board = document.createElement("div");
             board.className = "registro-board";
+            if (canManageTramos()) {
+                board.classList.add("has-actions");
+            }
 
             const header = document.createElement("div");
             header.className = "board-row";
-            [
+            const headers = [
                 "Unidad",
                 "Salida inicial de la Unidad",
                 "Proceso de Carga",
                 "Salida de carga",
                 "Proceso de Descarga",
                 "Estatus",
-            ].forEach((h) => {
+            ];
+            if (canManageTramos()) {
+                headers.push("Acciones");
+            }
+            headers.forEach((h) => {
                 const cell = document.createElement("div");
                 cell.className = "board-cell";
                 cell.textContent = h;
@@ -5335,12 +5575,7 @@
                 const row = document.createElement("div");
                 row.className = "board-row";
 
-                const realIndex = filteredDespachosData.findIndex(
-                    (item) =>
-                        item.folio === d.folio &&
-                        item.unidad === d.unidad &&
-                        item.fechaProgramada === d.fechaProgramada,
-                );
+                const realIndex = findFilteredDespachoIndex(d);
 
                 const unidadNombre = String(d.unidad || "").trim();
                 const tieneMultiplesTramos = unidadCount[unidadNombre] > 1;
@@ -5443,6 +5678,32 @@
                 statusCell.setAttribute("data-label", "Estatus");
                 statusCell.textContent = estatusCalculado || "Programado";
                 row.appendChild(statusCell);
+
+                if (canManageTramos()) {
+                    const actionsCell = document.createElement("div");
+                    actionsCell.className = "board-cell";
+                    actionsCell.setAttribute("data-label", "Acciones");
+                    actionsCell.innerHTML = `
+                      <div class="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onclick="openEditOrigenDestinoModal(${realIndex})"
+                          class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-xs font-medium transition disabled:bg-blue-300"
+                          ${realIndex < 0 ? "disabled" : ""}
+                        >
+                          Editar tramo
+                        </button>
+                        <button
+                          type="button"
+                          onclick="deleteTramo(${realIndex})"
+                          class="bg-red-50 text-red-700 border border-red-200 px-3 py-2 rounded-lg hover:bg-red-100 text-xs font-medium transition disabled:opacity-50"
+                          ${realIndex < 0 ? "disabled" : ""}
+                        >
+                          Eliminar tramo
+                        </button>
+                      </div>`;
+                    row.appendChild(actionsCell);
+                }
 
                 board.appendChild(row);
             });
@@ -5842,8 +6103,9 @@
             currentLimit: 100,
         };
 
-        const EMERGENCY_911_ENDPOINT =
-            "/src/contactos/obtener_numeros_emergencia.php";
+        const EMERGENCY_911_ENDPOINT = phpApiPath(
+            "contactos/obtener_numeros_emergencia.php",
+        );
 
         function normalizeEmergency911Row(r) {
             const estado = (r?.estado ?? "").toString().trim().toUpperCase();
@@ -6359,7 +6621,7 @@
                     datos_informe: lastInformeData,
                 };
 
-                const res = await fetch("/src/informe/guardar_informe.php", {
+                const res = await fetch(phpApiPath("informe/guardar_informe.php"), {
                     method: "POST",
                     headers: getAuthHeaders({
                         "Content-Type": "application/json",
@@ -6583,7 +6845,9 @@
                 }
                 const query = params.toString();
                 const res = await fetch(
-                    `/src/informe/obtener_informes.php${query ? `?${query}` : ""}`,
+                    phpApiPath(
+                        `informe/obtener_informes.php${query ? `?${query}` : ""}`,
+                    ),
                     {
                         cache: "no-store",
                         headers: getAuthHeaders(),
@@ -6802,7 +7066,9 @@
 
             try {
                 const res = await fetch(
-                    `informe/obtener_informe_detalle.php?id=${encodeURIComponent(numericId)}`,
+                    phpApiPath(
+                        `informe/obtener_informe_detalle.php?id=${encodeURIComponent(numericId)}`,
+                    ),
                     {
                         cache: "no-store",
                         headers: getAuthHeaders(),
@@ -6976,7 +7242,7 @@
             if (!confirm(`¿Eliminar el informe ID ${numericId}?`)) return;
 
             try {
-                const res = await fetch("/src/informe/eliminar_informe.php", {
+                const res = await fetch(phpApiPath("informe/eliminar_informe.php"), {
                     method: "POST",
                     headers: getAuthHeaders({
                         "Content-Type": "application/json",

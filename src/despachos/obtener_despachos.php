@@ -48,6 +48,29 @@ function bind_statement_params($stmt, $types, $params) {
   call_user_func_array([$stmt, 'bind_param'], $refs);
 }
 
+function despacho_column_exists($conn, $column) {
+  $column = trim((string)$column);
+  if ($column === '') return false;
+
+  $stmt = $conn->prepare(
+    "SELECT COUNT(*) AS total
+       FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'despachos'
+        AND COLUMN_NAME = ?"
+  );
+  if (!$stmt) return false;
+  $stmt->bind_param('s', $column);
+  if (!$stmt->execute()) {
+    $stmt->close();
+    return false;
+  }
+  $res = $stmt->get_result();
+  $row = $res ? $res->fetch_assoc() : null;
+  $stmt->close();
+  return intval($row['total'] ?? 0) > 0;
+}
+
 try {
   if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     throw new Exception('Método no permitido. Use GET.');
@@ -59,6 +82,9 @@ try {
   $lector_email = strtolower(trim((string)($_GET['lector_email'] ?? '')));
 
   $where = ['c.activo = 1', 'u.activo = 1'];
+  if (despacho_column_exists($conn, 'eliminado_at')) {
+    $where[] = 'd.eliminado_at IS NULL';
+  }
   $types = '';
   $params = [];
 

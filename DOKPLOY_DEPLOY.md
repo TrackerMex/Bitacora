@@ -8,9 +8,9 @@ Este proyecto se despliega como el servicio `bitacora` dentro del proyecto `trac
 - Dockerfile path: `Dockerfile`
 - Port interno: `80`
 - Dominio recomendado: `bitacora.trackergps.cloud`
-- URL de la app: `https://bitacora.trackergps.cloud/bitacora_/`
+- URL de la app: `https://bitacora.trackergps.cloud/`
 
-La raíz del dominio redirige automáticamente a `/bitacora_/` porque el frontend actual usa rutas absolutas con ese prefijo.
+El contenedor sirve la app en `/` y mantiene `/bitacora_` como alias de compatibilidad porque el frontend actual usa rutas absolutas con ese prefijo.
 
 ## Variables de entorno
 
@@ -40,6 +40,7 @@ docker run --rm -p 8080:80 --env-file .env.production bitacora-tracker:latest
 
 Revisar:
 
+- `http://localhost:8080/`
 - `http://localhost:8080/bitacora_/`
 - `http://localhost:8080/bitacora_/src/usuarios/login.php`
 - `http://localhost:8080/bitacora_/src/admin/resumen.php`

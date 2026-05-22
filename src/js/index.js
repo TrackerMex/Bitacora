@@ -536,6 +536,22 @@ async function loadEmergencyContactsFromDatabase() {
     return [];
   }
 }
+function normalizeHeaderKey(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/Ã¡|Ã |Ã¢|Ã£|Ã¤/g, "a")
+    .replace(/Ã©|Ã¨|Ãª|Ã«/g, "e")
+    .replace(/Ã­|Ã¬|Ã®|Ã¯/g, "i")
+    .replace(/Ã³|Ã²|Ã´|Ãµ|Ã¶/g, "o")
+    .replace(/Ãº|Ã¹|Ã»|Ã¼/g, "u")
+    .replace(/Ã±/g, "n")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9_\s/.-]+/g, "")
+    .replace(/\s+/g, " ");
+}
+
 function convertSheetDataToObjects(data) {
   if (data.length < 1) return [];
   const columnMap = {
@@ -544,7 +560,6 @@ function convertSheetDataToObjects(data) {
     "salida carga programada": "salida_carga_prog",
     "descarga programada": "descarga_prog",
     "id equipos": "id_equipos",
-    telÃ©fono: "telefono",
     telefono: "telefono",
   };
   const fallbackHeaders = [
@@ -575,7 +590,7 @@ function convertSheetDataToObjects(data) {
   if (!looksLikeDate && data.length >= 2) {
     headers = data
       .shift()
-      .map((h) => (typeof h === "string" ? h.trim().toLowerCase() : h));
+      .map((h) => normalizeHeaderKey(h));
     rows = data;
   } else {
     console.warn(
@@ -590,7 +605,8 @@ function convertSheetDataToObjects(data) {
       const obj = {};
       headers.forEach((header, index) => {
         if (header) {
-          const mappedHeader = columnMap[header] || header;
+          const normalizedHeader = normalizeHeaderKey(header);
+          const mappedHeader = columnMap[normalizedHeader] || normalizedHeader;
           obj[mappedHeader] = row[index] || "";
         }
       });
@@ -1465,7 +1481,7 @@ function getIncidenciaSeveridad(tipo) {
   const map = {
     "DesconexiÃ³n de baterÃ­a": "Rojo",
     "BotÃ³n de pÃ¡nico": "Rojo",
-    PersecuciÃ³n: "Rojo",
+    "PersecuciÃ³n": "Rojo",
     "Accidente vehicular propio": "Rojo",
     "Robo o asalto": "Rojo",
     "Despacho No Recibido": "Rojo",
@@ -1572,7 +1588,7 @@ const INCIDENCIA_PROTOCOLOS = {
       "Activar protocolo externo (911) y notificar aseguradora/cliente si corresponde.",
     ],
   },
-  PersecuciÃ³n: {
+  "PersecuciÃ³n": {
     nivel: "CrÃ­tica",
     pasos: [
       "Escalar inmediato a Seguridad + Operaciones.",
