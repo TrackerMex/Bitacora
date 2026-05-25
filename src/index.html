@@ -6,10 +6,8 @@
         <meta name="referrer" content="strict-origin-when-cross-origin" />
         <title>BITÁCORA ELECTRÓNICA PARA MONITOREO DE LOGÍSTICA</title>
 
-        <!-- UI -->
         <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-        <!-- Libs -->
         <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.7/dayjs.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.7/plugin/customParseFormat.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.7/plugin/utc.js"></script>
@@ -431,6 +429,13 @@
                     onclick="changeTab(7)"
                 >
                     Validaciones GPS
+                </button>
+                <button
+                    id="tab-btn-8"
+                    class="tab-btn text-gray-500"
+                    onclick="changeTab(8)"
+                >
+                    🚛 Viajes
                 </button>
             </div>
 
@@ -1254,6 +1259,150 @@
                                 class="divide-y"
                             ></tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- ── TAB 8: VIAJES MULTI-TRAMO / MULTI-DÍA ── -->
+                <div id="tab-8" class="tab-content-item hidden">
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-3 mb-5"
+                    >
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800">
+                                Viajes Planificados
+                            </h2>
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                Despachos multi-tramo y multi-día registrados
+                                desde el Planificador de Flotas
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span
+                                id="viajes-counter"
+                                class="text-sm text-gray-500 font-medium"
+                            ></span>
+                            <button
+                                onclick="recargarViajes()"
+                                id="viajes-reload-btn"
+                                class="text-xs bg-blue-800 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                🔄 Actualizar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div
+                        class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5"
+                    >
+                        <div
+                            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+                        >
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-600 mb-1"
+                                    >Desde</label
+                                >
+                                <input
+                                    type="date"
+                                    id="viajes-fecha-desde"
+                                    class="w-full p-2 border rounded-lg text-sm"
+                                    onchange="loadViajesFromDb()"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-600 mb-1"
+                                    >Hasta</label
+                                >
+                                <input
+                                    type="date"
+                                    id="viajes-fecha-hasta"
+                                    class="w-full p-2 border rounded-lg text-sm"
+                                    onchange="loadViajesFromDb()"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-600 mb-1"
+                                    >Unidad</label
+                                >
+                                <select
+                                    id="viajes-filtro-unidad"
+                                    class="w-full p-2 border rounded-lg text-sm"
+                                    onchange="aplicarFiltrosViajes()"
+                                >
+                                    <option value="">Todas las unidades</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-600 mb-1"
+                                    >Estado</label
+                                >
+                                <select
+                                    id="viajes-filtro-estado"
+                                    class="w-full p-2 border rounded-lg text-sm"
+                                    onchange="loadViajesFromDb()"
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="planificado">
+                                        Planificado
+                                    </option>
+                                    <option value="en_curso">En curso</option>
+                                    <option value="completado">
+                                        Completado
+                                    </option>
+                                    <option value="cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Leyenda -->
+                    <div
+                        class="flex flex-wrap gap-3 mb-4 text-xs text-gray-500"
+                    >
+                        <span class="flex items-center gap-1"
+                            ><span
+                                class="w-3 h-3 rounded-full bg-blue-800 inline-block"
+                            ></span>
+                            Número de tramos</span
+                        >
+                        <span class="flex items-center gap-1"
+                            ><span
+                                class="inline-block bg-blue-100 text-blue-800 px-1.5 rounded-full"
+                                >planificado</span
+                            ></span
+                        >
+                        <span class="flex items-center gap-1"
+                            ><span
+                                class="inline-block bg-yellow-100 text-yellow-800 px-1.5 rounded-full"
+                                >en curso</span
+                            ></span
+                        >
+                        <span class="flex items-center gap-1"
+                            ><span
+                                class="inline-block bg-green-100 text-green-800 px-1.5 rounded-full"
+                                >completado</span
+                            ></span
+                        >
+                        <span class="flex items-center gap-1"
+                            ><span
+                                class="inline-block bg-purple-100 text-purple-700 px-1.5 rounded-full"
+                                >Multi-día</span
+                            ></span
+                        >
+                        <span class="text-gray-400"
+                            >· Haz clic en un viaje para ver sus tramos</span
+                        >
+                    </div>
+
+                    <!-- Contenedor de cards de viajes -->
+                    <div id="viajes-container">
+                        <div class="text-center p-10 text-gray-400 text-sm">
+                            Cargando viajes...
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2254,16 +2403,19 @@
             if (errorMessage) errorMessage.classList.add("hidden");
 
             try {
-                const response = await fetch("/src/usuarios/login.php", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
+                const response = await fetch(
+                    "/bitacora_/src/usuarios/login.php",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            username: usernameInput,
+                            password: password,
+                        }),
                     },
-                    body: JSON.stringify({
-                        username: usernameInput,
-                        password: password,
-                    }),
-                });
+                );
 
                 const data = await response.json();
 
@@ -2299,12 +2451,17 @@
 
         function updateTabVisibility() {
             const allowed = userTabs;
-            for (let i = 0; i < 8; i++) {
+            // Tab 8 (Viajes) siempre visible si el usuario tiene acceso al sistema
+            const allTabs = [
+                ...new Set([...Array.from({ length: 8 }, (_, i) => i), 8]),
+            ];
+            allTabs.forEach((i) => {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
-                if (btn) btn.classList.toggle("hidden", !allowed.includes(i));
-                if (tab && !allowed.includes(i)) tab.classList.add("hidden");
-            }
+                const visible = i === 8 ? true : allowed.includes(i);
+                if (btn) btn.classList.toggle("hidden", !visible);
+                if (tab && !visible) tab.classList.add("hidden");
+            });
             changeTab(allowed[0] ?? 0);
         }
 
@@ -2316,11 +2473,13 @@
                 return;
             }
             const allowed = userTabs;
-            if (!allowed.includes(index)) {
+            // Tab 8 siempre permitido para usuarios logueados
+            if (index !== 8 && !allowed.includes(index)) {
                 alert("No tienes permiso para acceder a esta pestaña.");
                 return;
             }
-            for (let i = 0; i < 8; i++) {
+            const TAB_COUNT = 9; // 0-7 legacy + 8 viajes
+            for (let i = 0; i < TAB_COUNT; i++) {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
                 if (btn && !btn.classList.contains("hidden")) {
@@ -2377,7 +2536,7 @@
             }
 
             const query = params.toString();
-            return `/src/despachos/obtener_despachos.php${query ? `?${query}` : ""}`;
+            return `/bitacora_/src/despachos/obtener_despachos.php${query ? `?${query}` : ""}`;
         }
 
         async function loadDataFromMySQL(isInitialLoad = true) {
@@ -3241,7 +3400,7 @@
 
                     try {
                         const response = await fetch(
-                            "/src/origen_destino/actualizar_origen_destino.php",
+                            "/bitacora_/src/origen_destino/actualizar_origen_destino.php",
                             {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
@@ -3371,7 +3530,7 @@
                 try {
                     // 1. Actualizar MySQL
                     const response = await fetch(
-                        "/src/seguimiento/actualizar_fecha_programada.php",
+                        "/bitacora_/src/seguimiento/actualizar_fecha_programada.php",
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -3396,7 +3555,7 @@
 
                     // 2. Actualizar Google Sheets (en paralelo, no bloquea el flujo)
                     const sheetsPromise = fetch(
-                        "/src/api/actualizar_fecha_sheets.php",
+                        "/bitacora_/src/api/actualizar_fecha_sheets.php",
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -4828,9 +4987,9 @@
         }
 
         const SEGUIMIENTO_SAVE_ENDPOINT =
-            "/src/seguimiento/guardar_seguimiento.php";
+            "/bitacora_/src/seguimiento/guardar_seguimiento.php";
         const SEGUIMIENTO_LOAD_ENDPOINT =
-            "/src/seguimiento/obtener_seguimiento.php";
+            "/bitacora_/src/seguimiento/obtener_seguimiento.php";
 
         let seguimientosDbCache = {
             loaded: false,
@@ -4855,7 +5014,7 @@
 
         async function loadOrigenDestinoFromDb() {
             const res = await fetch(
-                `/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
+                `/bitacora_/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
                 { cache: "no-store" },
             );
             let json = null;
@@ -5843,7 +6002,7 @@
         };
 
         const EMERGENCY_911_ENDPOINT =
-            "/src/contactos/obtener_numeros_emergencia.php";
+            "/bitacora_/src/contactos/obtener_numeros_emergencia.php";
 
         function normalizeEmergency911Row(r) {
             const estado = (r?.estado ?? "").toString().trim().toUpperCase();
@@ -6359,13 +6518,16 @@
                     datos_informe: lastInformeData,
                 };
 
-                const res = await fetch("/src/informe/guardar_informe.php", {
-                    method: "POST",
-                    headers: getAuthHeaders({
-                        "Content-Type": "application/json",
-                    }),
-                    body: JSON.stringify(payload),
-                });
+                const res = await fetch(
+                    "/bitacora_/src/informe/guardar_informe.php",
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify(payload),
+                    },
+                );
 
                 const text = await res.text();
 
@@ -6583,7 +6745,7 @@
                 }
                 const query = params.toString();
                 const res = await fetch(
-                    `/src/informe/obtener_informes.php${query ? `?${query}` : ""}`,
+                    `/bitacora_/src/informe/obtener_informes.php${query ? `?${query}` : ""}`,
                     {
                         cache: "no-store",
                         headers: getAuthHeaders(),
@@ -6976,13 +7138,16 @@
             if (!confirm(`¿Eliminar el informe ID ${numericId}?`)) return;
 
             try {
-                const res = await fetch("/src/informe/eliminar_informe.php", {
-                    method: "POST",
-                    headers: getAuthHeaders({
-                        "Content-Type": "application/json",
-                    }),
-                    body: JSON.stringify({ id: numericId }),
-                });
+                const res = await fetch(
+                    "/bitacora_/src/informe/eliminar_informe.php",
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({ id: numericId }),
+                    },
+                );
                 const text = await res.text();
                 let payload;
                 try {
@@ -7178,8 +7343,775 @@
                 document
                     .getElementById("login-modal")
                     .classList.remove("hidden");
-            else loadDataFromMySQL(true);
+            else {
+                loadDataFromMySQL(true);
+                loadViajesFromDb();
+            }
         })();
+
+        // =====================================================================
+        // MÓDULO VIAJES — carga, render y acciones
+        // =====================================================================
+
+        let allViajesData = [];
+        let viajesExpandidos = {};
+
+        async function loadViajesFromDb() {
+            if (!userRole || !bitacoraAuthToken) return;
+
+            const clienteIds = getUserClienteIds();
+            if (!clienteIds.length) return;
+
+            const desde = dayjs().subtract(30, "day").format("YYYY-MM-DD");
+            const hasta = dayjs().add(15, "day").format("YYYY-MM-DD");
+
+            const filtroDesdEl = document.getElementById("viajes-fecha-desde");
+            const filtroHastaEl = document.getElementById("viajes-fecha-hasta");
+            const filtroEstadoEl = document.getElementById(
+                "viajes-filtro-estado",
+            );
+
+            const fechaDesde = filtroDesdEl?.value || desde;
+            const fechaHasta = filtroHastaEl?.value || hasta;
+            const estadoF = filtroEstadoEl?.value || "";
+
+            const params = new URLSearchParams({
+                cliente_ids: clienteIds.join(","),
+                fecha_desde: fechaDesde,
+                fecha_hasta: fechaHasta,
+                con_tramos: "1",
+                limit: "200",
+            });
+            if (estadoF) params.set("estado", estadoF);
+
+            try {
+                const res = await fetch(
+                    `/bitacora_/src/despachos/obtener_viajes.php?${params}`,
+                    { headers: getAuthHeaders({ Accept: "application/json" }) },
+                );
+                const json = await res.json();
+                if (!json.success)
+                    throw new Error(json.message || "Error cargando viajes");
+                allViajesData = json.data || [];
+                renderViajes();
+            } catch (e) {
+                console.error("loadViajesFromDb:", e);
+            }
+        }
+
+        function renderViajes() {
+            const container = document.getElementById("viajes-container");
+            if (!container) return;
+
+            const filtroUnidad =
+                document.getElementById("viajes-filtro-unidad")?.value || "";
+            const filtroCliente =
+                document.getElementById("viajes-filtro-cliente")?.value || "";
+            const filtroEstado =
+                document.getElementById("viajes-filtro-estado")?.value || "";
+
+            let datos = allViajesData;
+            if (filtroUnidad)
+                datos = datos.filter((v) => v.unidad === filtroUnidad);
+            if (filtroCliente)
+                datos = datos.filter((v) => v.cliente === filtroCliente);
+            if (filtroEstado)
+                datos = datos.filter((v) => v.estado === filtroEstado);
+
+            _actualizarFiltrosViajes(allViajesData);
+
+            const counter = document.getElementById("viajes-counter");
+            if (counter)
+                counter.textContent = `${datos.length} viaje${datos.length !== 1 ? "s" : ""}`;
+
+            if (datos.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center p-10 bg-white rounded-xl shadow">
+                        <p class="text-gray-500 text-sm">No hay viajes en el rango seleccionado</p>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = datos
+                .map((v) => _renderViajeCard(v))
+                .join("");
+        }
+
+        function _renderViajeCard(v) {
+            const expandido = viajesExpandidos[v.viaje_id] || false;
+
+            const estadoColor =
+                {
+                    planificado: "bg-blue-100 text-blue-800",
+                    en_curso: "bg-yellow-100 text-yellow-800",
+                    completado: "bg-green-100 text-green-800",
+                    cancelado: "bg-gray-100 text-gray-500",
+                }[v.estado] || "bg-gray-100 text-gray-600";
+
+            const multiDiaBadge = v.es_multi_dia
+                ? `<span class="ml-2 bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-full">Multi-día</span>`
+                : "";
+
+            const fechas = v.es_multi_dia
+                ? `${v.fecha_inicio} → ${v.fecha_fin}`
+                : v.fecha_inicio;
+
+            const progreso =
+                v.total_tramos > 0
+                    ? Math.round((v.tramos_completados / v.total_tramos) * 100)
+                    : 0;
+
+            const tramosHtml = expandido ? _renderTramosDetalle(v) : "";
+
+            // ── Botones de estado ─────────────────────────────────────────────
+            const btnEnCurso =
+                v.estado !== "en_curso" &&
+                v.estado !== "completado" &&
+                v.estado !== "cancelado"
+                    ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)"
+                           class="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded-full font-semibold transition-colors">
+                       🚛 En curso
+                   </button>`
+                    : "";
+
+            const btnCompletar =
+                v.estado !== "completado" && v.estado !== "cancelado"
+                    ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)"
+                           class="text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-1 rounded-full font-semibold transition-colors">
+                       ✅ Completar
+                   </button>`
+                    : "";
+
+            const btnReabrir =
+                v.estado === "completado" || v.estado === "en_curso"
+                    ? `<button onclick="reabrirViaje(${v.viaje_id},'${v.fecha_inicio}','${v.fecha_fin || ""}',this)"
+                           class="text-xs bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded-full font-semibold transition-colors">
+                       ✏️ Reabrir para editar
+                   </button>`
+                    : "";
+
+            const btnCancelar =
+                v.estado !== "cancelado"
+                    ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)"
+                           class="text-xs bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-full font-semibold transition-colors ml-auto">
+                       ✕ Cancelar viaje
+                   </button>`
+                    : "";
+
+            // ── Panel reabrir ─────────────────────────────────────────────────
+            const panelReabrir = expandido
+                ? `
+                <div id="panel-reabrir-${v.viaje_id}" class="hidden mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-blue-800 mb-2">✏️ Editar fechas del viaje</p>
+                    <div class="flex flex-wrap gap-3 items-end">
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Fecha inicio</label>
+                            <input type="date" id="reabrir-fecha-inicio-${v.viaje_id}" value="${v.fecha_inicio}"
+                                   class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Fecha fin ${v.es_multi_dia ? "" : "<span class='text-gray-400'>(opcional)</span>"}</label>
+                            <input type="date" id="reabrir-fecha-fin-${v.viaje_id}" value="${v.fecha_fin || ""}"
+                                   class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"/>
+                        </div>
+                        <button onclick="guardarReapertura(${v.viaje_id},this)"
+                                class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-blue-700 transition-colors">
+                            💾 Guardar y reabrir
+                        </button>
+                        <button onclick="document.getElementById('panel-reabrir-${v.viaje_id}').classList.add('hidden')"
+                                class="text-xs text-gray-500 hover:text-gray-700 px-2 py-1.5">Cancelar</button>
+                    </div>
+                </div>`
+                : "";
+
+            return `
+            <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden mb-3" data-viaje-id="${v.viaje_id}">
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                     onclick="toggleViaje(${v.viaje_id})">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="flex-shrink-0 w-9 h-9 rounded-full bg-blue-800 text-white flex items-center justify-center font-bold text-sm">
+                            ${v.total_tramos}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-blue-900 text-sm">${escapeHtml(v.unidad)}</span>
+                                <span class="text-gray-400 text-xs">${escapeHtml(v.placas)}</span>
+                                <span class="${estadoColor} text-xs font-semibold px-2 py-0.5 rounded-full capitalize">${v.estado.replace("_", " ")}</span>
+                                ${multiDiaBadge}
+                            </div>
+                            <div class="text-xs text-gray-500 mt-0.5">
+                                <span class="font-semibold text-gray-700">Folio:</span> ${escapeHtml(v.folio)}
+                                &nbsp;·&nbsp;
+                                <span class="font-semibold text-gray-700">Fechas:</span> ${fechas}
+                                &nbsp;·&nbsp;
+                                <span class="font-semibold text-gray-700">Operador:</span> ${escapeHtml(v.operador || "-")}
+                            </div>
+                            ${
+                                v.total_tramos > 0
+                                    ? `
+                            <div class="mt-1.5 flex items-center gap-2">
+                                <div class="flex-1 bg-gray-200 rounded-full h-1.5" style="max-width:160px">
+                                    <div class="bg-green-500 h-1.5 rounded-full transition-all" style="width:${progreso}%"></div>
+                                </div>
+                                <span class="text-xs text-gray-400">${v.tramos_completados}/${v.total_tramos} completados</span>
+                            </div>`
+                                    : ""
+                            }
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                        <span class="text-xs text-gray-400 hidden sm:block">${escapeHtml(v.cliente)}</span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform ${expandido ? "rotate-180" : ""}"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </div>
+                </div>
+
+                ${
+                    expandido
+                        ? `
+                <div class="border-t border-gray-100 bg-gray-50 px-4 pb-4 pt-3">
+                    <div class="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-gray-200">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cambiar estado:</span>
+                        ${btnEnCurso}
+                        ${btnCompletar}
+                        ${btnReabrir}
+                        ${btnCancelar}
+                    </div>
+                    ${panelReabrir}
+                    ${tramosHtml}
+                </div>`
+                        : ""
+                }
+            </div>`;
+        }
+
+        function _renderTramosDetalle(viaje) {
+            const tramos = viaje.tramos || [];
+            const viajeId = viaje.viaje_id;
+            const esMultiDia = viaje.es_multi_dia;
+            const estadoViaje = viaje.estado;
+
+            if (tramos.length === 0) {
+                return `<p class="text-xs text-gray-400 text-center py-3">Sin tramos registrados</p>`;
+            }
+
+            const iconos = {
+                pendiente: "⏳",
+                en_curso: "🚛",
+                completado: "✅",
+                cancelado: "❌",
+            };
+
+            const tramosHtml = tramos
+                .map(
+                    (t) => `
+                <div class="flex gap-3 bg-white rounded-lg p-3 border border-gray-100 shadow-sm">
+                    <div class="flex-shrink-0 flex flex-col items-center">
+                        <div class="w-7 h-7 rounded-full bg-blue-50 border-2 border-blue-200 flex items-center justify-center text-xs font-bold text-blue-700">
+                            ${t.tramo_numero}
+                        </div>
+                        ${
+                            t.tramo_numero < tramos.length
+                                ? `<div class="w-0.5 flex-1 bg-blue-200 mt-1" style="min-height:16px"></div>`
+                                : ""
+                        }
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <span class="font-semibold text-sm text-gray-800">
+                                ${escapeHtml(t.origen || "—")} → ${escapeHtml(t.destino || "—")}
+                            </span>
+                            <span class="text-xs text-gray-500">${iconos[t.estado] || ""} ${t.estado.replace("_", " ")}</span>
+                        </div>
+                        ${t.ruta ? `<div class="text-xs text-blue-600 mt-0.5">📍 ${escapeHtml(t.ruta)}</div>` : ""}
+                        ${t.lugar_carga ? `<div class="text-xs text-gray-500 mt-0.5">🏭 Carga: ${escapeHtml(t.lugar_carga)}</div>` : ""}
+                        ${t.instrucciones ? `<div class="text-xs text-amber-700 mt-0.5 italic">📋 ${escapeHtml(t.instrucciones)}</div>` : ""}
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-0.5 mt-1.5 text-xs text-gray-500">
+                            ${t.salida_patio ? `<span>🚪 Salida patio: <b>${_fmtDt(t.salida_patio)}</b></span>` : ""}
+                            ${t.cita_carga ? `<span>📦 Cita carga: <b>${_fmtDt(t.cita_carga)}</b></span>` : ""}
+                            ${t.salida_carga ? `<span>🚛 Salida carga: <b>${_fmtDt(t.salida_carga)}</b></span>` : ""}
+                            ${t.descarga_programada ? `<span>🏁 Descarga: <b>${_fmtDt(t.descarga_programada)}</b></span>` : ""}
+                        </div>
+                    </div>
+                </div>`,
+                )
+                .join("");
+
+            // Botón "+ Agregar destino": solo multi-día, viaje no cancelado/completado
+            const mostrarAgregar =
+                esMultiDia &&
+                estadoViaje !== "cancelado" &&
+                estadoViaje !== "completado";
+            const numSiguiente =
+                tramos.filter((t) => t.estado !== "cancelado").length + 1;
+
+            const formAgregarDestino = mostrarAgregar
+                ? `
+                <div class="pt-1">
+                    <button onclick="abrirFormAgregarDestino(${viajeId})"
+                            id="btn-agregar-destino-${viajeId}"
+                            class="w-full flex items-center justify-center gap-2 text-xs text-purple-700 border border-dashed border-purple-300 bg-purple-50 hover:bg-purple-100 rounded-lg py-2 font-semibold transition-colors">
+                        ＋ Agregar destino
+                    </button>
+                    <div id="form-agregar-destino-${viajeId}" class="hidden mt-2 p-3 bg-white border border-purple-200 rounded-lg shadow-sm">
+                        <p class="text-xs font-semibold text-purple-800 mb-2">Nuevo destino — Tramo ${numSiguiente}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-0.5">Origen</label>
+                                <input type="text" id="nd-origen-${viajeId}" placeholder="Ciudad / Punto de salida"
+                                       class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-0.5">Destino *</label>
+                                <input type="text" id="nd-destino-${viajeId}" placeholder="Ciudad / Punto de entrega"
+                                       class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-0.5">Lugar de carga</label>
+                                <input type="text" id="nd-lugar-carga-${viajeId}" placeholder="Bodega / Planta"
+                                       class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-0.5">Ruta</label>
+                                <input type="text" id="nd-ruta-${viajeId}" placeholder="MEX-150D"
+                                       class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-0.5">Salida de patio</label>
+                                <input type="datetime-local" id="nd-salida-patio-${viajeId}"
+                                       class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-0.5">Descarga programada</label>
+                                <input type="datetime-local" id="nd-descarga-${viajeId}"
+                                       class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs text-gray-500 mb-0.5">Instrucciones</label>
+                                <input type="text" id="nd-instrucciones-${viajeId}" placeholder="Instrucciones especiales..."
+                                       class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 justify-end">
+                            <button onclick="cerrarFormAgregarDestino(${viajeId})"
+                                    class="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5">Cancelar</button>
+                            <button onclick="guardarNuevoDestino(${viajeId},this)"
+                                    class="text-xs bg-purple-600 text-white px-4 py-1.5 rounded font-semibold hover:bg-purple-700 transition-colors">
+                                💾 Guardar destino
+                            </button>
+                        </div>
+                    </div>
+                </div>`
+                : "";
+
+            return `<div class="space-y-2">${tramosHtml}${formAgregarDestino}</div>`;
+        }
+
+        function _fmtDt(dt) {
+            if (!dt) return "-";
+            try {
+                return dayjs(dt).format("DD/MM HH:mm");
+            } catch (e) {
+                return String(dt).slice(0, 16);
+            }
+        }
+
+        function _actualizarFiltrosViajes(datos) {
+            const selUnidad = document.getElementById("viajes-filtro-unidad");
+            const selCliente = document.getElementById("viajes-filtro-cliente");
+            if (!selUnidad || !selCliente) return;
+
+            const valUnidad = selUnidad.value;
+            const valCliente = selCliente.value;
+
+            const unidades = [
+                ...new Set(datos.map((v) => v.unidad).filter(Boolean)),
+            ].sort();
+            const clientes = [
+                ...new Set(datos.map((v) => v.cliente).filter(Boolean)),
+            ].sort();
+
+            selUnidad.innerHTML =
+                '<option value="">Todas las unidades</option>' +
+                unidades
+                    .map(
+                        (u) =>
+                            `<option value="${escapeHtml(u)}" ${u === valUnidad ? "selected" : ""}>${escapeHtml(u)}</option>`,
+                    )
+                    .join("");
+            selCliente.innerHTML =
+                '<option value="">Todos los clientes</option>' +
+                clientes
+                    .map(
+                        (c) =>
+                            `<option value="${escapeHtml(c)}" ${c === valCliente ? "selected" : ""}>${escapeHtml(c)}</option>`,
+                    )
+                    .join("");
+        }
+
+        function toggleViaje(viajeId) {
+            viajesExpandidos[viajeId] = !viajesExpandidos[viajeId];
+            renderViajes();
+            if (viajesExpandidos[viajeId]) {
+                setTimeout(() => {
+                    const el = document.querySelector(
+                        `[data-viaje-id="${viajeId}"]`,
+                    );
+                    if (el)
+                        el.scrollIntoView({
+                            behavior: "smooth",
+                            block: "nearest",
+                        });
+                }, 50);
+            }
+        }
+
+        async function recargarViajes() {
+            const btn = document.getElementById("viajes-reload-btn");
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Cargando...";
+            }
+            try {
+                await loadViajesFromDb();
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "🔄 Actualizar";
+                }
+            }
+        }
+
+        async function cambiarEstadoViaje(viajeId, nuevoEstado, btn) {
+            if (!viajeId || !nuevoEstado) return;
+
+            const confirmaciones = {
+                cancelado:
+                    "¿Cancelar el viaje? También se cancelarán los tramos pendientes.",
+                completado:
+                    "¿Marcar viaje como Completado? También se completarán los tramos activos.",
+            };
+            const msg = confirmaciones[nuevoEstado];
+            if (msg && !confirm(msg)) return;
+
+            const textoOrig = btn ? btn.innerHTML : "";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "⏳";
+            }
+
+            try {
+                const res = await fetch(
+                    "/bitacora_/src/despachos/cambiar_estado_viaje.php",
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({
+                            viaje_id: viajeId,
+                            estado: nuevoEstado,
+                        }),
+                    },
+                );
+                const json = await res.json().catch(() => ({}));
+
+                if (!res.ok || !json.ok) {
+                    alert(
+                        "No se pudo cambiar el estado: " +
+                            (json.error || `Error ${res.status}`),
+                    );
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = textoOrig;
+                    }
+                    return;
+                }
+
+                const idx = allViajesData.findIndex(
+                    (v) => v.viaje_id === viajeId,
+                );
+                if (idx !== -1) {
+                    allViajesData[idx].estado = nuevoEstado;
+                    if (
+                        nuevoEstado === "completado" &&
+                        allViajesData[idx].tramos
+                    ) {
+                        allViajesData[idx].tramos = allViajesData[
+                            idx
+                        ].tramos.map((t) =>
+                            ["pendiente", "en_curso"].includes(t.estado)
+                                ? { ...t, estado: "completado" }
+                                : t,
+                        );
+                        allViajesData[idx].tramos_completados = allViajesData[
+                            idx
+                        ].tramos.filter(
+                            (t) => t.estado === "completado",
+                        ).length;
+                    }
+                    if (
+                        nuevoEstado === "cancelado" &&
+                        allViajesData[idx].tramos
+                    ) {
+                        allViajesData[idx].tramos = allViajesData[
+                            idx
+                        ].tramos.map((t) =>
+                            t.estado !== "completado"
+                                ? { ...t, estado: "cancelado" }
+                                : t,
+                        );
+                    }
+                }
+                renderViajes();
+            } catch (e) {
+                console.error("cambiarEstadoViaje:", e);
+                alert("Error de red al cambiar el estado.");
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = textoOrig;
+                }
+            }
+        }
+
+        function reabrirViaje(viajeId, fechaInicio, fechaFin, btn) {
+            const panel = document.getElementById(`panel-reabrir-${viajeId}`);
+            if (!panel) return;
+            const inpInicio = document.getElementById(
+                `reabrir-fecha-inicio-${viajeId}`,
+            );
+            const inpFin = document.getElementById(
+                `reabrir-fecha-fin-${viajeId}`,
+            );
+            if (inpInicio) inpInicio.value = fechaInicio || "";
+            if (inpFin) inpFin.value = fechaFin || "";
+            panel.classList.toggle("hidden");
+        }
+
+        async function guardarReapertura(viajeId, btn) {
+            const fechaInicio =
+                document
+                    .getElementById(`reabrir-fecha-inicio-${viajeId}`)
+                    ?.value?.trim() || "";
+            const fechaFin =
+                document
+                    .getElementById(`reabrir-fecha-fin-${viajeId}`)
+                    ?.value?.trim() || null;
+
+            if (!fechaInicio) {
+                alert("La fecha de inicio es obligatoria.");
+                return;
+            }
+
+            const textoOrig = btn ? btn.innerHTML : "";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "⏳ Guardando...";
+            }
+
+            try {
+                const body = {
+                    viaje_id: viajeId,
+                    estado: "planificado",
+                    fecha_inicio: fechaInicio,
+                    fecha_fin: fechaFin || null,
+                };
+                const res = await fetch(
+                    "/bitacora_tracker/src/api/viajes.php?action=actualizar",
+                    {
+                        method: "PUT",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify(body),
+                    },
+                );
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || !json.ok) {
+                    alert(
+                        "No se pudo reabrir: " +
+                            (json.error || `Error ${res.status}`),
+                    );
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = textoOrig;
+                    }
+                    return;
+                }
+
+                const idx = allViajesData.findIndex(
+                    (v) => v.viaje_id === viajeId,
+                );
+                if (idx !== -1) {
+                    allViajesData[idx].estado = "planificado";
+                    allViajesData[idx].fecha_inicio = fechaInicio;
+                    allViajesData[idx].fecha_fin = fechaFin || null;
+                    allViajesData[idx].es_multi_dia = !!(
+                        fechaFin && fechaFin !== fechaInicio
+                    );
+                }
+                document
+                    .getElementById(`panel-reabrir-${viajeId}`)
+                    ?.classList.add("hidden");
+                renderViajes();
+            } catch (e) {
+                console.error("guardarReapertura:", e);
+                alert("Error de red al reabrir el viaje.");
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = textoOrig;
+                }
+            }
+        }
+
+        function abrirFormAgregarDestino(viajeId) {
+            document
+                .getElementById(`btn-agregar-destino-${viajeId}`)
+                ?.classList.add("hidden");
+            const form = document.getElementById(
+                `form-agregar-destino-${viajeId}`,
+            );
+            if (form) {
+                form.classList.remove("hidden");
+                setTimeout(
+                    () =>
+                        document
+                            .getElementById(`nd-destino-${viajeId}`)
+                            ?.focus(),
+                    50,
+                );
+            }
+        }
+
+        function cerrarFormAgregarDestino(viajeId) {
+            document
+                .getElementById(`btn-agregar-destino-${viajeId}`)
+                ?.classList.remove("hidden");
+            document
+                .getElementById(`form-agregar-destino-${viajeId}`)
+                ?.classList.add("hidden");
+        }
+
+        async function guardarNuevoDestino(viajeId, btn) {
+            const destino =
+                document
+                    .getElementById(`nd-destino-${viajeId}`)
+                    ?.value?.trim() || "";
+            const origen =
+                document
+                    .getElementById(`nd-origen-${viajeId}`)
+                    ?.value?.trim() || "";
+            const lugarCarga =
+                document
+                    .getElementById(`nd-lugar-carga-${viajeId}`)
+                    ?.value?.trim() || "";
+            const ruta =
+                document.getElementById(`nd-ruta-${viajeId}`)?.value?.trim() ||
+                "";
+            const salidaPatio =
+                document.getElementById(`nd-salida-patio-${viajeId}`)?.value ||
+                "";
+            const descarga =
+                document.getElementById(`nd-descarga-${viajeId}`)?.value || "";
+            const instrucciones =
+                document
+                    .getElementById(`nd-instrucciones-${viajeId}`)
+                    ?.value?.trim() || "";
+
+            if (!destino) {
+                alert("El destino es obligatorio.");
+                document.getElementById(`nd-destino-${viajeId}`)?.focus();
+                return;
+            }
+
+            const textoOrig = btn ? btn.innerHTML : "";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "⏳ Guardando...";
+            }
+
+            try {
+                const res = await fetch(
+                    "/bitacora_tracker/src/api/viajes.php?action=agregar_tramo",
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({
+                            viaje_id: viajeId,
+                            tramo: {
+                                origen,
+                                lugar_carga: lugarCarga,
+                                destino,
+                                ruta,
+                                instrucciones,
+                                salida_patio: salidaPatio || null,
+                                descarga_programada: descarga || null,
+                            },
+                        }),
+                    },
+                );
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || !json.ok) {
+                    alert(
+                        "No se pudo agregar el destino: " +
+                            (json.error || `Error ${res.status}`),
+                    );
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = textoOrig;
+                    }
+                    return;
+                }
+
+                const t = json.tramo;
+                const idx = allViajesData.findIndex(
+                    (v) => v.viaje_id === viajeId,
+                );
+                if (idx !== -1 && t) {
+                    if (!allViajesData[idx].tramos)
+                        allViajesData[idx].tramos = [];
+                    allViajesData[idx].tramos.push({
+                        id: t.id,
+                        viaje_id: viajeId,
+                        tramo_numero: t.tramo_numero,
+                        origen: t.origen || "",
+                        lugar_carga: t.lugar_carga || "",
+                        destino: t.destino || "",
+                        ruta: t.ruta || "",
+                        instrucciones: t.instrucciones || "",
+                        salida_patio: t.salida_patio || null,
+                        cita_carga: null,
+                        salida_carga: null,
+                        descarga_programada: t.descarga_programada || null,
+                        estado: "pendiente",
+                    });
+                    allViajesData[idx].total_tramos = allViajesData[
+                        idx
+                    ].tramos.filter((t) => t.estado !== "cancelado").length;
+                    if (allViajesData[idx].estado === "completado")
+                        allViajesData[idx].estado = "en_curso";
+                }
+
+                viajesExpandidos[viajeId] = true;
+                renderViajes();
+            } catch (e) {
+                console.error("guardarNuevoDestino:", e);
+                alert("Error de red al agregar el destino.");
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = textoOrig;
+                }
+            }
+        }
+
+        function aplicarFiltrosViajes() {
+            renderViajes();
+        }
+
+        // ── Fin módulo viajes ─────────────────────────────────────────────────
 
         function getSelectedPdfDate() {
             return (

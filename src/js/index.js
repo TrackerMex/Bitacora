@@ -75,6 +75,11 @@ let filteredDespachosData = [];
 let charts = {};
 let lastInformeData = [];
 
+// ── Módulo Viajes ─────────────────────────────────────────────────────────
+let userClienteIds = [];   // IDs de clientes del usuario logueado
+let allViajesData = [];    // todos los viajes cargados desde la BD
+let viajesExpandidos = {}; // viaje_id → true/false (estado expandido)
+
 function updateClienteDisplay() {
   const nameEl = document.getElementById("cliente-display-name");
   if (!nameEl) return;
@@ -422,9 +427,15 @@ async function handleLogin(event) {
 
     username = data.user.username;
     bitacoraAuthToken = data.token || "";
+    // Guardar cliente_ids para la API de viajes
+    userClienteIds = (data.user.clientes || []).map((c) => c.id).filter(Boolean);
+    try {
+      sessionStorage.setItem("bitacoraClienteIds", JSON.stringify(userClienteIds));
+    } catch (e) {}
     setUserRole(data.user.role, data.user.unidades, data.user.tabs);
 
     processData(allDespachosData);
+    loadViajesFromDb();
   } catch (error) {
     console.error("Login error:", error);
     if (errorMessage) {
@@ -4427,6 +4438,10 @@ function renderValidacionesTable() {
       userRole = savedRole;
       userUnidades = JSON.parse(savedUnidades);
       userTabs = JSON.parse(savedTabs);
+      try {
+        const savedClienteIds = sessionStorage.getItem("bitacoraClienteIds");
+        if (savedClienteIds) userClienteIds = JSON.parse(savedClienteIds);
+      } catch (e) {}
 
       const userInfo = document.getElementById("user-info");
       const usernameDisplay = document.getElementById("username-display");
@@ -4436,6 +4451,7 @@ function renderValidacionesTable() {
       }
 
       updateTabVisibility();
+      loadViajesFromDb();
     }
   } catch (e) {
     console.error("Error restoring session:", e);
@@ -4446,4 +4462,656 @@ function renderValidacionesTable() {
   loadDataFromGoogleSheets(true);
 })();
 
+// =============================================================================
+// MÓDULO VIAJES — carga, filtrado y render de viajes multi-tramo / multi-día
+// =============================================================================
 
+// ── 1. Carga desde BD ────────────────────────────────────────────────────────
+
+async function loadViajesFromDb() {
+  if (!userRole || !bitacoraAuthToken) return;
+
+  const clienteIds = userClienteIds.length
+    ? userClienteIds.join(",")
+    : null;
+
+  if (!clienteIds) return;  // sin clientes asignados, nada que cargar
+
+  // Rango: últimos 30 días + próximos 15 (captura viajes multi-día activos)
+  const desde = dayjs().subtract(30, "day").format("YYYY-MM-DD");
+  const hasta  = dayjs().add(15, "day").format("YYYY-MM-DD");
+
+  // Leer filtros actuales si el panel de viajes ya está visible
+  const filtroDesdEl  = document.getElementById("viajes-fecha-desde");
+  const filtroHastaEl = document.getElementById("viajes-fecha-hasta");
+  const filtroEstadoEl = document.getElementById("viajes-filtro-estado");
+
+  const fechaDesde = filtroDesdEl?.value  || desde;
+  const fechaHasta = filtroHastaEl?.value || hasta;
+  const estadoF    = filtroEstadoEl?.value || "";
+
+  const params = new URLSearchParams({
+    cliente_ids:  clienteIds,
+    fecha_desde:  fechaDesde,
+    fecha_hasta:  fechaHasta,
+    con_tramos:   "1",
+    limit:        "200",
+  });
+  if (estadoF) params.set("estado", estadoF);
+
+  try {
+    const res = await fetch(`/bitacora_/src/despachos/obtener_viajes.php?${params}`, {
+      headers: getAuthHeaders({ Accept: "application/json" }),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || "Error cargando viajes");
+
+    allViajesData = json.data || [];
+    renderViajes();
+  } catch (e) {
+    console.error("Error loadViajesFromDb:", e);
+  }
+}
+
+// ── 2. Render principal ──────────────────────────────────────────────────────
+
+function renderViajes() {
+  const container = document.getElementById("viajes-container");
+  if (!container) return;
+
+  const filtroUnidad  = document.getElementById("viajes-filtro-unidad")?.value  || "";
+  const filtroCliente = document.getElementById("viajes-filtro-cliente")?.value || "";
+  const filtroEstado  = document.getElementById("viajes-filtro-estado")?.value  || "";
+
+  let datos = allViajesData;
+
+  if (filtroUnidad)  datos = datos.filter((v) => v.unidad  === filtroUnidad);
+  if (filtroCliente) datos = datos.filter((v) => v.cliente === filtroCliente);
+  if (filtroEstado)  datos = datos.filter((v) => v.estado  === filtroEstado);
+
+  // Actualizar selects de filtro
+  _actualizarFiltrosViajes(allViajesData);
+
+  const counter = document.getElementById("viajes-counter");
+  if (counter) counter.textContent = `${datos.length} viaje${datos.length !== 1 ? "s" : ""}`;
+
+  if (datos.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full text-center p-10 bg-white rounded-xl shadow">
+        <p class="text-gray-500 text-sm">No hay viajes en el rango seleccionado</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = datos.map((v) => _renderViajeCard(v)).join("");
+}
+
+function _renderViajeCard(v) {
+  const expandido    = viajesExpandidos[v.viaje_id] || false;
+  const estadoColor  = {
+    planificado: "bg-blue-100 text-blue-800",
+    en_curso:    "bg-yellow-100 text-yellow-800",
+    completado:  "bg-green-100 text-green-800",
+    cancelado:   "bg-gray-100 text-gray-500",
+  }[v.estado] || "bg-gray-100 text-gray-600";
+
+  const multiDiaBadge = v.es_multi_dia
+    ? `<span class="ml-2 bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-full">Multi-día</span>`
+    : "";
+
+  const fechas = v.es_multi_dia
+    ? `${v.fecha_inicio} → ${v.fecha_fin}`
+    : v.fecha_inicio;
+
+  const progreso = v.total_tramos > 0
+    ? Math.round((v.tramos_completados / v.total_tramos) * 100)
+    : 0;
+
+  const tramosHtml = expandido ? _renderTramosDetalle(v) : "";
+
+  return `
+    <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden mb-3" data-viaje-id="${v.viaje_id}">
+      <!-- Cabecera del viaje -->
+      <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+           onclick="toggleViaje(${v.viaje_id})">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="flex-shrink-0 w-9 h-9 rounded-full bg-blue-800 text-white flex items-center justify-center font-bold text-sm">
+            ${v.total_tramos}
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-bold text-blue-900 text-sm">${escapeHtml(v.unidad)}</span>
+              <span class="text-gray-400 text-xs">${escapeHtml(v.placas)}</span>
+              <span class="${estadoColor} text-xs font-semibold px-2 py-0.5 rounded-full capitalize">${v.estado.replace("_"," ")}</span>
+              ${multiDiaBadge}
+            </div>
+            <div class="text-xs text-gray-500 mt-0.5">
+              <span class="font-semibold text-gray-700">Folio:</span> ${escapeHtml(v.folio)}
+              &nbsp;·&nbsp;
+              <span class="font-semibold text-gray-700">Fechas:</span> ${fechas}
+              &nbsp;·&nbsp;
+              <span class="font-semibold text-gray-700">Operador:</span> ${escapeHtml(v.operador || "-")}
+            </div>
+            <!-- Barra de progreso de tramos -->
+            ${v.total_tramos > 0 ? `
+            <div class="mt-1.5 flex items-center gap-2">
+              <div class="flex-1 bg-gray-200 rounded-full h-1.5" style="max-width:160px">
+                <div class="bg-green-500 h-1.5 rounded-full transition-all" style="width:${progreso}%"></div>
+              </div>
+              <span class="text-xs text-gray-400">${v.tramos_completados}/${v.total_tramos} completados</span>
+            </div>` : ""}
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+          <span class="text-xs text-gray-400 hidden sm:block">${escapeHtml(v.cliente)}</span>
+          <svg class="w-4 h-4 text-gray-400 transition-transform ${expandido ? "rotate-180" : ""}"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Tramos expandibles -->
+      ${expandido ? `
+      <div class="border-t border-gray-100 bg-gray-50 px-4 pb-4 pt-3">
+        <!-- Acciones de estado del viaje -->
+        <div class="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-gray-200">
+          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cambiar estado:</span>
+          ${v.estado !== 'en_curso' && v.estado !== 'completado' && v.estado !== 'cancelado' ? `
+          <button onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)"
+                  class="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded-full font-semibold transition-colors">
+            🚛 En curso
+          </button>` : ""}
+          ${v.estado !== 'completado' && v.estado !== 'cancelado' ? `
+          <button onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)"
+                  class="text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-1 rounded-full font-semibold transition-colors">
+            ✅ Completar
+          </button>` : ""}
+          ${v.estado === 'completado' || v.estado === 'en_curso' ? `
+          <button onclick="reabrirViaje(${v.viaje_id}, '${escapeHtml(v.fecha_inicio)}', '${escapeHtml(v.fecha_fin || '')}', this)"
+                  class="text-xs bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded-full font-semibold transition-colors">
+            ✏️ Reabrir para editar
+          </button>` : ""}
+          ${v.estado !== 'cancelado' ? `
+          <button onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)"
+                  class="text-xs bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-full font-semibold transition-colors ml-auto">
+            ✕ Cancelar viaje
+          </button>` : ""}
+        </div>
+
+        <!-- Panel de edición de fechas (visible solo al reabrir) -->
+        <div id="panel-reabrir-${v.viaje_id}" class="hidden mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p class="text-xs font-semibold text-blue-800 mb-2">✏️ Editar fechas del viaje</p>
+          <div class="flex flex-wrap gap-3 items-end">
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Fecha inicio</label>
+              <input type="date" id="reabrir-fecha-inicio-${v.viaje_id}"
+                     value="${v.fecha_inicio}"
+                     class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Fecha fin ${v.es_multi_dia ? "" : "<span class='text-gray-400'>(opcional)</span>"}</label>
+              <input type="date" id="reabrir-fecha-fin-${v.viaje_id}"
+                     value="${v.fecha_fin || ""}"
+                     class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"/>
+            </div>
+            <button onclick="guardarReapertura(${v.viaje_id}, this)"
+                    class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-blue-700 transition-colors">
+              💾 Guardar y reabrir
+            </button>
+            <button onclick="document.getElementById('panel-reabrir-${v.viaje_id}').classList.add('hidden')"
+                    class="text-xs text-gray-500 hover:text-gray-700 px-2 py-1.5">
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+        ${tramosHtml}
+      </div>` : ""}
+    </div>`;
+}
+
+function _renderTramosDetalle(viaje) {
+  const tramos   = viaje.tramos || [];
+  const viajeId  = viaje.viaje_id;
+  const esMultiDia = viaje.es_multi_dia;
+  const estadoViaje = viaje.estado;
+
+  if (tramos.length === 0) {
+    return `<p class="text-xs text-gray-400 text-center py-3">Sin tramos registrados</p>`;
+  }
+
+  const estadoIcono = {
+    pendiente:  "⏳",
+    en_curso:   "🚛",
+    completado: "✅",
+    cancelado:  "❌",
+  };
+
+  // Botón "+ Agregar destino": solo en multi-día, viaje no cancelado
+  const hayTramosActivos = tramos.some(t => t.estado !== 'cancelado' && t.estado !== 'completado');
+  const mostrarAgregarDestino = esMultiDia && estadoViaje !== 'cancelado' && estadoViaje !== 'completado';
+
+  return `
+    <div class="space-y-2">
+      ${tramos.map((t) => `
+        <div class="flex gap-3 bg-white rounded-lg p-3 border border-gray-100 shadow-sm">
+          <div class="flex-shrink-0 flex flex-col items-center">
+            <div class="w-7 h-7 rounded-full bg-blue-50 border-2 border-blue-200 flex items-center justify-center text-xs font-bold text-blue-700">
+              ${t.tramo_numero}
+            </div>
+            ${t.tramo_numero < tramos.length
+              ? `<div class="w-0.5 flex-1 bg-blue-200 mt-1 mb-0" style="min-height:16px"></div>`
+              : ""}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="font-semibold text-sm text-gray-800">
+                ${escapeHtml(t.origen || "—")} → ${escapeHtml(t.destino || "—")}
+              </span>
+              <span class="text-xs text-gray-500">${estadoIcono[t.estado] || ""} ${t.estado.replace("_"," ")}</span>
+            </div>
+            ${t.ruta
+              ? `<div class="text-xs text-blue-600 mt-0.5">📍 ${escapeHtml(t.ruta)}</div>`
+              : ""}
+            ${t.lugar_carga
+              ? `<div class="text-xs text-gray-500 mt-0.5">🏭 Carga: ${escapeHtml(t.lugar_carga)}</div>`
+              : ""}
+            ${t.instrucciones
+              ? `<div class="text-xs text-amber-700 mt-0.5 italic">📋 ${escapeHtml(t.instrucciones)}</div>`
+              : ""}
+            <div class="grid grid-cols-2 gap-x-4 gap-y-0.5 mt-1.5 text-xs text-gray-500">
+              ${t.salida_patio         ? `<span>🚪 Salida patio: <b>${_fmtDt(t.salida_patio)}</b></span>`        : ""}
+              ${t.cita_carga          ? `<span>📦 Cita carga: <b>${_fmtDt(t.cita_carga)}</b></span>`            : ""}
+              ${t.salida_carga        ? `<span>🚛 Salida carga: <b>${_fmtDt(t.salida_carga)}</b></span>`        : ""}
+              ${t.descarga_programada ? `<span>🏁 Descarga: <b>${_fmtDt(t.descarga_programada)}</b></span>`    : ""}
+            </div>
+          </div>
+        </div>`).join("")}
+
+      ${mostrarAgregarDestino ? `
+      <!-- Botón agregar destino -->
+      <div class="pt-1">
+        <button onclick="abrirFormAgregarDestino(${viajeId})"
+                id="btn-agregar-destino-${viajeId}"
+                class="w-full flex items-center justify-center gap-2 text-xs text-purple-700 border border-dashed border-purple-300 bg-purple-50 hover:bg-purple-100 rounded-lg py-2 font-semibold transition-colors">
+          ＋ Agregar destino
+        </button>
+
+        <!-- Formulario inline (oculto por defecto) -->
+        <div id="form-agregar-destino-${viajeId}" class="hidden mt-2 p-3 bg-white border border-purple-200 rounded-lg shadow-sm">
+          <p class="text-xs font-semibold text-purple-800 mb-2">Nuevo destino — Tramo ${tramos.filter(t=>t.estado!=='cancelado').length + 1}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5">Origen</label>
+              <input type="text" id="nd-origen-${viajeId}" placeholder="Ciudad / Punto de salida"
+                     class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5">Destino <span class="text-red-400">*</span></label>
+              <input type="text" id="nd-destino-${viajeId}" placeholder="Ciudad / Punto de entrega"
+                     class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5">Lugar de carga</label>
+              <input type="text" id="nd-lugar-carga-${viajeId}" placeholder="Bodega / Planta"
+                     class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5">Ruta</label>
+              <input type="text" id="nd-ruta-${viajeId}" placeholder="MEX-150D"
+                     class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5">Salida de patio</label>
+              <input type="datetime-local" id="nd-salida-patio-${viajeId}"
+                     class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5">Descarga programada</label>
+              <input type="datetime-local" id="nd-descarga-${viajeId}"
+                     class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-gray-500 mb-0.5">Instrucciones</label>
+              <input type="text" id="nd-instrucciones-${viajeId}" placeholder="Instrucciones especiales..."
+                     class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"/>
+            </div>
+          </div>
+          <div class="flex gap-2 justify-end">
+            <button onclick="cerrarFormAgregarDestino(${viajeId})"
+                    class="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5">
+              Cancelar
+            </button>
+            <button onclick="guardarNuevoDestino(${viajeId}, this)"
+                    class="text-xs bg-purple-600 text-white px-4 py-1.5 rounded font-semibold hover:bg-purple-700 transition-colors">
+              💾 Guardar destino
+            </button>
+          </div>
+        </div>
+      </div>` : ""}
+    </div>`;
+}
+
+function _fmtDt(dt) {
+  if (!dt) return "-";
+  try {
+    return dayjs(dt).format("DD/MM HH:mm");
+  } catch (e) {
+    return String(dt).slice(0, 16);
+  }
+}
+
+function _actualizarFiltrosViajes(datos) {
+  const selUnidad  = document.getElementById("viajes-filtro-unidad");
+  const selCliente = document.getElementById("viajes-filtro-cliente");
+  if (!selUnidad || !selCliente) return;
+
+  const valUnidad  = selUnidad.value;
+  const valCliente = selCliente.value;
+
+  const unidades = [...new Set(datos.map((v) => v.unidad).filter(Boolean))].sort();
+  const clientes = [...new Set(datos.map((v) => v.cliente).filter(Boolean))].sort();
+
+  selUnidad.innerHTML = '<option value="">Todas las unidades</option>' +
+    unidades.map((u) => `<option value="${escapeHtml(u)}" ${u === valUnidad ? "selected" : ""}>${escapeHtml(u)}</option>`).join("");
+
+  selCliente.innerHTML = '<option value="">Todos los clientes</option>' +
+    clientes.map((c) => `<option value="${escapeHtml(c)}" ${c === valCliente ? "selected" : ""}>${escapeHtml(c)}</option>`).join("");
+}
+
+// ── 3. Toggle expandir/colapsar ──────────────────────────────────────────────
+
+function toggleViaje(viajeId) {
+  viajesExpandidos[viajeId] = !viajesExpandidos[viajeId];
+  renderViajes();
+  // Scroll suave al card expandido
+  if (viajesExpandidos[viajeId]) {
+    setTimeout(() => {
+      const el = document.querySelector(`[data-viaje-id="${viajeId}"]`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 50);
+  }
+}
+window.toggleViaje = toggleViaje;
+
+// ── 4. Filtros y recarga ──────────────────────────────────────────────────────
+
+function aplicarFiltrosViajes() {
+  renderViajes();
+}
+
+async function recargarViajes() {
+  const btn = document.getElementById("viajes-reload-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Cargando..."; }
+  try {
+    await loadViajesFromDb();
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "🔄 Actualizar"; }
+  }
+}
+
+window.aplicarFiltrosViajes      = aplicarFiltrosViajes;
+window.recargarViajes            = recargarViajes;
+window.loadViajesFromDb          = loadViajesFromDb;
+window.cambiarEstadoViaje        = cambiarEstadoViaje;
+window.reabrirViaje              = reabrirViaje;
+window.guardarReapertura         = guardarReapertura;
+window.abrirFormAgregarDestino   = abrirFormAgregarDestino;
+window.cerrarFormAgregarDestino  = cerrarFormAgregarDestino;
+window.guardarNuevoDestino       = guardarNuevoDestino;
+
+// ── 5. Cambiar estado de viaje ────────────────────────────────────────────────
+
+async function cambiarEstadoViaje(viajeId, nuevoEstado, btn) {
+  if (!viajeId || !nuevoEstado) return;
+
+  const etiquetas = {
+    planificado: "Planificado",
+    en_curso:    "En curso",
+    completado:  "Completado",
+    cancelado:   "Cancelado",
+  };
+
+  const confirmaciones = {
+    cancelado:  `¿Cancelar el viaje? Esta acción también cancelará los tramos pendientes.`,
+    completado: `¿Marcar viaje como Completado? También se completarán los tramos activos.`,
+  };
+
+  const msg = confirmaciones[nuevoEstado];
+  if (msg && !confirm(msg)) return;
+
+  // Deshabilitar botón mientras se procesa
+  const textoOriginal = btn ? btn.innerHTML : "";
+  if (btn) { btn.disabled = true; btn.innerHTML = "⏳"; }
+
+  try {
+    const res = await fetch("/bitacora_/src/despachos/cambiar_estado_viaje.php", {
+      method:  "POST",
+      headers: getAuthHeaders({ "Content-Type": "application/json" }),
+      body:    JSON.stringify({ viaje_id: viajeId, estado: nuevoEstado }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok || !json.ok) {
+      const errMsg = json.error || `Error HTTP ${res.status}`;
+      alert(`No se pudo cambiar el estado: ${errMsg}`);
+      if (btn) { btn.disabled = false; btn.innerHTML = textoOriginal; }
+      return;
+    }
+
+    // Actualizar el dato local sin recargar todo desde la BD
+    const idx = allViajesData.findIndex((v) => v.viaje_id === viajeId);
+    if (idx !== -1) {
+      allViajesData[idx].estado = nuevoEstado;
+      // Si se completó el viaje, marcar tramos activos como completados
+      if (nuevoEstado === "completado" && allViajesData[idx].tramos) {
+        allViajesData[idx].tramos = allViajesData[idx].tramos.map((t) =>
+          ["pendiente", "en_curso"].includes(t.estado)
+            ? { ...t, estado: "completado" }
+            : t
+        );
+        allViajesData[idx].tramos_completados = allViajesData[idx].tramos.filter(
+          (t) => t.estado === "completado"
+        ).length;
+      }
+      // Si se canceló, cancelar tramos no completados
+      if (nuevoEstado === "cancelado" && allViajesData[idx].tramos) {
+        allViajesData[idx].tramos = allViajesData[idx].tramos.map((t) =>
+          t.estado !== "completado" ? { ...t, estado: "cancelado" } : t
+        );
+      }
+    }
+
+    renderViajes();
+
+  } catch (e) {
+    console.error("cambiarEstadoViaje error:", e);
+    alert("Error de red al cambiar el estado del viaje.");
+    if (btn) { btn.disabled = false; btn.innerHTML = textoOriginal; }
+  }
+}
+
+// ── 6. Reabrir viaje para editar ──────────────────────────────────────────────
+
+/**
+ * Muestra el panel de edición de fechas sin tocar aún la BD.
+ * El guardado real ocurre en guardarReapertura().
+ */
+function reabrirViaje(viajeId, fechaInicio, fechaFin, btn) {
+  const panel = document.getElementById(`panel-reabrir-${viajeId}`);
+  if (!panel) return;
+
+  // Restaurar valores actuales en los inputs por si se abrió antes
+  const inpInicio = document.getElementById(`reabrir-fecha-inicio-${viajeId}`);
+  const inpFin    = document.getElementById(`reabrir-fecha-fin-${viajeId}`);
+  if (inpInicio) inpInicio.value = fechaInicio || "";
+  if (inpFin)    inpFin.value    = fechaFin    || "";
+
+  panel.classList.toggle("hidden");
+}
+
+/**
+ * Llama al backend del tracker para actualizar fechas + estado=planificado.
+ * Al completarse actualiza el dato local y re-renderiza.
+ */
+async function guardarReapertura(viajeId, btn) {
+  const inpInicio = document.getElementById(`reabrir-fecha-inicio-${viajeId}`);
+  const inpFin    = document.getElementById(`reabrir-fecha-fin-${viajeId}`);
+
+  const fechaInicio = inpInicio?.value?.trim() || "";
+  const fechaFin    = inpFin?.value?.trim()    || null;
+
+  if (!fechaInicio) {
+    alert("La fecha de inicio es obligatoria.");
+    return;
+  }
+
+  const textoOrig = btn ? btn.innerHTML : "";
+  if (btn) { btn.disabled = true; btn.innerHTML = "⏳ Guardando..."; }
+
+  try {
+    const body = { viaje_id: viajeId, estado: "planificado", fecha_inicio: fechaInicio };
+    if (fechaFin) body.fecha_fin = fechaFin;
+    else          body.fecha_fin = null; // limpiar fecha_fin si se borró
+
+    const res = await fetch("/bitacora_tracker/src/api/viajes.php?action=actualizar", {
+      method:  "PUT",
+      headers: getAuthHeaders({ "Content-Type": "application/json" }),
+      body:    JSON.stringify(body),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.ok) {
+      alert("No se pudo reabrir el viaje: " + (json.error || `Error ${res.status}`));
+      if (btn) { btn.disabled = false; btn.innerHTML = textoOrig; }
+      return;
+    }
+
+    // Actualizar datos locales
+    const idx = allViajesData.findIndex(v => v.viaje_id === viajeId);
+    if (idx !== -1) {
+      allViajesData[idx].estado       = "planificado";
+      allViajesData[idx].fecha_inicio = fechaInicio;
+      allViajesData[idx].fecha_fin    = fechaFin || null;
+      allViajesData[idx].es_multi_dia = !!(fechaFin && fechaFin !== fechaInicio);
+    }
+
+    // Ocultar panel y re-renderizar
+    const panel = document.getElementById(`panel-reabrir-${viajeId}`);
+    if (panel) panel.classList.add("hidden");
+    renderViajes();
+
+  } catch (e) {
+    console.error("guardarReapertura error:", e);
+    alert("Error de red al reabrir el viaje.");
+    if (btn) { btn.disabled = false; btn.innerHTML = textoOrig; }
+  }
+}
+
+// ── 7. Agregar destino (tramo en caliente) ────────────────────────────────────
+
+function abrirFormAgregarDestino(viajeId) {
+  const btn  = document.getElementById(`btn-agregar-destino-${viajeId}`);
+  const form = document.getElementById(`form-agregar-destino-${viajeId}`);
+  if (btn)  btn.classList.add("hidden");
+  if (form) form.classList.remove("hidden");
+  // Foco en el campo destino
+  const inp = document.getElementById(`nd-destino-${viajeId}`);
+  if (inp) setTimeout(() => inp.focus(), 50);
+}
+
+function cerrarFormAgregarDestino(viajeId) {
+  const btn  = document.getElementById(`btn-agregar-destino-${viajeId}`);
+  const form = document.getElementById(`form-agregar-destino-${viajeId}`);
+  if (btn)  btn.classList.remove("hidden");
+  if (form) form.classList.add("hidden");
+}
+
+/**
+ * Envía el nuevo tramo al tracker y actualiza la vista localmente.
+ * Usa el endpoint POST viajes.php?action=agregar_tramo del bitacora_tracker.
+ */
+async function guardarNuevoDestino(viajeId, btn) {
+  const destino       = document.getElementById(`nd-destino-${viajeId}`)?.value?.trim()       || "";
+  const origen        = document.getElementById(`nd-origen-${viajeId}`)?.value?.trim()        || "";
+  const lugarCarga    = document.getElementById(`nd-lugar-carga-${viajeId}`)?.value?.trim()   || "";
+  const ruta          = document.getElementById(`nd-ruta-${viajeId}`)?.value?.trim()          || "";
+  const salidaPatio   = document.getElementById(`nd-salida-patio-${viajeId}`)?.value          || "";
+  const descarga      = document.getElementById(`nd-descarga-${viajeId}`)?.value              || "";
+  const instrucciones = document.getElementById(`nd-instrucciones-${viajeId}`)?.value?.trim() || "";
+
+  if (!destino) {
+    alert("El destino es obligatorio.");
+    document.getElementById(`nd-destino-${viajeId}`)?.focus();
+    return;
+  }
+
+  const textoOrig = btn ? btn.innerHTML : "";
+  if (btn) { btn.disabled = true; btn.innerHTML = "⏳ Guardando..."; }
+
+  try {
+    const res = await fetch("/bitacora_tracker/src/api/viajes.php?action=agregar_tramo", {
+      method:  "POST",
+      headers: getAuthHeaders({ "Content-Type": "application/json" }),
+      body:    JSON.stringify({
+        viaje_id: viajeId,
+        tramo: {
+          origen,
+          lugar_carga:    lugarCarga,
+          destino,
+          ruta,
+          instrucciones,
+          salida_patio:   salidaPatio || null,
+          descarga_programada: descarga || null,
+        },
+      }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.ok) {
+      alert("No se pudo agregar el destino: " + (json.error || `Error ${res.status}`));
+      if (btn) { btn.disabled = false; btn.innerHTML = textoOrig; }
+      return;
+    }
+
+    // Insertar el nuevo tramo en los datos locales
+    const nuevoTramo = json.tramo;
+    const idx = allViajesData.findIndex(v => v.viaje_id === viajeId);
+    if (idx !== -1 && nuevoTramo) {
+      if (!allViajesData[idx].tramos) allViajesData[idx].tramos = [];
+      allViajesData[idx].tramos.push({
+        id:                  nuevoTramo.id,
+        viaje_id:            viajeId,
+        tramo_numero:        nuevoTramo.tramo_numero,
+        origen:              nuevoTramo.origen         || "",
+        lugar_carga:         nuevoTramo.lugar_carga    || "",
+        destino:             nuevoTramo.destino        || "",
+        ruta:                nuevoTramo.ruta           || "",
+        instrucciones:       nuevoTramo.instrucciones  || "",
+        salida_patio:        nuevoTramo.salida_patio        || null,
+        cita_carga:          nuevoTramo.cita_carga          || null,
+        salida_carga:        nuevoTramo.salida_carga        || null,
+        descarga_programada: nuevoTramo.descarga_programada || null,
+        estado:              "pendiente",
+      });
+      allViajesData[idx].total_tramos = allViajesData[idx].tramos.filter(t => t.estado !== 'cancelado').length;
+    }
+
+    // Si el viaje estaba completado, regresarlo a en_curso automáticamente
+    if (idx !== -1 && allViajesData[idx].estado === "completado") {
+      allViajesData[idx].estado = "en_curso";
+    }
+
+    renderViajes();
+    // Re-expandir el viaje para ver el resultado
+    viajesExpandidos[viajeId] = true;
+    renderViajes();
+
+  } catch (e) {
+    console.error("guardarNuevoDestino error:", e);
+    alert("Error de red al agregar el destino.");
+    if (btn) { btn.disabled = false; btn.innerHTML = textoOrig; }
+  }
+}
