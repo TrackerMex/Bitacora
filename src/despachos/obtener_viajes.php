@@ -220,9 +220,12 @@ try {
             SELECT
                 vt.id, vt.viaje_id, vt.tramo_numero,
                 vt.origen, vt.lugar_carga, vt.destino, vt.ruta,
-                vt.instrucciones, vt.salida_patio, vt.cita_carga,
-                vt.salida_carga, vt.descarga_programada, vt.estado,
-                vt.created_at, vt.updated_at
+                vt.instrucciones,
+                vt.salida_patio,      vt.salida_patio_real,
+                vt.cita_carga,        vt.cita_carga_real,
+                vt.salida_carga,      vt.salida_carga_real,
+                vt.descarga_programada, vt.descarga_real,
+                vt.estado, vt.created_at, vt.updated_at
             FROM viaje_tramos vt
             WHERE vt.viaje_id IN ($ph_v)
             ORDER BY vt.viaje_id ASC, vt.tramo_numero ASC
@@ -255,27 +258,23 @@ try {
                 continue;
             }
             $viajes[$vid]["tramos"][] = [
-                "id" => (int) $t["id"],
-                "viaje_id" => $vid,
-                "tramo_numero" => (int) $t["tramo_numero"],
-                "origen" => (string) $t["origen"],
-                "lugar_carga" => (string) $t["lugar_carga"],
-                "destino" => (string) $t["destino"],
-                "ruta" => (string) $t["ruta"],
-                "instrucciones" => (string) $t["instrucciones"],
-                "salida_patio" => $t["salida_patio"]
-                    ? (string) $t["salida_patio"]
-                    : null,
-                "cita_carga" => $t["cita_carga"]
-                    ? (string) $t["cita_carga"]
-                    : null,
-                "salida_carga" => $t["salida_carga"]
-                    ? (string) $t["salida_carga"]
-                    : null,
-                "descarga_programada" => $t["descarga_programada"]
-                    ? (string) $t["descarga_programada"]
-                    : null,
-                "estado" => (string) $t["estado"],
+                "id"                   => (int) $t["id"],
+                "viaje_id"             => $vid,
+                "tramo_numero"         => (int) $t["tramo_numero"],
+                "origen"               => (string) $t["origen"],
+                "lugar_carga"          => (string) $t["lugar_carga"],
+                "destino"              => (string) $t["destino"],
+                "ruta"                 => (string) $t["ruta"],
+                "instrucciones"        => (string) $t["instrucciones"],
+                "salida_patio"         => $t["salida_patio"]         ? (string) $t["salida_patio"]         : null,
+                "salida_patio_real"    => $t["salida_patio_real"]    ? (string) $t["salida_patio_real"]    : null,
+                "cita_carga"           => $t["cita_carga"]           ? (string) $t["cita_carga"]           : null,
+                "cita_carga_real"      => $t["cita_carga_real"]      ? (string) $t["cita_carga_real"]      : null,
+                "salida_carga"         => $t["salida_carga"]         ? (string) $t["salida_carga"]         : null,
+                "salida_carga_real"    => $t["salida_carga_real"]    ? (string) $t["salida_carga_real"]    : null,
+                "descarga_programada"  => $t["descarga_programada"]  ? (string) $t["descarga_programada"]  : null,
+                "descarga_real"        => $t["descarga_real"]        ? (string) $t["descarga_real"]        : null,
+                "estado"               => (string) $t["estado"],
             ];
         }
         $stmt_t->close();

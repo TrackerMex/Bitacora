@@ -7431,13 +7431,82 @@
                     </div>`;
                 return;
             }
+
+            // Ordenar: viajes con retraso primero, luego por estado activo, luego el resto
+            const _tieneRetrasoViaje = (v) =>
+                v.estado !== "cancelado" &&
+                (v.tramos || []).some((t) => _calcRetrasoTramo(t) !== null);
+
+            datos = [...datos].sort((a, b) => {
+                const ra = _tieneRetrasoViaje(a) ? 0 : 1;
+                const rb = _tieneRetrasoViaje(b) ? 0 : 1;
+                return ra - rb;
+            });
+
             container.innerHTML = datos
                 .map((v) => _renderViajeCard(v))
                 .join("");
         }
 
+        // Devuelve info de retraso de un tramo, o null si no hay retraso.
+        // Dos modos según si ya se registró hora real:
+        //   - Sin hora real: compara ahora vs programada (evento pendiente de ocurrir)
+        //   - Con hora real: compara real vs programada (evento ya ocurrió, ¿llegó tarde?)
+        function _calcRetrasoTramo(t) {
+            if (t.estado === "cancelado") return null;
+            const ahora = Date.now();
+
+            // Helper: calcula ms de retraso entre real (o ahora) y programada
+            const retraso = (prog, real) => {
+                if (!prog) return null;
+                const ref = real ? new Date(real).getTime() : ahora;
+                const ms  = ref - new Date(prog).getTime();
+                return ms > 0 ? ms : null;
+            };
+
+            // Salida patio — aplica en pendiente y en_curso
+            if (t.estado !== "completado") {
+                const ms = retraso(t.salida_patio, t.salida_patio_real);
+                if (ms) return { campo: "Salida patio", ms, tieneReal: !!t.salida_patio_real };
+            }
+            // Cita carga — aplica en en_curso
+            if (t.estado === "en_curso") {
+                const ms = retraso(t.cita_carga, t.cita_carga_real);
+                if (ms) return { campo: "Cita carga", ms, tieneReal: !!t.cita_carga_real };
+            }
+            // Descarga — aplica en en_curso y completado
+            {
+                const ms = retraso(t.descarga_programada, t.descarga_real);
+                if (ms) return { campo: "Descarga", ms, tieneReal: !!t.descarga_real };
+            }
+            return null;
+        }
+
+        // Formatea milisegundos de retraso como "2h 15m" o "3d 4h"
+        function _fmtRetraso(ms) {
+            const mins = Math.floor(ms / 60000);
+            const horas = Math.floor(mins / 60);
+            const dias = Math.floor(horas / 24);
+            if (dias > 0) return `${dias}d ${horas % 24}h`;
+            if (horas > 0) return `${horas}h ${mins % 60}m`;
+            return `${mins}m`;
+        }
+
         function _renderViajeCard(v) {
             const expandido = viajesExpandidos[v.viaje_id] || false;
+
+            // ── Calcular alertas del viaje completo ───────────────────────────
+            const tramosConRetraso = (v.tramos || [])
+                .map((t) => ({ t, retraso: _calcRetrasoTramo(t) }))
+                .filter((x) => x.retraso !== null);
+            const tieneRetraso =
+                tramosConRetraso.length > 0 &&
+                v.estado !== "cancelado";
+
+            // Retraso "confirmado": viaje completado con al menos una hora real > programada
+            const retrasoConfirmado =
+                v.estado === "completado" &&
+                (v.tramos || []).some((t) => _calcRetrasoTramo(t)?.tieneReal);
 
             const estadoColor =
                 {
@@ -7447,8 +7516,20 @@
                     cancelado: "bg-gray-100 text-gray-500",
                 }[v.estado] || "bg-gray-100 text-gray-600";
 
+            // Badge activo (parpadea) si hay eventos pendientes sin registrar
+            // Badge estático si el viaje ya está completado pero con retrasos reales
+            const alertaBadge = retrasoConfirmado
+                ? `<span class="ml-1 bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                       ⚠️ Completado con retraso
+                   </span>`
+                : tieneRetraso
+                ? `<span class="ml-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+                       ⚠️ ${tramosConRetraso.length > 1 ? tramosConRetraso.length + " retrasos" : "Retraso"}
+                   </span>`
+                : "";
+
             const multiDiaBadge = v.es_multi_dia
-                ? `<span class="ml-2 bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-full">Multi-día</span>`
+                ? `<span class="ml-1 bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-full">Multi-día</span>`
                 : "";
 
             const fechas = v.es_multi_dia
@@ -7481,14 +7562,6 @@
                    </button>`
                     : "";
 
-            const btnReabrir =
-                v.estado === "completado" || v.estado === "en_curso"
-                    ? `<button onclick="reabrirViaje(${v.viaje_id},'${v.fecha_inicio}','${v.fecha_fin || ""}',this)"
-                           class="text-xs bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-1 rounded-full font-semibold transition-colors">
-                       ✏️ Reabrir para editar
-                   </button>`
-                    : "";
-
             const btnCancelar =
                 v.estado !== "cancelado"
                     ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)"
@@ -7497,31 +7570,6 @@
                    </button>`
                     : "";
 
-            // ── Panel reabrir ─────────────────────────────────────────────────
-            const panelReabrir = expandido
-                ? `
-                <div id="panel-reabrir-${v.viaje_id}" class="hidden mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p class="text-xs font-semibold text-blue-800 mb-2">✏️ Editar fechas del viaje</p>
-                    <div class="flex flex-wrap gap-3 items-end">
-                        <div>
-                            <label class="block text-xs text-gray-600 mb-1">Fecha inicio</label>
-                            <input type="date" id="reabrir-fecha-inicio-${v.viaje_id}" value="${v.fecha_inicio}"
-                                   class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"/>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-600 mb-1">Fecha fin ${v.es_multi_dia ? "" : "<span class='text-gray-400'>(opcional)</span>"}</label>
-                            <input type="date" id="reabrir-fecha-fin-${v.viaje_id}" value="${v.fecha_fin || ""}"
-                                   class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"/>
-                        </div>
-                        <button onclick="guardarReapertura(${v.viaje_id},this)"
-                                class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-blue-700 transition-colors">
-                            💾 Guardar y reabrir
-                        </button>
-                        <button onclick="document.getElementById('panel-reabrir-${v.viaje_id}').classList.add('hidden')"
-                                class="text-xs text-gray-500 hover:text-gray-700 px-2 py-1.5">Cancelar</button>
-                    </div>
-                </div>`
-                : "";
 
             return `
             <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden mb-3" data-viaje-id="${v.viaje_id}">
@@ -7537,6 +7585,7 @@
                                 <span class="text-gray-400 text-xs">${escapeHtml(v.placas)}</span>
                                 <span class="${estadoColor} text-xs font-semibold px-2 py-0.5 rounded-full capitalize">${v.estado.replace("_", " ")}</span>
                                 ${multiDiaBadge}
+                                ${alertaBadge}
                             </div>
                             <div class="text-xs text-gray-500 mt-0.5">
                                 <span class="font-semibold text-gray-700">Folio:</span> ${escapeHtml(v.folio)}
@@ -7575,10 +7624,8 @@
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cambiar estado:</span>
                         ${btnEnCurso}
                         ${btnCompletar}
-                        ${btnReabrir}
                         ${btnCancelar}
                     </div>
-                    ${panelReabrir}
                     ${tramosHtml}
                 </div>`
                         : ""
@@ -7603,39 +7650,143 @@
                 cancelado: "❌",
             };
 
+            // Colores de badge por estado de tramo
+            const badgeClases = {
+                pendiente: "bg-gray-100 text-gray-600",
+                en_curso: "bg-blue-100 text-blue-700",
+                completado: "bg-green-100 text-green-700",
+                cancelado: "bg-red-100 text-red-600",
+            };
+
+            // Genera botones de acción para cada tramo
+            function _botonesTramo(t) {
+                if (estadoViaje === "cancelado") return "";
+                const tid = t.id;
+                const vid = viajeId;
+                if (t.estado === "pendiente") {
+                    return `<button onclick="cambiarEstadoTramo(${vid},${tid},'en_curso',this)"
+                                class="text-xs bg-blue-600 text-white px-2.5 py-1 rounded font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap">
+                                🚛 En curso
+                            </button>`;
+                }
+                if (t.estado === "en_curso") {
+                    return `<button onclick="cambiarEstadoTramo(${vid},${tid},'completado',this)"
+                                class="text-xs bg-green-600 text-white px-2.5 py-1 rounded font-semibold hover:bg-green-700 transition-colors whitespace-nowrap">
+                                ✅ Completar
+                            </button>`;
+                }
+                return "";
+            }
+
             const tramosHtml = tramos
-                .map(
-                    (t) => `
-                <div class="flex gap-3 bg-white rounded-lg p-3 border border-gray-100 shadow-sm">
+                .map((t) => {
+                    const esCompletado = t.estado === "completado";
+                    const esCancelado = t.estado === "cancelado";
+                    const apagado = esCompletado || esCancelado;
+
+                    // Estilos condicionales por estado
+                    const cardClase = apagado
+                        ? "flex gap-3 rounded-lg p-3 border shadow-sm bg-gray-50 border-gray-200 opacity-60"
+                        : "flex gap-3 bg-white rounded-lg p-3 border border-gray-100 shadow-sm";
+                    const numeroBg = esCompletado
+                        ? "bg-green-100 border-green-300 text-green-700"
+                        : esCancelado
+                          ? "bg-red-50 border-red-200 text-red-500"
+                          : "bg-blue-50 border-blue-200 text-blue-700";
+                    const lineaColor = apagado ? "bg-gray-200" : "bg-blue-200";
+                    const tituloClase = apagado
+                        ? "font-semibold text-sm text-gray-400 line-through"
+                        : "font-semibold text-sm text-gray-800";
+
+                    return `
+                <div class="${cardClase}">
                     <div class="flex-shrink-0 flex flex-col items-center">
-                        <div class="w-7 h-7 rounded-full bg-blue-50 border-2 border-blue-200 flex items-center justify-center text-xs font-bold text-blue-700">
-                            ${t.tramo_numero}
+                        <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold ${numeroBg}">
+                            ${esCompletado ? "✓" : t.tramo_numero}
                         </div>
                         ${
                             t.tramo_numero < tramos.length
-                                ? `<div class="w-0.5 flex-1 bg-blue-200 mt-1" style="min-height:16px"></div>`
+                                ? `<div class="w-0.5 flex-1 mt-1 ${lineaColor}" style="min-height:16px"></div>`
                                 : ""
                         }
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <span class="font-semibold text-sm text-gray-800">
+                            <span class="${tituloClase}">
                                 ${escapeHtml(t.origen || "—")} → ${escapeHtml(t.destino || "—")}
                             </span>
-                            <span class="text-xs text-gray-500">${iconos[t.estado] || ""} ${t.estado.replace("_", " ")}</span>
+                            <span class="text-xs font-medium px-2 py-0.5 rounded-full ${badgeClases[t.estado] || "bg-gray-100 text-gray-500"}">
+                                ${iconos[t.estado] || ""} ${t.estado.replace("_", " ")}
+                            </span>
                         </div>
-                        ${t.ruta ? `<div class="text-xs text-blue-600 mt-0.5">📍 ${escapeHtml(t.ruta)}</div>` : ""}
-                        ${t.lugar_carga ? `<div class="text-xs text-gray-500 mt-0.5">🏭 Carga: ${escapeHtml(t.lugar_carga)}</div>` : ""}
-                        ${t.instrucciones ? `<div class="text-xs text-amber-700 mt-0.5 italic">📋 ${escapeHtml(t.instrucciones)}</div>` : ""}
-                        <div class="grid grid-cols-2 gap-x-4 gap-y-0.5 mt-1.5 text-xs text-gray-500">
-                            ${t.salida_patio ? `<span>🚪 Salida patio: <b>${_fmtDt(t.salida_patio)}</b></span>` : ""}
-                            ${t.cita_carga ? `<span>📦 Cita carga: <b>${_fmtDt(t.cita_carga)}</b></span>` : ""}
-                            ${t.salida_carga ? `<span>🚛 Salida carga: <b>${_fmtDt(t.salida_carga)}</b></span>` : ""}
-                            ${t.descarga_programada ? `<span>🏁 Descarga: <b>${_fmtDt(t.descarga_programada)}</b></span>` : ""}
-                        </div>
+                        ${!apagado && t.ruta ? `<div class="text-xs text-blue-600 mt-0.5">📍 ${escapeHtml(t.ruta)}</div>` : ""}
+                        ${!apagado && t.lugar_carga ? `<div class="text-xs text-gray-500 mt-0.5">🏭 Carga: ${escapeHtml(t.lugar_carga)}</div>` : ""}
+                        ${!apagado && t.instrucciones ? `<div class="text-xs text-amber-700 mt-0.5 italic">📋 ${escapeHtml(t.instrucciones)}</div>` : ""}
+                        ${
+                            !apagado
+                                ? (() => {
+                                      const toInputVal = (v) => v ? v.replace(" ", "T").slice(0, 16) : "";
+                                      const fmtProg    = (v) => v ? _fmtDt(v) : '<span class="text-gray-300">—</span>';
+                                      // true si la hora real existe y llegó después de la programada
+                                      const esRetraso  = (prog, real) =>
+                                          prog && real && new Date(real) > new Date(prog);
+                                      const campos = [
+                                          { campoReal: "salida_patio_real",  icon: "🚪", label: "Salida patio", prog: t.salida_patio,        real: t.salida_patio_real },
+                                          { campoReal: "cita_carga_real",    icon: "📦", label: "Cita carga",   prog: t.cita_carga,          real: t.cita_carga_real },
+                                          { campoReal: "salida_carga_real",  icon: "🚛", label: "Salida carga", prog: t.salida_carga,        real: t.salida_carga_real },
+                                          { campoReal: "descarga_real",      icon: "🏁", label: "Descarga",     prog: t.descarga_programada, real: t.descarga_real },
+                                      ];
+                                      const filas = campos.map(({ campoReal, icon, label, prog, real }) => {
+                                          const tarde = esRetraso(prog, real);
+                                          const cardBg    = tarde ? "bg-red-50 border-red-200"   : "bg-gray-50 border-gray-100";
+                                          const labelClr  = tarde ? "text-red-700 font-bold"     : "text-gray-600";
+                                          const inputClr  = tarde
+                                              ? "border-red-400 bg-red-50 text-red-700 focus:ring-red-400"
+                                              : "border-gray-200 bg-white focus:ring-blue-400";
+                                          const btnClr    = tarde
+                                              ? "text-red-600 border-red-200 bg-red-50 hover:bg-red-100"
+                                              : "text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100";
+                                          return `
+                                <div class="col-span-1 flex flex-col gap-0.5 border rounded p-1.5 ${cardBg}">
+                                    <div class="flex items-center gap-1 text-xs">
+                                        <span>${icon}</span>
+                                        <span class="font-semibold ${labelClr}">${label}${tarde ? " ⚠️" : ""}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 pl-1 text-xs text-gray-400">
+                                        <span class="w-20 flex-shrink-0">Programada:</span>
+                                        <span class="font-mono">${fmtProg(prog)}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 pl-1">
+                                        <span class="text-xs text-gray-500 w-20 flex-shrink-0">Real:</span>
+                                        <input type="datetime-local"
+                                               id="ft-${t.id}-${campoReal}"
+                                               value="${toInputVal(real)}"
+                                               onchange="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',this)"
+                                               class="flex-1 min-w-0 text-xs border rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 ${inputClr}"/>
+                                        <button onclick="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',null,true)"
+                                                title="Registrar hora actual"
+                                                class="flex-shrink-0 text-xs border rounded px-1.5 py-0.5 font-bold transition-colors ${btnClr}">
+                                            ↺
+                                        </button>
+                                    </div>
+                                </div>`;
+                                      }).join("");
+                                      return `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">${filas}</div>`;
+                                  })()
+                                : ""
+                        }
+                        ${(() => {
+                            const r = _calcRetrasoTramo(t);
+                            if (!r || r.tieneReal) return "";
+                            return `<div class="flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">
+                                        <span class="animate-pulse">⚠️</span>
+                                        <span>${r.campo} vencida hace <b>${_fmtRetraso(r.ms)}</b> — sin registrar</span>
+                                    </div>`;
+                        })()}
+                        ${_botonesTramo(t) ? `<div class="flex gap-2 mt-2">${_botonesTramo(t)}</div>` : ""}
                     </div>
-                </div>`,
-                )
+                </div>`;
+                })
                 .join("");
 
             // Botón "+ Agregar destino": solo multi-día, viaje no cancelado/completado
@@ -7875,62 +8026,38 @@
             }
         }
 
-        function reabrirViaje(viajeId, fechaInicio, fechaFin, btn) {
-            const panel = document.getElementById(`panel-reabrir-${viajeId}`);
-            if (!panel) return;
-            const inpInicio = document.getElementById(
-                `reabrir-fecha-inicio-${viajeId}`,
-            );
-            const inpFin = document.getElementById(
-                `reabrir-fecha-fin-${viajeId}`,
-            );
-            if (inpInicio) inpInicio.value = fechaInicio || "";
-            if (inpFin) inpFin.value = fechaFin || "";
-            panel.classList.toggle("hidden");
-        }
-
-        async function guardarReapertura(viajeId, btn) {
-            const fechaInicio =
-                document
-                    .getElementById(`reabrir-fecha-inicio-${viajeId}`)
-                    ?.value?.trim() || "";
-            const fechaFin =
-                document
-                    .getElementById(`reabrir-fecha-fin-${viajeId}`)
-                    ?.value?.trim() || null;
-
-            if (!fechaInicio) {
-                alert("La fecha de inicio es obligatoria.");
-                return;
-            }
+        async function cambiarEstadoTramo(viajeId, tramoId, nuevoEstado, btn) {
+            if (!viajeId || !tramoId || !nuevoEstado) return;
 
             const textoOrig = btn ? btn.innerHTML : "";
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = "⏳ Guardando...";
+                btn.innerHTML = "⏳";
             }
 
             try {
-                const body = {
-                    viaje_id: viajeId,
-                    estado: "planificado",
-                    fecha_inicio: fechaInicio,
-                    fecha_fin: fechaFin || null,
-                };
-                const res = await fetch(
-                    "/bitacora_tracker/src/api/viajes.php?action=actualizar",
-                    {
-                        method: "PUT",
-                        headers: getAuthHeaders({
-                            "Content-Type": "application/json",
-                        }),
-                        body: JSON.stringify(body),
-                    },
-                );
+                // Al completar un tramo usamos el endpoint especializado que
+                // también auto-avanza el siguiente tramo a "en_curso".
+                const usarCompletarTramo = nuevoEstado === "completado";
+                const endpoint = usarCompletarTramo
+                    ? "/bitacora_tracker/src/api/viajes.php?action=completar_tramo"
+                    : "/bitacora_tracker/src/api/viajes.php?action=actualizar_tramo";
+                const bodyPayload = usarCompletarTramo
+                    ? { tramo_id: tramoId }
+                    : { tramo_id: tramoId, estado: nuevoEstado };
+
+                const res = await fetch(endpoint, {
+                    method: "PUT",
+                    headers: getAuthHeaders({
+                        "Content-Type": "application/json",
+                    }),
+                    body: JSON.stringify(bodyPayload),
+                });
                 const json = await res.json().catch(() => ({}));
+
                 if (!res.ok || !json.ok) {
                     alert(
-                        "No se pudo reabrir: " +
+                        "No se pudo cambiar el estado del tramo: " +
                             (json.error || `Error ${res.status}`),
                     );
                     if (btn) {
@@ -7940,28 +8067,111 @@
                     return;
                 }
 
-                const idx = allViajesData.findIndex(
+                // Actualizar estado local sin recargar
+                const idxViaje = allViajesData.findIndex(
                     (v) => v.viaje_id === viajeId,
                 );
-                if (idx !== -1) {
-                    allViajesData[idx].estado = "planificado";
-                    allViajesData[idx].fecha_inicio = fechaInicio;
-                    allViajesData[idx].fecha_fin = fechaFin || null;
-                    allViajesData[idx].es_multi_dia = !!(
-                        fechaFin && fechaFin !== fechaInicio
-                    );
+                if (idxViaje !== -1 && allViajesData[idxViaje].tramos) {
+                    const tramos = allViajesData[idxViaje].tramos;
+
+                    if (usarCompletarTramo) {
+                        // Aplicar los dos cambios que devuelve el backend:
+                        // tramo_completado + tramo_activado (puede ser null)
+                        const completado = json.tramo_completado;
+                        const activado = json.tramo_activado;
+
+                        const idxActual = tramos.findIndex(
+                            (t) => t.id === completado.id,
+                        );
+                        if (idxActual !== -1) {
+                            tramos[idxActual].estado = "completado";
+                        }
+                        if (activado) {
+                            const idxSig = tramos.findIndex(
+                                (t) => t.id === activado.id,
+                            );
+                            if (idxSig !== -1) {
+                                tramos[idxSig].estado = "en_curso";
+                            }
+                        }
+                    } else {
+                        // Cambio simple (pendiente ← reactivar, etc.)
+                        const idxTramo = tramos.findIndex(
+                            (t) => t.id === tramoId,
+                        );
+                        if (idxTramo !== -1) {
+                            tramos[idxTramo].estado = nuevoEstado;
+                        }
+                    }
+
+                    // Recalcular contadores
+                    allViajesData[idxViaje].tramos_completados = tramos.filter(
+                        (t) => t.estado === "completado",
+                    ).length;
                 }
-                document
-                    .getElementById(`panel-reabrir-${viajeId}`)
-                    ?.classList.add("hidden");
                 renderViajes();
             } catch (e) {
-                console.error("guardarReapertura:", e);
-                alert("Error de red al reabrir el viaje.");
+                console.error("cambiarEstadoTramo:", e);
+                alert("Error de red al cambiar el estado del tramo.");
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = textoOrig;
                 }
+            }
+        }
+
+        // Guarda una hora REAL de un tramo (salida_patio_real, cita_carga_real, etc.)
+        // Si usarAhora=true, toma la hora actual; si no, lee el valor del input.
+        async function guardarFechaTramo(viajeId, tramoId, campo, inputEl, usarAhora = false) {
+            const camposValidos = [
+                "salida_patio_real", "cita_carga_real",
+                "salida_carga_real", "descarga_real",
+            ];
+            if (!camposValidos.includes(campo)) return;
+
+            let valor;
+            if (usarAhora) {
+                const ahora = new Date();
+                const pad = (n) => String(n).padStart(2, "0");
+                valor = `${ahora.getFullYear()}-${pad(ahora.getMonth()+1)}-${pad(ahora.getDate())}T${pad(ahora.getHours())}:${pad(ahora.getMinutes())}`;
+                const inp = document.getElementById(`ft-${tramoId}-${campo}`);
+                if (inp) inp.value = valor;
+            } else {
+                valor = inputEl?.value?.trim() || null;
+            }
+
+            const valorEnvio = valor || null;
+
+            try {
+                const res = await fetch(
+                    "/bitacora_tracker/src/api/viajes.php?action=actualizar_tramo",
+                    {
+                        method: "PUT",
+                        headers: getAuthHeaders({ "Content-Type": "application/json" }),
+                        body: JSON.stringify({ tramo_id: tramoId, [campo]: valorEnvio }),
+                    },
+                );
+                const json = await res.json().catch(() => ({}));
+
+                if (!res.ok || !json.ok) {
+                    alert("No se pudo guardar: " + (json.error || `Error ${res.status}`));
+                    return;
+                }
+
+                // Actualizar en memoria → alertas se recalculan al re-renderizar
+                const idxViaje = allViajesData.findIndex((v) => v.viaje_id === viajeId);
+                if (idxViaje !== -1 && allViajesData[idxViaje].tramos) {
+                    const idxTramo = allViajesData[idxViaje].tramos.findIndex((t) => t.id === tramoId);
+                    if (idxTramo !== -1) {
+                        allViajesData[idxViaje].tramos[idxTramo][campo] = valorEnvio
+                            ? valorEnvio.replace("T", " ") + ":00"
+                            : null;
+                    }
+                }
+                renderViajes();
+            } catch (e) {
+                console.error("guardarFechaTramo:", e);
+                alert("Error de red al guardar la fecha.");
             }
         }
 
