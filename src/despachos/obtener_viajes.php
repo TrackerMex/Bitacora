@@ -221,6 +221,7 @@ try {
                 vt.id, vt.viaje_id, vt.tramo_numero,
                 vt.origen, vt.lugar_carga, vt.destino, vt.ruta,
                 vt.instrucciones,
+                vt.gps_estado, vt.gps_timestamp,
                 vt.salida_patio,      vt.salida_patio_real,
                 vt.cita_carga,        vt.cita_carga_real,
                 vt.salida_carga,      vt.salida_carga_real,
@@ -266,6 +267,8 @@ try {
                 "destino"              => (string) $t["destino"],
                 "ruta"                 => (string) $t["ruta"],
                 "instrucciones"        => (string) $t["instrucciones"],
+                "gps_estado"           => $t["gps_estado"]           ? (string) $t["gps_estado"]           : null,
+                "gps_timestamp"        => $t["gps_timestamp"]        ? (string) $t["gps_timestamp"]        : null,
                 "salida_patio"         => $t["salida_patio"]         ? (string) $t["salida_patio"]         : null,
                 "salida_patio_real"    => $t["salida_patio_real"]    ? (string) $t["salida_patio_real"]    : null,
                 "cita_carga"           => $t["cita_carga"]           ? (string) $t["cita_carga"]           : null,
@@ -275,9 +278,52 @@ try {
                 "descarga_programada"  => $t["descarga_programada"]  ? (string) $t["descarga_programada"]  : null,
                 "descarga_real"        => $t["descarga_real"]        ? (string) $t["descarga_real"]        : null,
                 "estado"               => (string) $t["estado"],
+                "incidencias"          => [],
             ];
         }
         $stmt_t->close();
+
+        // Cargar incidencias para todos los viajes de esta página
+        if (count($viaje_ids) > 0) {
+            $ph_inc = implode(",", array_fill(0, count($viaje_ids), "?"));
+            $sql_inc = "
+                SELECT id, viaje_id, tramo_id, tipo, severidad, fecha, direccion, notas, created_at
+                  FROM viaje_incidencias
+                 WHERE viaje_id IN ($ph_inc)
+                 ORDER BY tramo_id ASC, fecha ASC
+            ";
+            $stmt_inc = $conn->prepare($sql_inc);
+            if ($stmt_inc) {
+                $refs_inc = [str_repeat("i", count($viaje_ids))];
+                $copy_inc = $viaje_ids;
+                foreach ($copy_inc as $k => $v) { $refs_inc[] = &$copy_inc[$k]; }
+                call_user_func_array([$stmt_inc, "bind_param"], $refs_inc);
+                $stmt_inc->execute();
+                $res_inc = $stmt_inc->get_result();
+                while ($inc = $res_inc->fetch_assoc()) {
+                    $vid = (int)$inc["viaje_id"];
+                    $tid = (int)$inc["tramo_id"];
+                    if (!isset($viajes[$vid])) continue;
+                    foreach ($viajes[$vid]["tramos"] as &$tramo) {
+                        if ($tramo["id"] === $tid) {
+                            $tramo["incidencias"][] = [
+                                "id"         => (int)$inc["id"],
+                                "tramo_id"   => $tid,
+                                "tipo"       => (string)$inc["tipo"],
+                                "severidad"  => (string)$inc["severidad"],
+                                "fecha"      => (string)$inc["fecha"],
+                                "direccion"  => $inc["direccion"] ? (string)$inc["direccion"] : null,
+                                "notas"      => $inc["notas"]     ? (string)$inc["notas"]     : null,
+                                "created_at" => (string)$inc["created_at"],
+                            ];
+                            break;
+                        }
+                    }
+                    unset($tramo);
+                }
+                $stmt_inc->close();
+            }
+        }
     }
 
     $sql_count = "

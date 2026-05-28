@@ -23,10 +23,9 @@ $response = [
 
 function default_tabs_for_role($role) {
   $role = strtolower(trim((string)$role));
-  if ($role === 'lector') {
-    return [3, 4, 5, 6, 7];
-  }
-  return [0, 1, 2, 3, 4, 5, 6, 7];
+  // Nueva estructura de 5 tabs: 0=Viajes, 1=GPS, 2=KPIs, 3=Informe, 4=Informes Guardados
+  // Lector: todas las tabs en modo lectura (los controles de escritura se ocultan por JS según role)
+  return [0, 1, 2, 3, 4];
 }
 
 function fetch_user_tabs($conn, $usuario_id, $role) {

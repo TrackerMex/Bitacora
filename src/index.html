@@ -345,32 +345,16 @@
             <div
                 class="flex items-center justify-between bg-white p-4 rounded-xl shadow-md mb-6"
             >
-                <div class="flex items-center gap-3">
-                    <label for="date-filter" class="font-medium text-gray-700"
-                        >Fecha de Despacho:</label
-                    >
-                    <input
-                        type="date"
-                        id="date-filter"
-                        onchange="filterByDate()"
-                        class="p-2 border rounded-lg"
-                    />
-                </div>
                 <div
                     id="cliente-display"
-                    class="text-lg font-semibold text-gray-700 text-center"
+                    class="text-lg font-semibold text-gray-700"
                 >
                     Cliente:
-                    <span id="cliente-display-name" class="text-gray-900">
-                        N/A
-                    </span>
+                    <span id="cliente-display-name" class="text-gray-900">N/A</span>
                 </div>
-                <button
-                    onclick="exportUpdatedSheet()"
-                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                >
-                    Exportar XLSX
-                </button>
+                <div class="text-sm text-gray-400 italic">
+                    Sistema de Monitoreo de Viajes
+                </div>
             </div>
 
             <div class="flex border-b border-gray-300 overflow-x-auto">
@@ -379,294 +363,41 @@
                     class="tab-btn tab-active"
                     onclick="changeTab(0)"
                 >
-                    Datos Generales
+                    🚛 Viajes
                 </button>
                 <button
                     id="tab-btn-1"
                     class="tab-btn text-gray-500"
                     onclick="changeTab(1)"
                 >
-                    Rutas & Origen/Destino
+                    Validaciones GPS
                 </button>
                 <button
                     id="tab-btn-2"
                     class="tab-btn text-gray-500"
                     onclick="changeTab(2)"
                 >
-                    Seguimiento Detallado
+                    KPIs
                 </button>
                 <button
                     id="tab-btn-3"
                     class="tab-btn text-gray-500"
                     onclick="changeTab(3)"
                 >
-                    Matriz de Registro
+                    Informe Ejecutivo
                 </button>
                 <button
                     id="tab-btn-4"
                     class="tab-btn text-gray-500"
                     onclick="changeTab(4)"
                 >
-                    KPIs de Cumplimiento
-                </button>
-                <button
-                    id="tab-btn-5"
-                    class="tab-btn text-gray-500"
-                    onclick="changeTab(5)"
-                >
-                    Informe Ejecutivo
-                </button>
-                <button
-                    id="tab-btn-6"
-                    class="tab-btn text-gray-500"
-                    onclick="changeTab(6)"
-                >
                     Informes Guardados
-                </button>
-                <button
-                    id="tab-btn-7"
-                    class="tab-btn text-gray-500"
-                    onclick="changeTab(7)"
-                >
-                    Validaciones GPS
-                </button>
-                <button
-                    id="tab-btn-8"
-                    class="tab-btn text-gray-500"
-                    onclick="changeTab(8)"
-                >
-                    🚛 Viajes
                 </button>
             </div>
 
             <div class="tab-content shadow-lg">
-                <div id="tab-0" class="tab-content-item">
-                    <h2 class="text-2xl font-semibold mb-4 text-gray-800">
-                        Datos Generales de Despachos
-                    </h2>
-
-                    <div
-                        class="flex flex-wrap items-center gap-4 mb-6 p-4 border rounded-lg bg-gray-50"
-                    >
-                        <div class="flex items-center gap-2">
-                            <label
-                                for="filtro-unidad-dg"
-                                class="text-sm font-medium text-gray-700"
-                                >Unidad:</label
-                            >
-                            <select
-                                id="filtro-unidad-dg"
-                                onchange="renderDatosGenerales()"
-                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="">Todas las unidades</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <label
-                                for="filtro-max-tramos"
-                                class="text-sm font-medium text-gray-700"
-                                >Máx. tramos:</label
-                            >
-                            <select
-                                id="filtro-max-tramos"
-                                onchange="renderDatosGenerales()"
-                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="0">Sin límite</option>
-                                <option value="1">1 tramo</option>
-                                <option value="2">2 tramos</option>
-                                <option value="3" selected>3 tramos</option>
-                                <option value="5">5 tramos</option>
-                                <option value="10">10 tramos</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <label
-                                for="filtro-cliente-dg"
-                                class="text-sm font-medium text-gray-700"
-                                >Cliente:</label
-                            >
-                            <select
-                                id="filtro-cliente-dg"
-                                onchange="renderDatosGenerales()"
-                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="">Todos los clientes</option>
-                            </select>
-                        </div>
-                        <button
-                            onclick="limpiarFiltrosDatosGenerales()"
-                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition"
-                        >
-                            Limpiar filtros
-                        </button>
-                        <span
-                            id="contador-datos-generales"
-                            class="ml-auto text-sm text-gray-600"
-                        ></span>
-                    </div>
-
-                    <div
-                        id="datos-generales-container"
-                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                    ></div>
-                </div>
-
-                <div id="tab-1" class="tab-content-item hidden">
-                    <h2 class="text-2xl font-semibold mb-4 text-gray-800">
-                        Origen y Destino de Unidades
-                    </h2>
-                    <div
-                        id="origen-destino-container"
-                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                    ></div>
-                </div>
-
+                <!-- ── TAB 2: KPIs (antes tab-4) ── -->
                 <div id="tab-2" class="tab-content-item hidden">
-                    <h2 class="text-2xl font-semibold mb-4 text-gray-800">
-                        Seguimiento y Registro de Tiempos
-                    </h2>
-
-                    <div
-                        class="flex flex-wrap items-center justify-between gap-3 mb-6 p-4 border rounded-lg bg-gray-50"
-                    >
-                        <div
-                            class="flex items-center flex-grow max-w-2xl gap-3 flex-wrap"
-                        >
-                            <label for="unidad-nombre-selector" class="sr-only"
-                                >Seleccionar unidad</label
-                            >
-                            <select
-                                id="unidad-nombre-selector"
-                                class="p-2 border rounded-lg flex-grow min-w-[160px]"
-                                onchange="handleUnidadNombreSelection(event)"
-                            ></select>
-                            <label for="unidad-tramo-selector" class="sr-only"
-                                >Seleccionar tramo</label
-                            >
-                            <select
-                                id="unidad-tramo-selector"
-                                class="p-2 border rounded-lg hidden"
-                                onchange="handleUnidadSelection(event)"
-                            ></select>
-                            <button
-                                id="consulta-btn"
-                                onclick="showUnitData()"
-                                disabled
-                                class="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:bg-blue-300 hover:bg-blue-700"
-                            >
-                                Datos
-                            </button>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onclick="openEmergencyContactsModal()"
-                                title="Contactos de Emergencia"
-                                class="bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-emerald-600 hover:text-white transition flex items-center justify-center"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="22"
-                                    height="22"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <path d="M4 12a8 8 0 0 1 16 0" />
-                                    <path d="M4 12v3a3 3 0 0 0 3 3h1" />
-                                    <path d="M20 12v3a3 3 0 0 1-3 3h-1" />
-                                    <path d="M8 19c1.5 1.5 6.5 1.5 8 0" />
-                                    <path d="M7 12v-1a5 5 0 0 1 10 0v1" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div
-                        id="seguimiento-form-container"
-                        class="hidden bg-white p-6 rounded-xl border"
-                    ></div>
-                </div>
-
-                <div id="tab-3" class="tab-content-item hidden">
-                    <h2 class="text-2xl font-semibold mb-4 text-gray-800">
-                        Matriz de Tiempos Programados vs. Reales
-                    </h2>
-                    <div
-                        class="flex flex-wrap items-center justify-between gap-3 mb-6 p-4 border rounded-lg bg-gray-50"
-                    >
-                        <div class="flex flex-wrap items-center gap-4">
-                            <div
-                                class="flex items-center flex-grow max-w-xl gap-3"
-                            >
-                                <label
-                                    for="registro-unidad-filter"
-                                    class="font-medium text-gray-700"
-                                    >Filtrar por estatus:</label
-                                >
-                                <select
-                                    id="registro-unidad-filter"
-                                    onchange="renderRegistroDespacho()"
-                                    class="p-2 border rounded-lg ml-2"
-                                ></select>
-                            </div>
-                            <div
-                                class="flex items-center flex-grow max-w-xl gap-3"
-                            >
-                                <label
-                                    for="registro-unidades-filter"
-                                    class="font-medium text-gray-700"
-                                    >Filtrar por unidad:</label
-                                >
-                                <select
-                                    id="registro-unidades-filter"
-                                    onchange="renderRegistroDespacho()"
-                                    class="p-2 border rounded-lg ml-2"
-                                >
-                                    <option value="all">
-                                        Todas las unidades
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onclick="openEmergency911Modal()"
-                                title="Números de Emergencia 911"
-                                class="bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-red-500 hover:text-white transition flex items-center justify-center"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="22"
-                                    height="22"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <path
-                                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-3.1-3.1A19.79 19.79 0 0 1 2 4.18 2 2 0 0 1 4.18 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div
-                        id="registro-board-container"
-                        class="overflow-x-auto pb-4"
-                    ></div>
-                </div>
-
-                <div id="tab-4" class="tab-content-item hidden">
                     <div
                         class="flex items-center justify-between flex-wrap gap-3 mb-4"
                         data-pdf-exclude="true"
@@ -796,7 +527,7 @@
                     </div>
                 </div>
 
-                <div id="tab-5" class="tab-content-item hidden">
+                <div id="tab-3" class="tab-content-item hidden">
                     <div
                         class="flex items-center justify-between flex-wrap gap-3 mb-4"
                         data-pdf-exclude="true"
@@ -987,7 +718,7 @@
                     </div>
                 </div>
 
-                <div id="tab-6" class="tab-content-item hidden">
+                <div id="tab-4" class="tab-content-item hidden">
                     <h2 class="text-2xl font-semibold mb-4 text-gray-800">
                         Informes Guardados
                     </h2>
@@ -1149,7 +880,7 @@
                     </div>
                 </div>
 
-                <div id="tab-7" class="tab-content-item hidden">
+                <div id="tab-1" class="tab-content-item hidden">
                     <h2 class="text-2xl font-semibold mb-4 text-gray-800">
                         Validaciones GPS y Accesorios
                     </h2>
@@ -1216,54 +947,14 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table
-                            class="min-w-full bg-white border rounded-lg shadow-sm"
-                        >
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
-                                    >
-                                        Unidad
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
-                                    >
-                                        Cliente
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
-                                    >
-                                        Operador Monitor
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
-                                    >
-                                        Estado
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
-                                    >
-                                        Validaciones GPS
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-semibold text-gray-700"
-                                    >
-                                        Última Actualización
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                id="validaciones-table-body"
-                                class="divide-y"
-                            ></tbody>
-                        </table>
+                    <div id="validaciones-grid"
+                         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     </div>
                 </div>
 
                 <!-- ── TAB 8: VIAJES MULTI-TRAMO / MULTI-DÍA ── -->
-                <div id="tab-8" class="tab-content-item hidden">
+                <!-- ── TAB 0: VIAJES ── -->
+                <div id="tab-0" class="tab-content-item hidden">
                     <div
                         class="flex flex-wrap items-center justify-between gap-3 mb-5"
                     >
@@ -1296,7 +987,7 @@
                         class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5"
                     >
                         <div
-                            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+                            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"
                         >
                             <div>
                                 <label
@@ -1321,6 +1012,19 @@
                                     class="w-full p-2 border rounded-lg text-sm"
                                     onchange="loadViajesFromDb()"
                                 />
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-600 mb-1"
+                                    >Cliente</label
+                                >
+                                <select
+                                    id="viajes-filtro-cliente"
+                                    class="w-full p-2 border rounded-lg text-sm"
+                                    onchange="aplicarFiltrosViajes()"
+                                >
+                                    <option value="">Todos los clientes</option>
+                                </select>
                             </div>
                             <div>
                                 <label
@@ -1989,6 +1693,7 @@
                 userInfo.classList.remove("hidden");
             }
 
+            updateClienteDisplay();
             updateTabVisibility();
         }
 
@@ -2030,6 +1735,16 @@
             const nameEl = document.getElementById("cliente-display-name");
             if (!nameEl) return;
 
+            // Preferir userClientes (disponible desde el login) sobre filteredDespachosData
+            if (Array.isArray(userClientes) && userClientes.length > 0) {
+                const nombres = userClientes
+                    .map((c) => String(c?.nombre ?? c?.cliente ?? "").trim())
+                    .filter(Boolean);
+                nameEl.textContent = nombres.length ? nombres.join(", ") : "-";
+                return;
+            }
+
+            // Fallback: leer de filteredDespachosData si userClientes aún no está
             const clientes = [
                 ...new Set(
                     (filteredDespachosData || [])
@@ -2038,17 +1753,7 @@
                 ),
             ];
 
-            if (!clientes.length) {
-                nameEl.textContent = "-";
-                return;
-            }
-
-            if (clientes.length === 1) {
-                nameEl.textContent = clientes[0];
-                return;
-            }
-
-            nameEl.textContent = `${clientes.join(", ")}`;
+            nameEl.textContent = clientes.length ? clientes.join(", ") : "-";
         }
 
         async function enviarIncidencia(datosIncidencia) {
@@ -2450,19 +2155,22 @@
         }
 
         function updateTabVisibility() {
-            const allowed = userTabs;
-            // Tab 8 (Viajes) siempre visible si el usuario tiene acceso al sistema
-            const allTabs = [
-                ...new Set([...Array.from({ length: 8 }, (_, i) => i), 8]),
-            ];
-            allTabs.forEach((i) => {
+            const TAB_COUNT = 5; // 0=Viajes, 1=GPS, 2=KPIs, 3=Informe, 4=Informes Guardados
+            // Tabs permitidas para este usuario (si está vacío o no válido → todas)
+            const allowed = Array.isArray(userTabs) && userTabs.length > 0
+                ? userTabs.map(Number).filter(n => n >= 0 && n < TAB_COUNT)
+                : Array.from({ length: TAB_COUNT }, (_, i) => i);
+
+            for (let i = 0; i < TAB_COUNT; i++) {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
-                const visible = i === 8 ? true : allowed.includes(i);
-                if (btn) btn.classList.toggle("hidden", !visible);
-                if (tab && !visible) tab.classList.add("hidden");
-            });
-            changeTab(allowed[0] ?? 0);
+                const permitida = allowed.includes(i);
+                if (btn) btn.classList.toggle("hidden", !permitida);
+                if (tab) tab.classList.add("hidden");
+            }
+            // Activar la primera tab permitida
+            const primera = allowed[0] ?? 0;
+            changeTab(primera);
         }
 
         function changeTab(index) {
@@ -2472,13 +2180,7 @@
                     .classList.remove("hidden");
                 return;
             }
-            const allowed = userTabs;
-            // Tab 8 siempre permitido para usuarios logueados
-            if (index !== 8 && !allowed.includes(index)) {
-                alert("No tienes permiso para acceder a esta pestaña.");
-                return;
-            }
-            const TAB_COUNT = 9; // 0-7 legacy + 8 viajes
+            const TAB_COUNT = 5; // 0=Viajes, 1=GPS, 2=KPIs, 3=Informe, 4=Informes Guardados
             for (let i = 0; i < TAB_COUNT; i++) {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
@@ -2488,13 +2190,24 @@
                 }
                 if (tab) tab.classList.toggle("hidden", i !== index);
             }
-            if (index === 4) renderKPIs(filteredDespachosData);
-            if (index === 5) {
-                renderInforme(filteredDespachosData);
-                renderIncidenciasExecutiveReport();
+            if (index === 0) loadViajesFromDb();
+            if (index === 1) renderValidacionesGPS();
+            if (index === 2) {
+                if (filteredDespachosData.length === 0 && allViajesData.length === 0) {
+                    loadViajesFromDb();   // llenará filteredDespachosData vía adapter
+                } else {
+                    renderKPIs(filteredDespachosData);
+                }
             }
-            if (index === 6) cargarInformesGuardados();
-            if (index === 7) renderValidacionesGPS();
+            if (index === 3) {
+                if (filteredDespachosData.length === 0 && allViajesData.length === 0) {
+                    loadViajesFromDb();
+                } else {
+                    renderInforme(filteredDespachosData);
+                    renderIncidenciasExecutiveReport();
+                }
+            }
+            if (index === 4) cargarInformesGuardados();
         }
 
         function openModal(id) {
@@ -7171,32 +6884,42 @@
                 alert(`Error al eliminar: ${err?.message || err}`);
             }
         }
+        // GPS_ITEMS y _parseGpsEstado — declarados aquí para que renderValidacionesTable los use
+        const GPS_ITEMS = [
+            { key: "gps_principal",  label: "GPS principal" },
+            { key: "gps_secundario", label: "GPS secundario" },
+            { key: "camara",         label: "Cámara" },
+            { key: "boton_panico",   label: "Botón de pánico" },
+            { key: "candado",        label: "Candado electrónico" },
+        ];
+
+        function _parseGpsEstado(raw) {
+            if (!raw) return {};
+            try {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) {
+                    const map = {};
+                    arr.forEach(item => { map[item.key] = !!item.ok; });
+                    return map;
+                }
+            } catch(e) {}
+            return {};
+        }
+
         function renderValidacionesGPS() {
-            const tbody = document.getElementById("validaciones-table-body");
-            if (!tbody) return;
-
+            if (!document.getElementById("validaciones-grid")) return;
             populateValidacionesFilters();
-
             renderValidacionesTable();
         }
 
         function populateValidacionesFilters() {
-            const selectCliente = document.getElementById(
-                "validaciones-filtro-cliente",
-            );
+            const selectCliente = document.getElementById("validaciones-filtro-cliente");
             if (!selectCliente) return;
-
-            const clientes = [
-                ...new Set(
-                    filteredDespachosData.map((d) => d.cliente).filter(Boolean),
-                ),
-            ].sort();
-
+            const clientes = [...new Set(allViajesData.map(v => v.cliente).filter(Boolean))].sort();
             const currentValue = selectCliente.value;
-            selectCliente.innerHTML =
-                '<option value="">Todos los clientes</option>';
-            clientes.forEach((cliente) => {
-                selectCliente.innerHTML += `<option value="${escapeHtml(cliente)}">${escapeHtml(cliente)}</option>`;
+            selectCliente.innerHTML = '<option value="">Todos los clientes</option>';
+            clientes.forEach(c => {
+                selectCliente.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
             });
             selectCliente.value = currentValue;
         }
@@ -7206,100 +6929,132 @@
         }
 
         function renderValidacionesTable() {
-            const tbody = document.getElementById("validaciones-table-body");
-            if (!tbody) return;
+            const grid = document.getElementById("validaciones-grid");
+            if (!grid) return;
 
-            const filtroUnidad = (
-                document.getElementById("validaciones-filtro-unidad")?.value ||
-                ""
-            )
-                .trim()
-                .toLowerCase();
-            const filtroCliente =
-                document.getElementById("validaciones-filtro-cliente")?.value ||
-                "";
-            const filtroEstado =
-                document.getElementById("validaciones-filtro-estado")?.value ||
-                "";
+            const filtroUnidad  = (document.getElementById("validaciones-filtro-unidad")?.value  || "").trim().toLowerCase();
+            const filtroCliente =  document.getElementById("validaciones-filtro-cliente")?.value  || "";
+            const filtroEstado  =  document.getElementById("validaciones-filtro-estado")?.value   || "";
 
-            let datosFiltrados = filteredDespachosData.filter((d) => {
-                if (
-                    filtroUnidad &&
-                    !String(d.unidad || "")
-                        .toLowerCase()
-                        .includes(filtroUnidad)
-                ) {
-                    return false;
-                }
+            // Una card por tramo activo
+            const filas = [];
+            allViajesData.forEach(v => {
+                if (v.estado === "cancelado") return;
+                (v.tramos || []).forEach(t => {
+                    if (t.estado === "cancelado") return;
+                    filas.push({
+                        unidad:       v.unidad,
+                        placas:       v.placas,
+                        cliente:      v.cliente,
+                        operador:     v.operador,
+                        folio:        v.folio,
+                        tramo_num:    t.tramo_numero,
+                        tramo_id:     t.id,
+                        viaje_id:     v.viaje_id,
+                        gps_estado:   t.gps_estado,
+                        gps_ts:       t.gps_timestamp,
+                        tramo_estado: t.estado,
+                        origen:       t.origen,
+                        destino:      t.destino,
+                    });
+                });
+            });
 
-                if (filtroCliente && d.cliente !== filtroCliente) {
-                    return false;
-                }
-
-                if (
-                    filtroEstado === "validado" &&
-                    !isGpsOperativo(d.gpsValidacionEstado)
-                ) {
-                    return false;
-                }
-                if (
-                    filtroEstado === "sin_validar" &&
-                    isGpsOperativo(d.gpsValidacionEstado)
-                ) {
-                    return false;
-                }
-
+            let filtradas = filas.filter(f => {
+                if (filtroUnidad  && !f.unidad.toLowerCase().includes(filtroUnidad)) return false;
+                if (filtroCliente && f.cliente !== filtroCliente) return false;
+                const estadoMap = _parseGpsEstado(f.gps_estado);
+                const todoOk    = GPS_ITEMS.every(g => estadoMap[g.key] === true);
+                const sinDatos  = !f.gps_estado;
+                if (filtroEstado === "validado"    && (sinDatos || !todoOk)) return false;
+                if (filtroEstado === "sin_validar" && !sinDatos)             return false;
                 return true;
             });
 
-            if (datosFiltrados.length === 0) {
-                tbody.innerHTML = `
-                  <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">
-                      No hay registros que coincidan con los filtros aplicados.
-                    </td>
-                  </tr>
-                `;
+            if (filtradas.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-gray-400 text-sm">
+                        No hay registros que coincidan con los filtros.
+                    </div>`;
                 return;
             }
 
-            tbody.innerHTML = datosFiltrados
-                .map((d, idx) => {
-                    const gpsOk = isGpsOperativo(d.gpsValidacionEstado);
-                    const statusClass = gpsOk
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800";
-                    const statusText = gpsOk ? "Validado" : "Sin validación";
-                    const validacionesTexto = gpsOk
-                        ? formatGpsEstado(d.gpsValidacionEstado)
-                        : "-";
+            grid.innerHTML = filtradas.map(f => {
+                const estadoMap = _parseGpsEstado(f.gps_estado);
+                const todoOk    = GPS_ITEMS.every(g => estadoMap[g.key] === true);
+                const alguno    = GPS_ITEMS.some(g => estadoMap[g.key] !== undefined);
+                const sinDatos  = !f.gps_estado;
 
+                // Colores del borde superior de la card según estado GPS
+                const topBar = sinDatos  ? "border-t-4 border-gray-300"
+                             : todoOk    ? "border-t-4 border-green-500"
+                                         : "border-t-4 border-amber-400";
+
+                const badgeCls = sinDatos ? "bg-gray-100 text-gray-500"
+                               : todoOk   ? "bg-green-100 text-green-800"
+                                          : "bg-amber-100 text-amber-800";
+                const badgeTxt = sinDatos ? "Sin validar"
+                               : todoOk   ? "✅ Operativo"
+                                          : "⚠️ Con fallas";
+
+                const tramoBadgeCls = {
+                    pendiente:  "bg-gray-100 text-gray-600",
+                    en_curso:   "bg-blue-100 text-blue-700",
+                    completado: "bg-green-100 text-green-700",
+                }[f.tramo_estado] || "bg-gray-100 text-gray-500";
+
+                // Items GPS — icono + label con color según estado
+                const itemsHtml = GPS_ITEMS.map(g => {
+                    const val = estadoMap[g.key];
+                    const icon  = val === true  ? "✅" : val === false ? "❌" : "—";
+                    const txtCls = val === true  ? "text-green-700"
+                                 : val === false ? "text-red-600"
+                                                 : "text-gray-400";
                     return `
-                  <tr class="hover:bg-gray-50 transition">
-                    <td class="px-4 py-3 text-sm font-medium text-gray-900">
-                      ${escapeHtml(d.unidad || "N/A")}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-700">
-                      ${escapeHtml(d.cliente || "N/A")}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-700">
-                      ${escapeHtml(d.operadorMonitoreoId || "No asignado")}
-                    </td>
-                    <td class="px-4 py-3 text-sm">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
-                        ${statusText}
-                      </span>
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-700">
-                      ${escapeHtml(validacionesTexto)}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-600">
-                      ${d.gpsValidacionTimestamp ? formatDateTime(d.gpsValidacionTimestamp) : "Sin registro"}
-                    </td>
-                  </tr>
-                `;
-                })
-                .join("");
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs">${icon}</span>
+                            <span class="text-xs ${txtCls}">${escapeHtml(g.label)}</span>
+                        </div>`;
+                }).join("");
+
+                return `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 ${topBar} overflow-hidden flex flex-col">
+                    <!-- Header -->
+                    <div class="px-4 pt-3 pb-2 flex items-start justify-between gap-2">
+                        <div>
+                            <div class="font-bold text-blue-900 text-base leading-tight">${escapeHtml(f.unidad)}</div>
+                            <div class="text-xs text-gray-400">${escapeHtml(f.placas)}</div>
+                        </div>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${badgeCls}">${badgeTxt}</span>
+                    </div>
+
+                    <!-- Meta -->
+                    <div class="px-4 pb-2 space-y-0.5">
+                        <div class="text-xs text-gray-500 truncate">🏢 ${escapeHtml(f.cliente)}</div>
+                        <div class="text-xs text-gray-500 truncate">👤 ${escapeHtml(f.operador || "—")}</div>
+                        <div class="flex items-center gap-1.5 flex-wrap mt-1">
+                            <span class="text-xs text-gray-400">${escapeHtml(f.folio)} · T${f.tramo_num}</span>
+                            <span class="text-xs px-1.5 py-0.5 rounded-full ${tramoBadgeCls} capitalize">${f.tramo_estado.replace("_", " ")}</span>
+                        </div>
+                        ${f.origen ? `<div class="text-xs text-gray-400 truncate mt-0.5">📍 ${escapeHtml(f.origen)} → ${escapeHtml(f.destino || "")}</div>` : ""}
+                    </div>
+
+                    <!-- Separador -->
+                    <div class="border-t border-gray-100 mx-4"></div>
+
+                    <!-- Items GPS -->
+                    <div class="px-4 py-2.5 grid grid-cols-1 gap-1 flex-1">
+                        ${itemsHtml}
+                    </div>
+
+                    <!-- Footer: timestamp -->
+                    <div class="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
+                        ${f.gps_ts
+                            ? `🕐 Validado: ${_fmtDt(f.gps_ts)}`
+                            : `<span class="italic">Sin fecha de validación</span>`}
+                    </div>
+                </div>`;
+            }).join("");
         }
         (function init() {
             try {
@@ -7333,6 +7088,7 @@
                         userInfo.classList.remove("hidden");
                     }
 
+                    updateClienteDisplay();
                     updateTabVisibility();
                 }
             } catch (e) {
@@ -7344,8 +7100,8 @@
                     .getElementById("login-modal")
                     .classList.remove("hidden");
             else {
-                loadDataFromMySQL(true);
                 loadViajesFromDb();
+                updateTabVisibility();
             }
         })();
 
@@ -7355,6 +7111,7 @@
 
         let allViajesData = [];
         let viajesExpandidos = {};
+        let gruposColapsados = {}; // clave = nombre cliente, valor = true si colapsado
 
         async function loadViajesFromDb() {
             if (!userRole || !bitacoraAuthToken) return;
@@ -7394,8 +7151,116 @@
                     throw new Error(json.message || "Error cargando viajes");
                 allViajesData = json.data || [];
                 renderViajes();
+                buildDespachosDesdeViajes(allViajesData);
             } catch (e) {
                 console.error("loadViajesFromDb:", e);
+            }
+        }
+
+        // ── Adapter: convierte allViajesData → formato filteredDespachosData ──
+        // Permite que las tabs KPIs, Informe Ejecutivo e Informes Guardados
+        // funcionen con datos del nuevo sistema de viajes sin cambiar su lógica.
+        function buildDespachosDesdeViajes(viajesData) {
+            // Mapeo de severidad nueva → vieja (usada por renderIncidenciasExecutiveReport)
+            const SEV_MAP = { alta: "rojo", media: "naranja", baja: "verde" };
+
+            const rows = [];
+            (viajesData || []).forEach((v) => {
+                const tramos = v.tramos || [];
+                tramos.forEach((t) => {
+                    // Fecha del tramo: preferir salida_patio, luego fecha_inicio del viaje
+                    const fechaRaw = t.salida_patio || v.fecha_inicio || "";
+                    const fechaProgramada = fechaRaw
+                        ? fechaRaw.split(" ")[0]   // "YYYY-MM-DD"
+                        : "";
+
+                    // Ruta del tramo: "Origen → Destino" o ruta explícita
+                    const rutaTramo =
+                        t.ruta ||
+                        (t.origen && t.destino
+                            ? `${t.origen} → ${t.destino}`
+                            : v.ruta || "N/A");
+
+                    // Estatus especial para cancelados
+                    const estatusEspecial =
+                        v.estado === "cancelado" || t.estado === "cancelado"
+                            ? "Cancelado"
+                            : "";
+
+                    // Incidencias: convertir severidad alta/media/baja → rojo/naranja/verde
+                    const incidencias = (t.incidencias || []).map((inc) => ({
+                        tipo: inc.tipo || "",
+                        severidad: SEV_MAP[String(inc.severidad || "").toLowerCase()] || "verde",
+                        fecha: inc.fecha || "",
+                        direccion: inc.direccion || "",
+                    }));
+
+                    rows.push({
+                        // Identificadores
+                        despachoId:    `${v.id}-${t.tramo_numero}`,
+                        clienteId:     v.cliente_id || "",
+                        unidadId:      v.unidad_id  || "",
+                        tramoNumero:   t.tramo_numero,
+                        folio:         v.folio || "",
+
+                        // Fechas y clasificación
+                        fechaProgramada,
+                        cliente:       v.cliente || "N/A",
+                        unidad:        v.unidad  || "N/A",
+                        placas:        v.placas  || "N/A",
+                        operador:      v.operador || "N/A",
+                        telefono:      v.telefono || "N/A",
+
+                        // Ruta
+                        ruta:          rutaTramo,
+                        origen:        t.origen  || "N/A",
+                        destino:       t.destino || "N/A",
+                        lugarCarga:    t.lugar_carga || "N/A",
+                        instruccionesEspeciales: t.instrucciones || "",
+
+                        // Citas programadas → calcularEstatusAutomatico las lee
+                        citaSalidaUnidad: t.salida_patio        || "",
+                        citaCarga:        t.cita_carga          || "",
+                        citaSalida:       t.salida_carga        || "",
+                        citaDescarga:     t.descarga_programada || "",
+
+                        // Tiempos reales → calcularEstatusAutomatico los lee
+                        realSalidaUnidad: t.salida_patio_real   || "",
+                        realCarga:        t.cita_carga_real     || "",
+                        realSalida:       t.salida_carga_real   || "",
+                        realDescarga:     t.descarga_real       || "",
+
+                        // Estatus especial (cancelado)
+                        estatus_especial: estatusEspecial,
+                        estatus:          estatusEspecial || "Programado",
+
+                        // GPS
+                        gpsValidacionEstado:     t.gps_estado     || "",
+                        gpsValidacionTimestamp:  t.gps_timestamp  || "",
+
+                        // Incidencias (ya con severidad mapeada)
+                        incidencias,
+                        observaciones: t.instrucciones || "",
+                        lectorEmails:  "",
+                    });
+                });
+            });
+
+            // Poblar allDespachosData y filteredDespachosData con los datos adaptados
+            allDespachosData = rows;
+            filteredDespachosData = rows.slice();
+
+            // Actualizar KPIs e Informe con los datos nuevos
+            try {
+                renderKPIs(filteredDespachosData);
+            } catch (e) {
+                console.warn("buildDespachosDesdeViajes → renderKPIs:", e);
+            }
+            try {
+                renderInforme(filteredDespachosData);
+                renderIncidenciasExecutiveReport();
+            } catch (e) {
+                console.warn("buildDespachosDesdeViajes → renderInforme:", e);
             }
         }
 
@@ -7443,9 +7308,7 @@
                 return ra - rb;
             });
 
-            container.innerHTML = datos
-                .map((v) => _renderViajeCard(v))
-                .join("");
+            container.innerHTML = _renderViajesAgrupados(datos);
         }
 
         // Devuelve info de retraso de un tramo, o null si no hay retraso.
@@ -7490,6 +7353,79 @@
             if (dias > 0) return `${dias}d ${horas % 24}h`;
             if (horas > 0) return `${horas}h ${mins % 60}m`;
             return `${mins}m`;
+        }
+
+        // Agrupa los viajes por cliente cuando el usuario es admin con múltiples clientes.
+        // Para monitoristas y lectores (un solo cliente) devuelve lista plana sin ruptura visual.
+        function _renderViajesAgrupados(datos) {
+            const esAdmin = String(userRole || "").toLowerCase() === "admin";
+            const clientesEnDatos = [...new Set(datos.map(v => v.cliente).filter(Boolean))];
+
+            // Sin agrupación: usuario con un solo cliente, o filtro ya aplicado a uno solo
+            if (!esAdmin || clientesEnDatos.length <= 1) {
+                return datos.map(v => _renderViajeCard(v)).join("");
+            }
+
+            // Ordenar los grupos: los que tienen retraso van primero
+            const _grupoTieneRetraso = (grupo) =>
+                grupo.some(v =>
+                    v.estado !== "cancelado" &&
+                    (v.tramos || []).some(t => _calcRetrasoTramo(t) !== null)
+                );
+
+            const grupos = clientesEnDatos
+                .map(cliente => ({
+                    cliente,
+                    viajes: datos.filter(v => v.cliente === cliente),
+                }))
+                .sort((a, b) => {
+                    const ra = _grupoTieneRetraso(a.viajes) ? 0 : 1;
+                    const rb = _grupoTieneRetraso(b.viajes) ? 0 : 1;
+                    return ra - rb;
+                });
+
+            return grupos.map(({ cliente, viajes }) => {
+                const totalViajes  = viajes.length;
+                const conRetraso   = viajes.filter(v =>
+                    v.estado !== "cancelado" &&
+                    (v.tramos || []).some(t => _calcRetrasoTramo(t) !== null)
+                ).length;
+                const enCurso      = viajes.filter(v => v.estado === "en_curso").length;
+                const planificados = viajes.filter(v => v.estado === "planificado").length;
+                const colapsado    = !!gruposColapsados[cliente];
+
+                const badgeRetraso = conRetraso
+                    ? `<span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">⚠️ ${conRetraso} con retraso</span>`
+                    : "";
+                const badgeEnCurso = enCurso
+                    ? `<span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">${enCurso} en curso</span>`
+                    : "";
+                const badgePlanif = planificados
+                    ? `<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">${planificados} planificado${planificados !== 1 ? "s" : ""}</span>`
+                    : "";
+
+                const clienteKey = escapeHtml(cliente).replace(/'/g, "\\'");
+
+                return `
+                    <div class="mb-7">
+                        <div class="flex items-center justify-between gap-2 flex-wrap mb-2 px-1 border-b-2 border-blue-900 pb-2
+                                    cursor-pointer select-none hover:opacity-80 transition-opacity"
+                             onclick="toggleGrupoCliente('${clienteKey}')">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-sm font-bold text-blue-900 uppercase tracking-wide">🏢 ${escapeHtml(cliente)}</span>
+                                <span class="text-xs text-gray-400 font-medium">${totalViajes} viaje${totalViajes !== 1 ? "s" : ""}</span>
+                                ${badgeRetraso}
+                                ${badgeEnCurso}
+                                ${badgePlanif}
+                            </div>
+                            <svg class="w-4 h-4 text-blue-900 flex-shrink-0 transition-transform ${colapsado ? "-rotate-90" : ""}"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        ${colapsado ? "" : viajes.map(v => _renderViajeCard(v)).join("")}
+                    </div>`;
+            }).join("");
         }
 
         function _renderViajeCard(v) {
@@ -7543,8 +7479,11 @@
 
             const tramosHtml = expandido ? _renderTramosDetalle(v) : "";
 
-            // ── Botones de estado ─────────────────────────────────────────────
+            // ── Botones de estado (ocultos para lector) ───────────────────────
+            const esLector = String(userRole || "").toLowerCase() === "lector";
+
             const btnEnCurso =
+                !esLector &&
                 v.estado !== "en_curso" &&
                 v.estado !== "completado" &&
                 v.estado !== "cancelado"
@@ -7555,6 +7494,7 @@
                     : "";
 
             const btnCompletar =
+                !esLector &&
                 v.estado !== "completado" && v.estado !== "cancelado"
                     ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)"
                            class="text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-1 rounded-full font-semibold transition-colors">
@@ -7563,6 +7503,7 @@
                     : "";
 
             const btnCancelar =
+                !esLector &&
                 v.estado !== "cancelado"
                     ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)"
                            class="text-xs bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-full font-semibold transition-colors ml-auto">
@@ -7608,7 +7549,6 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0 ml-2">
-                        <span class="text-xs text-gray-400 hidden sm:block">${escapeHtml(v.cliente)}</span>
                         <svg class="w-4 h-4 text-gray-400 transition-transform ${expandido ? "rotate-180" : ""}"
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -7620,18 +7560,355 @@
                     expandido
                         ? `
                 <div class="border-t border-gray-100 bg-gray-50 px-4 pb-4 pt-3">
+                    ${!esLector ? `
                     <div class="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-gray-200">
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cambiar estado:</span>
                         ${btnEnCurso}
                         ${btnCompletar}
                         ${btnCancelar}
-                    </div>
+                    </div>` : ""}
                     ${tramosHtml}
                 </div>`
                         : ""
                 }
             </div>`;
         }
+
+        // ── GPS por tramo ─────────────────────────────────────────────────────
+
+        function _seccionGps(t, viajeId) {
+
+            const estado = _parseGpsEstado(t.gps_estado);
+            const ts     = t.gps_timestamp
+                ? `<span class="text-gray-400 text-xs ml-1">— ${_fmtDt(t.gps_timestamp)}</span>`
+                : "";
+            const todoOk = GPS_ITEMS.every(g => estado[g.key] === true);
+            const alguno = GPS_ITEMS.some(g => estado[g.key] !== undefined);
+
+            const headerColor = !alguno
+                ? "bg-gray-50 border-gray-200 text-gray-500"
+                : todoOk
+                  ? "bg-green-50 border-green-200 text-green-700"
+                  : "bg-amber-50 border-amber-200 text-amber-700";
+
+            const badgeGps = !alguno
+                ? `<span class="text-xs text-gray-400 italic">Sin validar</span>`
+                : todoOk
+                  ? `<span class="text-xs font-semibold text-green-700">✅ Operativo</span>`
+                  : `<span class="text-xs font-semibold text-amber-600">⚠️ Con fallas</span>`;
+
+            const esLectorGps = String(userRole || "").toLowerCase() === "lector";
+            const items = GPS_ITEMS.map(g => {
+                const checked = estado[g.key] === true ? "checked" : "";
+                if (esLectorGps) {
+                    // Solo lectura: icono de estado, sin checkbox interactivo
+                    const icon = estado[g.key] === true ? "✅" : estado[g.key] === false ? "❌" : "—";
+                    return `
+                <span class="flex items-center gap-1.5 text-xs text-gray-600">
+                    <span>${icon}</span>
+                    <span>${g.label}</span>
+                </span>`;
+                }
+                return `
+                <label class="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+                    <input type="checkbox" ${checked}
+                           data-gps-key="${g.key}"
+                           data-tramo-id="${t.id}"
+                           data-viaje-id="${viajeId}"
+                           class="gps-check w-3.5 h-3.5 rounded accent-blue-600"
+                           onchange="guardarGpsTramo(${viajeId}, ${t.id})"/>
+                    <span class="${checked ? 'text-gray-800' : 'text-gray-500'}">${g.label}</span>
+                </label>`;
+            }).join("");
+
+            return `
+            <div class="mt-2 border rounded-lg overflow-hidden ${headerColor.split(' ').filter(c=>c.startsWith('border')).join(' ')}">
+                <div class="flex items-center justify-between px-2.5 py-1.5 ${headerColor}">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-semibold">📡 GPS & Accesorios</span>
+                        ${ts}
+                    </div>
+                    ${badgeGps}
+                </div>
+                <div class="px-3 py-2 bg-white grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
+                    ${items}
+                </div>
+            </div>`;
+        }
+
+        async function guardarGpsTramo(viajeId, tramoId) {
+            // Recolectar estado de todos los checkboxes de este tramo
+            const checks = document.querySelectorAll(
+                `input.gps-check[data-tramo-id="${tramoId}"]`
+            );
+            const gpsEstado = GPS_ITEMS.map(g => {
+                const el = document.querySelector(
+                    `input.gps-check[data-tramo-id="${tramoId}"][data-gps-key="${g.key}"]`
+                );
+                return { key: g.key, ok: el ? el.checked : false };
+            });
+
+            try {
+                const res = await fetch(
+                    "/bitacora_tracker/src/api/viajes.php?action=guardar_gps",
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${bitacoraAuthToken}`,
+                        },
+                        body: JSON.stringify({
+                            tramo_id:   tramoId,
+                            gps_estado: gpsEstado,
+                        }),
+                    }
+                );
+                const json = await res.json();
+                if (!res.ok || !json.ok) throw new Error(json.error || "Error GPS");
+
+                // Actualizar estado local
+                const idxViaje = allViajesData.findIndex(v => v.viaje_id === viajeId);
+                if (idxViaje !== -1) {
+                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(t => t.id === tramoId);
+                    if (idxTramo !== -1) {
+                        allViajesData[idxViaje].tramos[idxTramo].gps_estado    = json.tramo.gps_estado;
+                        allViajesData[idxViaje].tramos[idxTramo].gps_timestamp = json.tramo.gps_timestamp;
+                    }
+                }
+                renderViajes();
+            } catch(e) {
+                console.error("guardarGpsTramo:", e);
+            }
+        }
+
+        // ── Incidencias por tramo ────────────────────────────────────────────
+
+        const TIPOS_INCIDENCIA = [
+            { value: "accidente",         label: "Accidente",            sev: "alta"  },
+            { value: "robo",              label: "Robo / Asalto",        sev: "alta"  },
+            { value: "descompostura",     label: "Descompostura",        sev: "media" },
+            { value: "pinchazo",          label: "Pinchazo",             sev: "baja"  },
+            { value: "retraso_trafico",   label: "Retraso por tráfico",  sev: "baja"  },
+            { value: "retraso_cliente",   label: "Retraso por cliente",  sev: "media" },
+            { value: "clima",             label: "Condición climática",  sev: "media" },
+            { value: "documentacion",     label: "Problema documental",  sev: "media" },
+            { value: "otro",              label: "Otro",                 sev: "baja"  },
+        ];
+
+        const SEV_CONFIG = {
+            alta:  { cls: "bg-red-100 text-red-800 border-red-300",    icon: "🔴" },
+            media: { cls: "bg-amber-100 text-amber-800 border-amber-300", icon: "🟡" },
+            baja:  { cls: "bg-gray-100 text-gray-700 border-gray-300",    icon: "🟢" },
+        };
+
+        function _seccionIncidencias(t, viajeId, estadoViaje) {
+            const incidencias = t.incidencias || [];
+            const esLectorInc = String(userRole || "").toLowerCase() === "lector";
+            const puedeAgregar = !esLectorInc && estadoViaje !== "cancelado";
+            const formId = `form-inc-${t.id}`;
+
+            const listaHtml = incidencias.length === 0
+                ? `<p class="text-xs text-gray-400 italic px-1">Sin incidencias registradas</p>`
+                : incidencias.map(inc => {
+                    const sev = SEV_CONFIG[inc.severidad] || SEV_CONFIG.baja;
+                    return `
+                    <div class="flex items-start gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                        <span class="text-sm mt-0.5">${sev.icon}</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs font-semibold text-gray-800">${escapeHtml(inc.tipo)}</span>
+                                <span class="text-xs border rounded-full px-1.5 ${sev.cls}">${inc.severidad}</span>
+                                <span class="text-xs text-gray-400">${_fmtDt(inc.fecha)}</span>
+                            </div>
+                            ${inc.direccion ? `<div class="text-xs text-gray-500 mt-0.5">📍 ${escapeHtml(inc.direccion)}</div>` : ""}
+                            ${inc.notas     ? `<div class="text-xs text-gray-500 mt-0.5 italic">${escapeHtml(inc.notas)}</div>` : ""}
+                        </div>
+                        ${puedeAgregar ? `
+                        <button onclick="eliminarIncidencia(${viajeId},${t.id},${inc.id})"
+                                title="Eliminar"
+                                class="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors text-sm">✕</button>` : ""}
+                    </div>`;
+                }).join("");
+
+            const tiposOpts = TIPOS_INCIDENCIA.map(tp =>
+                `<option value="${tp.value}" data-sev="${tp.sev}">${tp.label}</option>`
+            ).join("");
+
+            const formHtml = puedeAgregar ? `
+                <div id="${formId}" class="hidden mt-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-0.5">Tipo *</label>
+                            <select id="${formId}-tipo"
+                                    onchange="_autoSeveridad('${formId}')"
+                                    class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400">
+                                <option value="">— Seleccionar —</option>
+                                ${tiposOpts}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-0.5">Severidad</label>
+                            <select id="${formId}-sev"
+                                    class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400">
+                                <option value="alta">🔴 Alta</option>
+                                <option value="media" selected>🟡 Media</option>
+                                <option value="baja">🟢 Baja</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-0.5">Fecha y hora *</label>
+                            <input type="datetime-local" id="${formId}-fecha"
+                                   value="${new Date().toISOString().slice(0,16)}"
+                                   class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-0.5">Dirección / Ubicación</label>
+                            <input type="text" id="${formId}-dir" placeholder="Km 145 MEX-150D"
+                                   class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400"/>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs text-gray-500 mb-0.5">Notas</label>
+                            <textarea id="${formId}-notas" rows="2" placeholder="Descripción adicional..."
+                                      class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400 resize-none"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 justify-end">
+                        <button onclick="document.getElementById('${formId}').classList.add('hidden')"
+                                class="text-xs px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">
+                            Cancelar
+                        </button>
+                        <button onclick="guardarIncidencia(${viajeId},${t.id},'${formId}')"
+                                class="text-xs px-3 py-1 rounded bg-red-600 text-white font-semibold hover:bg-red-700">
+                            Guardar
+                        </button>
+                    </div>
+                </div>` : "";
+
+            const btnAgregar = puedeAgregar ? `
+                <button onclick="document.getElementById('${formId}').classList.toggle('hidden')"
+                        class="mt-1.5 text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1">
+                    ＋ Agregar incidencia
+                </button>` : "";
+
+            const headerColor = incidencias.length === 0
+                ? "bg-gray-50 border-gray-200 text-gray-500"
+                : incidencias.some(i => i.severidad === "alta")
+                  ? "bg-red-50 border-red-200 text-red-700"
+                  : incidencias.some(i => i.severidad === "media")
+                    ? "bg-amber-50 border-amber-200 text-amber-700"
+                    : "bg-gray-50 border-gray-200 text-gray-600";
+
+            const badge = incidencias.length === 0
+                ? `<span class="text-xs text-gray-400 italic">Sin incidencias</span>`
+                : `<span class="text-xs font-semibold">${incidencias.length} incidencia${incidencias.length > 1 ? "s" : ""}</span>`;
+
+            return `
+            <div class="mt-2 border rounded-lg overflow-hidden ${headerColor.split(' ').filter(c=>c.startsWith('border')).join(' ')}">
+                <div class="flex items-center justify-between px-2.5 py-1.5 ${headerColor}">
+                    <span class="text-xs font-semibold">⚠️ Incidencias</span>
+                    ${badge}
+                </div>
+                <div class="px-3 py-2 bg-white">
+                    ${listaHtml}
+                    ${btnAgregar}
+                    ${formHtml}
+                </div>
+            </div>`;
+        }
+
+        function _autoSeveridad(formId) {
+            const tipoEl = document.getElementById(`${formId}-tipo`);
+            const sevEl  = document.getElementById(`${formId}-sev`);
+            if (!tipoEl || !sevEl) return;
+            const opt = tipoEl.options[tipoEl.selectedIndex];
+            if (opt?.dataset?.sev) sevEl.value = opt.dataset.sev;
+        }
+
+        async function guardarIncidencia(viajeId, tramoId, formId) {
+            const tipo  = document.getElementById(`${formId}-tipo`)?.value;
+            const sev   = document.getElementById(`${formId}-sev`)?.value;
+            const fecha = document.getElementById(`${formId}-fecha`)?.value;
+            const dir   = document.getElementById(`${formId}-dir`)?.value || "";
+            const notas = document.getElementById(`${formId}-notas`)?.value || "";
+
+            if (!tipo)  { alert("Selecciona el tipo de incidencia."); return; }
+            if (!fecha) { alert("La fecha es requerida."); return; }
+
+            try {
+                const res = await fetch(
+                    "/bitacora_tracker/src/api/viajes.php?action=agregar_incidencia",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${bitacoraAuthToken}`,
+                        },
+                        body: JSON.stringify({
+                            tramo_id:  tramoId,
+                            tipo:      TIPOS_INCIDENCIA.find(t => t.value === tipo)?.label || tipo,
+                            severidad: sev,
+                            fecha:     fecha,
+                            direccion: dir,
+                            notas:     notas,
+                        }),
+                    }
+                );
+                const json = await res.json();
+                if (!res.ok || !json.ok) throw new Error(json.error || "Error guardando");
+
+                // Actualizar estado local
+                const idxViaje = allViajesData.findIndex(v => v.viaje_id === viajeId);
+                if (idxViaje !== -1) {
+                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(t => t.id === tramoId);
+                    if (idxTramo !== -1) {
+                        if (!allViajesData[idxViaje].tramos[idxTramo].incidencias)
+                            allViajesData[idxViaje].tramos[idxTramo].incidencias = [];
+                        allViajesData[idxViaje].tramos[idxTramo].incidencias.push(json.incidencia);
+                    }
+                }
+                renderViajes();
+            } catch(e) {
+                alert(`Error: ${e.message}`);
+                console.error("guardarIncidencia:", e);
+            }
+        }
+
+        async function eliminarIncidencia(viajeId, tramoId, incidenciaId) {
+            if (!confirm("¿Eliminar esta incidencia?")) return;
+            try {
+                const res = await fetch(
+                    "/bitacora_tracker/src/api/viajes.php?action=eliminar_incidencia",
+                    {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${bitacoraAuthToken}`,
+                        },
+                        body: JSON.stringify({ incidencia_id: incidenciaId }),
+                    }
+                );
+                const json = await res.json();
+                if (!res.ok || !json.ok) throw new Error(json.error || "Error eliminando");
+
+                // Actualizar estado local
+                const idxViaje = allViajesData.findIndex(v => v.viaje_id === viajeId);
+                if (idxViaje !== -1) {
+                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(t => t.id === tramoId);
+                    if (idxTramo !== -1) {
+                        allViajesData[idxViaje].tramos[idxTramo].incidencias =
+                            allViajesData[idxViaje].tramos[idxTramo].incidencias.filter(
+                                i => i.id !== incidenciaId
+                            );
+                    }
+                }
+                renderViajes();
+            } catch(e) {
+                alert(`Error: ${e.message}`);
+                console.error("eliminarIncidencia:", e);
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
 
         function _renderTramosDetalle(viaje) {
             const tramos = viaje.tramos || [];
@@ -7658,8 +7935,10 @@
                 cancelado: "bg-red-100 text-red-600",
             };
 
-            // Genera botones de acción para cada tramo
+            // Genera botones de acción para cada tramo (ocultos para lector)
+            const esLectorTramo = String(userRole || "").toLowerCase() === "lector";
             function _botonesTramo(t) {
+                if (esLectorTramo) return "";
                 if (estadoViaje === "cancelado") return "";
                 const tid = t.id;
                 const vid = viajeId;
@@ -7746,6 +8025,9 @@
                                           const btnClr    = tarde
                                               ? "text-red-600 border-red-200 bg-red-50 hover:bg-red-100"
                                               : "text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100";
+                                          const realTexto = real
+                                              ? `<span class="font-mono ${tarde ? "text-red-700 font-bold" : "text-gray-700"}">${_fmtDt(real)}${tarde ? " ⚠️" : ""}</span>`
+                                              : `<span class="text-gray-300 italic">Sin registrar</span>`;
                                           return `
                                 <div class="col-span-1 flex flex-col gap-0.5 border rounded p-1.5 ${cardBg}">
                                     <div class="flex items-center gap-1 text-xs">
@@ -7758,7 +8040,9 @@
                                     </div>
                                     <div class="flex items-center gap-1 pl-1">
                                         <span class="text-xs text-gray-500 w-20 flex-shrink-0">Real:</span>
-                                        <input type="datetime-local"
+                                        ${esLectorTramo
+                                            ? `<span class="text-xs">${realTexto}</span>`
+                                            : `<input type="datetime-local"
                                                id="ft-${t.id}-${campoReal}"
                                                value="${toInputVal(real)}"
                                                onchange="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',this)"
@@ -7767,7 +8051,8 @@
                                                 title="Registrar hora actual"
                                                 class="flex-shrink-0 text-xs border rounded px-1.5 py-0.5 font-bold transition-colors ${btnClr}">
                                             ↺
-                                        </button>
+                                        </button>`
+                                        }
                                     </div>
                                 </div>`;
                                       }).join("");
@@ -7783,6 +8068,8 @@
                                         <span>${r.campo} vencida hace <b>${_fmtRetraso(r.ms)}</b> — sin registrar</span>
                                     </div>`;
                         })()}
+                        ${!apagado ? _seccionGps(t, viajeId) : ""}
+                        ${_seccionIncidencias(t, viajeId, estadoViaje)}
                         ${_botonesTramo(t) ? `<div class="flex gap-2 mt-2">${_botonesTramo(t)}</div>` : ""}
                     </div>
                 </div>`;
@@ -7916,6 +8203,11 @@
                         });
                 }, 50);
             }
+        }
+
+        function toggleGrupoCliente(clienteKey) {
+            gruposColapsados[clienteKey] = !gruposColapsados[clienteKey];
+            renderViajes();
         }
 
         async function recargarViajes() {
