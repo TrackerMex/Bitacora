@@ -71,7 +71,8 @@ try {
 
     $estados_validos = ["planificado", "en_curso", "completado", "cancelado"];
 
-    $where = ["c.activo = 1", "u.activo = 1"];
+    // Excluir registros eliminados (soft-delete) → solo viven en la tab Papelera
+    $where = ["c.activo = 1", "u.activo = 1", "v.eliminado_at IS NULL"];
     $types = "";
     $params = [];
 

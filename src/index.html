@@ -350,7 +350,9 @@
                     class="text-lg font-semibold text-gray-700"
                 >
                     Cliente:
-                    <span id="cliente-display-name" class="text-gray-900">N/A</span>
+                    <span id="cliente-display-name" class="text-gray-900"
+                        >N/A</span
+                    >
                 </div>
                 <div class="text-sm text-gray-400 italic">
                     Sistema de Monitoreo de Viajes
@@ -392,6 +394,13 @@
                     onclick="changeTab(4)"
                 >
                     Informes Guardados
+                </button>
+                <button
+                    id="tab-btn-5"
+                    class="tab-btn text-gray-500 hidden"
+                    onclick="changeTab(5)"
+                >
+                    🗑️ Papelera
                 </button>
             </div>
 
@@ -880,6 +889,35 @@
                     </div>
                 </div>
 
+                <!-- ── TAB 5: Papelera (solo admin) ── -->
+                <div id="tab-5" class="tab-content-item hidden">
+                    <div
+                        class="flex items-center justify-between flex-wrap gap-3 mb-4"
+                    >
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800">
+                                🗑️ Papelera
+                            </h2>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Registros eliminados por los clientes desde el
+                                planificador de flotas. Solo visualización.
+                            </p>
+                        </div>
+                        <button
+                            onclick="cargarPapelera()"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                        >
+                            Actualizar
+                        </button>
+                    </div>
+
+                    <div id="papelera-container" class="overflow-x-auto">
+                        <div class="text-center p-6">
+                            <p class="text-gray-500">Cargando papelera...</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="tab-1" class="tab-content-item hidden">
                     <h2 class="text-2xl font-semibold mb-4 text-gray-800">
                         Validaciones GPS y Accesorios
@@ -947,9 +985,10 @@
                         </div>
                     </div>
 
-                    <div id="validaciones-grid"
-                         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    </div>
+                    <div
+                        id="validaciones-grid"
+                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                    ></div>
                 </div>
 
                 <!-- ── TAB 8: VIAJES MULTI-TRAMO / MULTI-DÍA ── -->
@@ -2155,20 +2194,26 @@
         }
 
         function updateTabVisibility() {
-            const TAB_COUNT = 5; // 0=Viajes, 1=GPS, 2=KPIs, 3=Informe, 4=Informes Guardados
-            // Tabs permitidas para este usuario (si está vacío o no válido → todas)
-            const allowed = Array.isArray(userTabs) && userTabs.length > 0
-                ? userTabs.map(Number).filter(n => n >= 0 && n < TAB_COUNT)
-                : Array.from({ length: TAB_COUNT }, (_, i) => i);
+            const OPERATIVAS = 5;
+            const TAB_COUNT = 6;
+            const esAdmin = String(userRole || "").toLowerCase() === "admin";
+
+            const allowed =
+                Array.isArray(userTabs) && userTabs.length > 0
+                    ? userTabs
+                          .map(Number)
+                          .filter((n) => n >= 0 && n < OPERATIVAS)
+                    : Array.from({ length: OPERATIVAS }, (_, i) => i);
 
             for (let i = 0; i < TAB_COUNT; i++) {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
-                const permitida = allowed.includes(i);
+
+                const permitida = i === 5 ? esAdmin : allowed.includes(i);
                 if (btn) btn.classList.toggle("hidden", !permitida);
                 if (tab) tab.classList.add("hidden");
             }
-            // Activar la primera tab permitida
+
             const primera = allowed[0] ?? 0;
             changeTab(primera);
         }
@@ -2180,7 +2225,7 @@
                     .classList.remove("hidden");
                 return;
             }
-            const TAB_COUNT = 5; // 0=Viajes, 1=GPS, 2=KPIs, 3=Informe, 4=Informes Guardados
+            const TAB_COUNT = 6;
             for (let i = 0; i < TAB_COUNT; i++) {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
@@ -2193,14 +2238,20 @@
             if (index === 0) loadViajesFromDb();
             if (index === 1) renderValidacionesGPS();
             if (index === 2) {
-                if (filteredDespachosData.length === 0 && allViajesData.length === 0) {
-                    loadViajesFromDb();   // llenará filteredDespachosData vía adapter
+                if (
+                    filteredDespachosData.length === 0 &&
+                    allViajesData.length === 0
+                ) {
+                    loadViajesFromDb(); // llenará filteredDespachosData vía adapter
                 } else {
                     renderKPIs(filteredDespachosData);
                 }
             }
             if (index === 3) {
-                if (filteredDespachosData.length === 0 && allViajesData.length === 0) {
+                if (
+                    filteredDespachosData.length === 0 &&
+                    allViajesData.length === 0
+                ) {
                     loadViajesFromDb();
                 } else {
                     renderInforme(filteredDespachosData);
@@ -2208,6 +2259,7 @@
                 }
             }
             if (index === 4) cargarInformesGuardados();
+            if (index === 5) cargarPapelera();
         }
 
         function openModal(id) {
@@ -6433,6 +6485,101 @@
             sel.value = unidadesArray.includes(current) ? current : "";
         }
 
+        async function cargarPapelera() {
+            const container = document.getElementById("papelera-container");
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="text-center p-6">
+                  <p class="text-gray-500">Cargando papelera...</p>
+                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mt-2"></div>
+                </div>`;
+
+            try {
+                const res = await fetch(
+                    "/bitacora_/src/despachos/obtener_papelera.php",
+                    { cache: "no-store", headers: getAuthHeaders() },
+                );
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    throw new Error(
+                        `Respuesta inválida del servidor. Inicio: ${text.substring(0, 200)}`,
+                    );
+                }
+                if (!res.ok || !data?.success) {
+                    throw new Error(
+                        data?.message || `Error HTTP ${res.status}`,
+                    );
+                }
+
+                const rows = Array.isArray(data.data) ? data.data : [];
+                if (rows.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center p-10 bg-gray-50 rounded-lg">
+                          <p class="text-4xl mb-2">🗑️</p>
+                          <h3 class="text-lg font-medium text-gray-700">La papelera está vacía</h3>
+                          <p class="text-gray-500 mt-1">Aquí aparecerán los registros que los clientes eliminen.</p>
+                        </div>`;
+                    return;
+                }
+
+                const fmtFecha = (s) => {
+                    if (!s) return "—";
+                    try {
+                        return dayjs(s).format("DD/MM/YYYY HH:mm");
+                    } catch (e) {
+                        return s;
+                    }
+                };
+
+                container.innerHTML = `
+                    <p class="text-sm text-gray-500 mb-3">${rows.length} registro${rows.length !== 1 ? "s" : ""} eliminado${rows.length !== 1 ? "s" : ""}</p>
+                    <table class="min-w-full text-sm border rounded-lg overflow-hidden">
+                      <thead class="bg-gray-100">
+                        <tr>
+                          <th class="px-4 py-2 text-left">Folio</th>
+                          <th class="px-4 py-2 text-left">Cliente</th>
+                          <th class="px-4 py-2 text-left">Unidad</th>
+                          <th class="px-4 py-2 text-left">Tramos</th>
+                          <th class="px-4 py-2 text-left">Estado</th>
+                          <th class="px-4 py-2 text-left">Eliminado por</th>
+                          <th class="px-4 py-2 text-left">Fecha</th>
+                          <th class="px-4 py-2 text-left">Motivo</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y bg-white">
+                        ${rows
+                            .map(
+                                (r) => `
+                          <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2 font-semibold">${escapeHtml(r.folio)}</td>
+                            <td class="px-4 py-2">${escapeHtml(r.cliente)}</td>
+                            <td class="px-4 py-2">${escapeHtml(r.unidad)}</td>
+                            <td class="px-4 py-2 text-center">${r.total_tramos ?? 0}</td>
+                            <td class="px-4 py-2">
+                              <span class="bg-gray-200 text-gray-600 text-xs font-semibold px-2 py-0.5 rounded-full capitalize">${escapeHtml(r.estado)}</span>
+                            </td>
+                            <td class="px-4 py-2">${escapeHtml(r.eliminado_por)}</td>
+                            <td class="px-4 py-2 text-gray-600">${fmtFecha(r.eliminado_at)}</td>
+                            <td class="px-4 py-2 text-gray-500 text-xs">${escapeHtml(r.eliminado_motivo || "—")}</td>
+                          </tr>`,
+                            )
+                            .join("")}
+                      </tbody>
+                    </table>`;
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                      <p class="text-red-800 font-semibold">Error al cargar la papelera</p>
+                      <p class="text-red-700 text-sm mt-1">${escapeHtml(String(error.message || error))}</p>
+                      <button onclick="cargarPapelera()" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Reintentar</button>
+                    </div>`;
+            }
+        }
+
         async function cargarInformesGuardados() {
             const container = document.getElementById(
                 "informes-lista-container",
@@ -6886,11 +7033,11 @@
         }
         // GPS_ITEMS y _parseGpsEstado — declarados aquí para que renderValidacionesTable los use
         const GPS_ITEMS = [
-            { key: "gps_principal",  label: "GPS principal" },
+            { key: "gps_principal", label: "GPS principal" },
             { key: "gps_secundario", label: "GPS secundario" },
-            { key: "camara",         label: "Cámara" },
-            { key: "boton_panico",   label: "Botón de pánico" },
-            { key: "candado",        label: "Candado electrónico" },
+            { key: "camara", label: "Cámara" },
+            { key: "boton_panico", label: "Botón de pánico" },
+            { key: "candado", label: "Candado electrónico" },
         ];
 
         function _parseGpsEstado(raw) {
@@ -6899,10 +7046,12 @@
                 const arr = JSON.parse(raw);
                 if (Array.isArray(arr)) {
                     const map = {};
-                    arr.forEach(item => { map[item.key] = !!item.ok; });
+                    arr.forEach((item) => {
+                        map[item.key] = !!item.ok;
+                    });
                     return map;
                 }
-            } catch(e) {}
+            } catch (e) {}
             return {};
         }
 
@@ -6913,12 +7062,17 @@
         }
 
         function populateValidacionesFilters() {
-            const selectCliente = document.getElementById("validaciones-filtro-cliente");
+            const selectCliente = document.getElementById(
+                "validaciones-filtro-cliente",
+            );
             if (!selectCliente) return;
-            const clientes = [...new Set(allViajesData.map(v => v.cliente).filter(Boolean))].sort();
+            const clientes = [
+                ...new Set(allViajesData.map((v) => v.cliente).filter(Boolean)),
+            ].sort();
             const currentValue = selectCliente.value;
-            selectCliente.innerHTML = '<option value="">Todos los clientes</option>';
-            clientes.forEach(c => {
+            selectCliente.innerHTML =
+                '<option value="">Todos los clientes</option>';
+            clientes.forEach((c) => {
                 selectCliente.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
             });
             selectCliente.value = currentValue;
@@ -6932,42 +7086,58 @@
             const grid = document.getElementById("validaciones-grid");
             if (!grid) return;
 
-            const filtroUnidad  = (document.getElementById("validaciones-filtro-unidad")?.value  || "").trim().toLowerCase();
-            const filtroCliente =  document.getElementById("validaciones-filtro-cliente")?.value  || "";
-            const filtroEstado  =  document.getElementById("validaciones-filtro-estado")?.value   || "";
+            const filtroUnidad = (
+                document.getElementById("validaciones-filtro-unidad")?.value ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+            const filtroCliente =
+                document.getElementById("validaciones-filtro-cliente")?.value ||
+                "";
+            const filtroEstado =
+                document.getElementById("validaciones-filtro-estado")?.value ||
+                "";
 
             // Una card por tramo activo
             const filas = [];
-            allViajesData.forEach(v => {
+            allViajesData.forEach((v) => {
                 if (v.estado === "cancelado") return;
-                (v.tramos || []).forEach(t => {
+                (v.tramos || []).forEach((t) => {
                     if (t.estado === "cancelado") return;
                     filas.push({
-                        unidad:       v.unidad,
-                        placas:       v.placas,
-                        cliente:      v.cliente,
-                        operador:     v.operador,
-                        folio:        v.folio,
-                        tramo_num:    t.tramo_numero,
-                        tramo_id:     t.id,
-                        viaje_id:     v.viaje_id,
-                        gps_estado:   t.gps_estado,
-                        gps_ts:       t.gps_timestamp,
+                        unidad: v.unidad,
+                        placas: v.placas,
+                        cliente: v.cliente,
+                        operador: v.operador,
+                        folio: v.folio,
+                        tramo_num: t.tramo_numero,
+                        tramo_id: t.id,
+                        viaje_id: v.viaje_id,
+                        gps_estado: t.gps_estado,
+                        gps_ts: t.gps_timestamp,
                         tramo_estado: t.estado,
-                        origen:       t.origen,
-                        destino:      t.destino,
+                        origen: t.origen,
+                        destino: t.destino,
                     });
                 });
             });
 
-            let filtradas = filas.filter(f => {
-                if (filtroUnidad  && !f.unidad.toLowerCase().includes(filtroUnidad)) return false;
+            let filtradas = filas.filter((f) => {
+                if (
+                    filtroUnidad &&
+                    !f.unidad.toLowerCase().includes(filtroUnidad)
+                )
+                    return false;
                 if (filtroCliente && f.cliente !== filtroCliente) return false;
                 const estadoMap = _parseGpsEstado(f.gps_estado);
-                const todoOk    = GPS_ITEMS.every(g => estadoMap[g.key] === true);
-                const sinDatos  = !f.gps_estado;
-                if (filtroEstado === "validado"    && (sinDatos || !todoOk)) return false;
-                if (filtroEstado === "sin_validar" && !sinDatos)             return false;
+                const todoOk = GPS_ITEMS.every(
+                    (g) => estadoMap[g.key] === true,
+                );
+                const sinDatos = !f.gps_estado;
+                if (filtroEstado === "validado" && (sinDatos || !todoOk))
+                    return false;
+                if (filtroEstado === "sin_validar" && !sinDatos) return false;
                 return true;
             });
 
@@ -6979,45 +7149,61 @@
                 return;
             }
 
-            grid.innerHTML = filtradas.map(f => {
-                const estadoMap = _parseGpsEstado(f.gps_estado);
-                const todoOk    = GPS_ITEMS.every(g => estadoMap[g.key] === true);
-                const alguno    = GPS_ITEMS.some(g => estadoMap[g.key] !== undefined);
-                const sinDatos  = !f.gps_estado;
+            grid.innerHTML = filtradas
+                .map((f) => {
+                    const estadoMap = _parseGpsEstado(f.gps_estado);
+                    const todoOk = GPS_ITEMS.every(
+                        (g) => estadoMap[g.key] === true,
+                    );
+                    const alguno = GPS_ITEMS.some(
+                        (g) => estadoMap[g.key] !== undefined,
+                    );
+                    const sinDatos = !f.gps_estado;
 
-                // Colores del borde superior de la card según estado GPS
-                const topBar = sinDatos  ? "border-t-4 border-gray-300"
-                             : todoOk    ? "border-t-4 border-green-500"
-                                         : "border-t-4 border-amber-400";
+                    // Colores del borde superior de la card según estado GPS
+                    const topBar = sinDatos
+                        ? "border-t-4 border-gray-300"
+                        : todoOk
+                          ? "border-t-4 border-green-500"
+                          : "border-t-4 border-amber-400";
 
-                const badgeCls = sinDatos ? "bg-gray-100 text-gray-500"
-                               : todoOk   ? "bg-green-100 text-green-800"
-                                          : "bg-amber-100 text-amber-800";
-                const badgeTxt = sinDatos ? "Sin validar"
-                               : todoOk   ? "✅ Operativo"
-                                          : "⚠️ Con fallas";
+                    const badgeCls = sinDatos
+                        ? "bg-gray-100 text-gray-500"
+                        : todoOk
+                          ? "bg-green-100 text-green-800"
+                          : "bg-amber-100 text-amber-800";
+                    const badgeTxt = sinDatos
+                        ? "Sin validar"
+                        : todoOk
+                          ? "✅ Operativo"
+                          : "⚠️ Con fallas";
 
-                const tramoBadgeCls = {
-                    pendiente:  "bg-gray-100 text-gray-600",
-                    en_curso:   "bg-blue-100 text-blue-700",
-                    completado: "bg-green-100 text-green-700",
-                }[f.tramo_estado] || "bg-gray-100 text-gray-500";
+                    const tramoBadgeCls =
+                        {
+                            pendiente: "bg-gray-100 text-gray-600",
+                            en_curso: "bg-blue-100 text-blue-700",
+                            completado: "bg-green-100 text-green-700",
+                        }[f.tramo_estado] || "bg-gray-100 text-gray-500";
 
-                // Items GPS — icono + label con color según estado
-                const itemsHtml = GPS_ITEMS.map(g => {
-                    const val = estadoMap[g.key];
-                    const icon  = val === true  ? "✅" : val === false ? "❌" : "—";
-                    const txtCls = val === true  ? "text-green-700"
-                                 : val === false ? "text-red-600"
-                                                 : "text-gray-400";
-                    return `
+                    // Items GPS — icono + label con color según estado
+                    const itemsHtml = GPS_ITEMS.map((g) => {
+                        const val = estadoMap[g.key];
+                        const icon =
+                            val === true ? "✅" : val === false ? "❌" : "—";
+                        const txtCls =
+                            val === true
+                                ? "text-green-700"
+                                : val === false
+                                  ? "text-red-600"
+                                  : "text-gray-400";
+                        return `
                         <div class="flex items-center gap-1.5">
                             <span class="text-xs">${icon}</span>
                             <span class="text-xs ${txtCls}">${escapeHtml(g.label)}</span>
                         </div>`;
-                }).join("");
+                    }).join("");
 
-                return `
+                    return `
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 ${topBar} overflow-hidden flex flex-col">
                     <!-- Header -->
                     <div class="px-4 pt-3 pb-2 flex items-start justify-between gap-2">
@@ -7049,12 +7235,15 @@
 
                     <!-- Footer: timestamp -->
                     <div class="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
-                        ${f.gps_ts
-                            ? `🕐 Validado: ${_fmtDt(f.gps_ts)}`
-                            : `<span class="italic">Sin fecha de validación</span>`}
+                        ${
+                            f.gps_ts
+                                ? `🕐 Validado: ${_fmtDt(f.gps_ts)}`
+                                : `<span class="italic">Sin fecha de validación</span>`
+                        }
                     </div>
                 </div>`;
-            }).join("");
+                })
+                .join("");
         }
         (function init() {
             try {
@@ -7171,7 +7360,7 @@
                     // Fecha del tramo: preferir salida_patio, luego fecha_inicio del viaje
                     const fechaRaw = t.salida_patio || v.fecha_inicio || "";
                     const fechaProgramada = fechaRaw
-                        ? fechaRaw.split(" ")[0]   // "YYYY-MM-DD"
+                        ? fechaRaw.split(" ")[0] // "YYYY-MM-DD"
                         : "";
 
                     // Ruta del tramo: "Origen → Destino" o ruta explícita
@@ -7190,58 +7379,61 @@
                     // Incidencias: convertir severidad alta/media/baja → rojo/naranja/verde
                     const incidencias = (t.incidencias || []).map((inc) => ({
                         tipo: inc.tipo || "",
-                        severidad: SEV_MAP[String(inc.severidad || "").toLowerCase()] || "verde",
+                        severidad:
+                            SEV_MAP[
+                                String(inc.severidad || "").toLowerCase()
+                            ] || "verde",
                         fecha: inc.fecha || "",
                         direccion: inc.direccion || "",
                     }));
 
                     rows.push({
                         // Identificadores
-                        despachoId:    `${v.id}-${t.tramo_numero}`,
-                        clienteId:     v.cliente_id || "",
-                        unidadId:      v.unidad_id  || "",
-                        tramoNumero:   t.tramo_numero,
-                        folio:         v.folio || "",
+                        despachoId: `${v.id}-${t.tramo_numero}`,
+                        clienteId: v.cliente_id || "",
+                        unidadId: v.unidad_id || "",
+                        tramoNumero: t.tramo_numero,
+                        folio: v.folio || "",
 
                         // Fechas y clasificación
                         fechaProgramada,
-                        cliente:       v.cliente || "N/A",
-                        unidad:        v.unidad  || "N/A",
-                        placas:        v.placas  || "N/A",
-                        operador:      v.operador || "N/A",
-                        telefono:      v.telefono || "N/A",
+                        cliente: v.cliente || "N/A",
+                        unidad: v.unidad || "N/A",
+                        placas: v.placas || "N/A",
+                        operador: v.operador || "N/A",
+                        telefono: v.telefono || "N/A",
 
                         // Ruta
-                        ruta:          rutaTramo,
-                        origen:        t.origen  || "N/A",
-                        destino:       t.destino || "N/A",
-                        lugarCarga:    t.lugar_carga || "N/A",
+                        ruta: rutaTramo,
+                        origen: t.origen || "N/A",
+                        destino: t.destino || "N/A",
+                        lugarCarga: t.lugar_carga || "N/A",
                         instruccionesEspeciales: t.instrucciones || "",
 
                         // Citas programadas → calcularEstatusAutomatico las lee
-                        citaSalidaUnidad: t.salida_patio        || "",
-                        citaCarga:        t.cita_carga          || "",
-                        citaSalida:       t.salida_carga        || "",
-                        citaDescarga:     t.descarga_programada || "",
+                        citaSalidaUnidad: t.salida_patio || "",
+                        citaCarga: t.cita_carga || "",
+                        citaSalida: t.salida_carga || "",
+                        citaDescarga: t.descarga_programada || "",
 
                         // Tiempos reales → calcularEstatusAutomatico los lee
-                        realSalidaUnidad: t.salida_patio_real   || "",
-                        realCarga:        t.cita_carga_real     || "",
-                        realSalida:       t.salida_carga_real   || "",
-                        realDescarga:     t.descarga_real       || "",
+                        realSalidaUnidad: t.salida_patio_real || "",
+                        realCarga: t.cita_carga_real || "",
+                        realSalida: t.salida_carga_real || "",
+                        realDescarga: t.descarga_real || "",
 
                         // Estatus especial (cancelado)
                         estatus_especial: estatusEspecial,
-                        estatus:          estatusEspecial || "Programado",
+                        estatus: estatusEspecial || "Programado",
 
                         // GPS
-                        gpsValidacionEstado:     t.gps_estado     || "",
-                        gpsValidacionTimestamp:  t.gps_timestamp  || "",
+                        gpsValidacionEstado: t.gps_estado || "",
+                        gpsValidacionTimestamp: t.gps_timestamp || "",
 
                         // Incidencias (ya con severidad mapeada)
                         incidencias,
                         observaciones: t.instrucciones || "",
-                        lectorEmails:  "",
+                        lectorEmails: "",
                     });
                 });
             });
@@ -7323,24 +7515,39 @@
             const retraso = (prog, real) => {
                 if (!prog) return null;
                 const ref = real ? new Date(real).getTime() : ahora;
-                const ms  = ref - new Date(prog).getTime();
+                const ms = ref - new Date(prog).getTime();
                 return ms > 0 ? ms : null;
             };
 
             // Salida patio — aplica en pendiente y en_curso
             if (t.estado !== "completado") {
                 const ms = retraso(t.salida_patio, t.salida_patio_real);
-                if (ms) return { campo: "Salida patio", ms, tieneReal: !!t.salida_patio_real };
+                if (ms)
+                    return {
+                        campo: "Salida patio",
+                        ms,
+                        tieneReal: !!t.salida_patio_real,
+                    };
             }
             // Cita carga — aplica en en_curso
             if (t.estado === "en_curso") {
                 const ms = retraso(t.cita_carga, t.cita_carga_real);
-                if (ms) return { campo: "Cita carga", ms, tieneReal: !!t.cita_carga_real };
+                if (ms)
+                    return {
+                        campo: "Cita carga",
+                        ms,
+                        tieneReal: !!t.cita_carga_real,
+                    };
             }
             // Descarga — aplica en en_curso y completado
             {
                 const ms = retraso(t.descarga_programada, t.descarga_real);
-                if (ms) return { campo: "Descarga", ms, tieneReal: !!t.descarga_real };
+                if (ms)
+                    return {
+                        campo: "Descarga",
+                        ms,
+                        tieneReal: !!t.descarga_real,
+                    };
             }
             return null;
         }
@@ -7359,24 +7566,29 @@
         // Para monitoristas y lectores (un solo cliente) devuelve lista plana sin ruptura visual.
         function _renderViajesAgrupados(datos) {
             const esAdmin = String(userRole || "").toLowerCase() === "admin";
-            const clientesEnDatos = [...new Set(datos.map(v => v.cliente).filter(Boolean))];
+            const clientesEnDatos = [
+                ...new Set(datos.map((v) => v.cliente).filter(Boolean)),
+            ];
 
             // Sin agrupación: usuario con un solo cliente, o filtro ya aplicado a uno solo
             if (!esAdmin || clientesEnDatos.length <= 1) {
-                return datos.map(v => _renderViajeCard(v)).join("");
+                return datos.map((v) => _renderViajeCard(v)).join("");
             }
 
             // Ordenar los grupos: los que tienen retraso van primero
             const _grupoTieneRetraso = (grupo) =>
-                grupo.some(v =>
-                    v.estado !== "cancelado" &&
-                    (v.tramos || []).some(t => _calcRetrasoTramo(t) !== null)
+                grupo.some(
+                    (v) =>
+                        v.estado !== "cancelado" &&
+                        (v.tramos || []).some(
+                            (t) => _calcRetrasoTramo(t) !== null,
+                        ),
                 );
 
             const grupos = clientesEnDatos
-                .map(cliente => ({
+                .map((cliente) => ({
                     cliente,
-                    viajes: datos.filter(v => v.cliente === cliente),
+                    viajes: datos.filter((v) => v.cliente === cliente),
                 }))
                 .sort((a, b) => {
                     const ra = _grupoTieneRetraso(a.viajes) ? 0 : 1;
@@ -7384,29 +7596,37 @@
                     return ra - rb;
                 });
 
-            return grupos.map(({ cliente, viajes }) => {
-                const totalViajes  = viajes.length;
-                const conRetraso   = viajes.filter(v =>
-                    v.estado !== "cancelado" &&
-                    (v.tramos || []).some(t => _calcRetrasoTramo(t) !== null)
-                ).length;
-                const enCurso      = viajes.filter(v => v.estado === "en_curso").length;
-                const planificados = viajes.filter(v => v.estado === "planificado").length;
-                const colapsado    = !!gruposColapsados[cliente];
+            return grupos
+                .map(({ cliente, viajes }) => {
+                    const totalViajes = viajes.length;
+                    const conRetraso = viajes.filter(
+                        (v) =>
+                            v.estado !== "cancelado" &&
+                            (v.tramos || []).some(
+                                (t) => _calcRetrasoTramo(t) !== null,
+                            ),
+                    ).length;
+                    const enCurso = viajes.filter(
+                        (v) => v.estado === "en_curso",
+                    ).length;
+                    const planificados = viajes.filter(
+                        (v) => v.estado === "planificado",
+                    ).length;
+                    const colapsado = !!gruposColapsados[cliente];
 
-                const badgeRetraso = conRetraso
-                    ? `<span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">⚠️ ${conRetraso} con retraso</span>`
-                    : "";
-                const badgeEnCurso = enCurso
-                    ? `<span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">${enCurso} en curso</span>`
-                    : "";
-                const badgePlanif = planificados
-                    ? `<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">${planificados} planificado${planificados !== 1 ? "s" : ""}</span>`
-                    : "";
+                    const badgeRetraso = conRetraso
+                        ? `<span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">⚠️ ${conRetraso} con retraso</span>`
+                        : "";
+                    const badgeEnCurso = enCurso
+                        ? `<span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">${enCurso} en curso</span>`
+                        : "";
+                    const badgePlanif = planificados
+                        ? `<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">${planificados} planificado${planificados !== 1 ? "s" : ""}</span>`
+                        : "";
 
-                const clienteKey = escapeHtml(cliente).replace(/'/g, "\\'");
+                    const clienteKey = escapeHtml(cliente).replace(/'/g, "\\'");
 
-                return `
+                    return `
                     <div class="mb-7">
                         <div class="flex items-center justify-between gap-2 flex-wrap mb-2 px-1 border-b-2 border-blue-900 pb-2
                                     cursor-pointer select-none hover:opacity-80 transition-opacity"
@@ -7423,9 +7643,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </div>
-                        ${colapsado ? "" : viajes.map(v => _renderViajeCard(v)).join("")}
+                        ${colapsado ? "" : viajes.map((v) => _renderViajeCard(v)).join("")}
                     </div>`;
-            }).join("");
+                })
+                .join("");
         }
 
         function _renderViajeCard(v) {
@@ -7436,8 +7657,7 @@
                 .map((t) => ({ t, retraso: _calcRetrasoTramo(t) }))
                 .filter((x) => x.retraso !== null);
             const tieneRetraso =
-                tramosConRetraso.length > 0 &&
-                v.estado !== "cancelado";
+                tramosConRetraso.length > 0 && v.estado !== "cancelado";
 
             // Retraso "confirmado": viaje completado con al menos una hora real > programada
             const retrasoConfirmado =
@@ -7459,10 +7679,10 @@
                        ⚠️ Completado con retraso
                    </span>`
                 : tieneRetraso
-                ? `<span class="ml-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+                  ? `<span class="ml-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
                        ⚠️ ${tramosConRetraso.length > 1 ? tramosConRetraso.length + " retrasos" : "Retraso"}
                    </span>`
-                : "";
+                  : "";
 
             const multiDiaBadge = v.es_multi_dia
                 ? `<span class="ml-1 bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-full">Multi-día</span>`
@@ -7495,7 +7715,8 @@
 
             const btnCompletar =
                 !esLector &&
-                v.estado !== "completado" && v.estado !== "cancelado"
+                v.estado !== "completado" &&
+                v.estado !== "cancelado"
                     ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)"
                            class="text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-1 rounded-full font-semibold transition-colors">
                        ✅ Completar
@@ -7503,14 +7724,12 @@
                     : "";
 
             const btnCancelar =
-                !esLector &&
-                v.estado !== "cancelado"
+                !esLector && v.estado !== "cancelado"
                     ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)"
                            class="text-xs bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-full font-semibold transition-colors ml-auto">
                        ✕ Cancelar viaje
                    </button>`
                     : "";
-
 
             return `
             <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden mb-3" data-viaje-id="${v.viaje_id}">
@@ -7560,13 +7779,17 @@
                     expandido
                         ? `
                 <div class="border-t border-gray-100 bg-gray-50 px-4 pb-4 pt-3">
-                    ${!esLector ? `
+                    ${
+                        !esLector
+                            ? `
                     <div class="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-gray-200">
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cambiar estado:</span>
                         ${btnEnCurso}
                         ${btnCompletar}
                         ${btnCancelar}
-                    </div>` : ""}
+                    </div>`
+                            : ""
+                    }
                     ${tramosHtml}
                 </div>`
                         : ""
@@ -7577,13 +7800,12 @@
         // ── GPS por tramo ─────────────────────────────────────────────────────
 
         function _seccionGps(t, viajeId) {
-
             const estado = _parseGpsEstado(t.gps_estado);
-            const ts     = t.gps_timestamp
+            const ts = t.gps_timestamp
                 ? `<span class="text-gray-400 text-xs ml-1">— ${_fmtDt(t.gps_timestamp)}</span>`
                 : "";
-            const todoOk = GPS_ITEMS.every(g => estado[g.key] === true);
-            const alguno = GPS_ITEMS.some(g => estado[g.key] !== undefined);
+            const todoOk = GPS_ITEMS.every((g) => estado[g.key] === true);
+            const alguno = GPS_ITEMS.some((g) => estado[g.key] !== undefined);
 
             const headerColor = !alguno
                 ? "bg-gray-50 border-gray-200 text-gray-500"
@@ -7597,12 +7819,18 @@
                   ? `<span class="text-xs font-semibold text-green-700">✅ Operativo</span>`
                   : `<span class="text-xs font-semibold text-amber-600">⚠️ Con fallas</span>`;
 
-            const esLectorGps = String(userRole || "").toLowerCase() === "lector";
-            const items = GPS_ITEMS.map(g => {
+            const esLectorGps =
+                String(userRole || "").toLowerCase() === "lector";
+            const items = GPS_ITEMS.map((g) => {
                 const checked = estado[g.key] === true ? "checked" : "";
                 if (esLectorGps) {
                     // Solo lectura: icono de estado, sin checkbox interactivo
-                    const icon = estado[g.key] === true ? "✅" : estado[g.key] === false ? "❌" : "—";
+                    const icon =
+                        estado[g.key] === true
+                            ? "✅"
+                            : estado[g.key] === false
+                              ? "❌"
+                              : "—";
                     return `
                 <span class="flex items-center gap-1.5 text-xs text-gray-600">
                     <span>${icon}</span>
@@ -7617,12 +7845,15 @@
                            data-viaje-id="${viajeId}"
                            class="gps-check w-3.5 h-3.5 rounded accent-blue-600"
                            onchange="guardarGpsTramo(${viajeId}, ${t.id})"/>
-                    <span class="${checked ? 'text-gray-800' : 'text-gray-500'}">${g.label}</span>
+                    <span class="${checked ? "text-gray-800" : "text-gray-500"}">${g.label}</span>
                 </label>`;
             }).join("");
 
             return `
-            <div class="mt-2 border rounded-lg overflow-hidden ${headerColor.split(' ').filter(c=>c.startsWith('border')).join(' ')}">
+            <div class="mt-2 border rounded-lg overflow-hidden ${headerColor
+                .split(" ")
+                .filter((c) => c.startsWith("border"))
+                .join(" ")}">
                 <div class="flex items-center justify-between px-2.5 py-1.5 ${headerColor}">
                     <div class="flex items-center gap-1.5">
                         <span class="text-xs font-semibold">📡 GPS & Accesorios</span>
@@ -7639,11 +7870,11 @@
         async function guardarGpsTramo(viajeId, tramoId) {
             // Recolectar estado de todos los checkboxes de este tramo
             const checks = document.querySelectorAll(
-                `input.gps-check[data-tramo-id="${tramoId}"]`
+                `input.gps-check[data-tramo-id="${tramoId}"]`,
             );
-            const gpsEstado = GPS_ITEMS.map(g => {
+            const gpsEstado = GPS_ITEMS.map((g) => {
                 const el = document.querySelector(
-                    `input.gps-check[data-tramo-id="${tramoId}"][data-gps-key="${g.key}"]`
+                    `input.gps-check[data-tramo-id="${tramoId}"][data-gps-key="${g.key}"]`,
                 );
                 return { key: g.key, ok: el ? el.checked : false };
             });
@@ -7658,25 +7889,32 @@
                             Authorization: `Bearer ${bitacoraAuthToken}`,
                         },
                         body: JSON.stringify({
-                            tramo_id:   tramoId,
+                            tramo_id: tramoId,
                             gps_estado: gpsEstado,
                         }),
-                    }
+                    },
                 );
                 const json = await res.json();
-                if (!res.ok || !json.ok) throw new Error(json.error || "Error GPS");
+                if (!res.ok || !json.ok)
+                    throw new Error(json.error || "Error GPS");
 
                 // Actualizar estado local
-                const idxViaje = allViajesData.findIndex(v => v.viaje_id === viajeId);
+                const idxViaje = allViajesData.findIndex(
+                    (v) => v.viaje_id === viajeId,
+                );
                 if (idxViaje !== -1) {
-                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(t => t.id === tramoId);
+                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(
+                        (t) => t.id === tramoId,
+                    );
                     if (idxTramo !== -1) {
-                        allViajesData[idxViaje].tramos[idxTramo].gps_estado    = json.tramo.gps_estado;
-                        allViajesData[idxViaje].tramos[idxTramo].gps_timestamp = json.tramo.gps_timestamp;
+                        allViajesData[idxViaje].tramos[idxTramo].gps_estado =
+                            json.tramo.gps_estado;
+                        allViajesData[idxViaje].tramos[idxTramo].gps_timestamp =
+                            json.tramo.gps_timestamp;
                     }
                 }
                 renderViajes();
-            } catch(e) {
+            } catch (e) {
                 console.error("guardarGpsTramo:", e);
             }
         }
@@ -7684,34 +7922,56 @@
         // ── Incidencias por tramo ────────────────────────────────────────────
 
         const TIPOS_INCIDENCIA = [
-            { value: "accidente",         label: "Accidente",            sev: "alta"  },
-            { value: "robo",              label: "Robo / Asalto",        sev: "alta"  },
-            { value: "descompostura",     label: "Descompostura",        sev: "media" },
-            { value: "pinchazo",          label: "Pinchazo",             sev: "baja"  },
-            { value: "retraso_trafico",   label: "Retraso por tráfico",  sev: "baja"  },
-            { value: "retraso_cliente",   label: "Retraso por cliente",  sev: "media" },
-            { value: "clima",             label: "Condición climática",  sev: "media" },
-            { value: "documentacion",     label: "Problema documental",  sev: "media" },
-            { value: "otro",              label: "Otro",                 sev: "baja"  },
+            { value: "accidente", label: "Accidente", sev: "alta" },
+            { value: "robo", label: "Robo / Asalto", sev: "alta" },
+            { value: "descompostura", label: "Descompostura", sev: "media" },
+            { value: "pinchazo", label: "Pinchazo", sev: "baja" },
+            {
+                value: "retraso_trafico",
+                label: "Retraso por tráfico",
+                sev: "baja",
+            },
+            {
+                value: "retraso_cliente",
+                label: "Retraso por cliente",
+                sev: "media",
+            },
+            { value: "clima", label: "Condición climática", sev: "media" },
+            {
+                value: "documentacion",
+                label: "Problema documental",
+                sev: "media",
+            },
+            { value: "otro", label: "Otro", sev: "baja" },
         ];
 
         const SEV_CONFIG = {
-            alta:  { cls: "bg-red-100 text-red-800 border-red-300",    icon: "🔴" },
-            media: { cls: "bg-amber-100 text-amber-800 border-amber-300", icon: "🟡" },
-            baja:  { cls: "bg-gray-100 text-gray-700 border-gray-300",    icon: "🟢" },
+            alta: { cls: "bg-red-100 text-red-800 border-red-300", icon: "🔴" },
+            media: {
+                cls: "bg-amber-100 text-amber-800 border-amber-300",
+                icon: "🟡",
+            },
+            baja: {
+                cls: "bg-gray-100 text-gray-700 border-gray-300",
+                icon: "🟢",
+            },
         };
 
         function _seccionIncidencias(t, viajeId, estadoViaje) {
             const incidencias = t.incidencias || [];
-            const esLectorInc = String(userRole || "").toLowerCase() === "lector";
+            const esLectorInc =
+                String(userRole || "").toLowerCase() === "lector";
             const puedeAgregar = !esLectorInc && estadoViaje !== "cancelado";
             const formId = `form-inc-${t.id}`;
 
-            const listaHtml = incidencias.length === 0
-                ? `<p class="text-xs text-gray-400 italic px-1">Sin incidencias registradas</p>`
-                : incidencias.map(inc => {
-                    const sev = SEV_CONFIG[inc.severidad] || SEV_CONFIG.baja;
-                    return `
+            const listaHtml =
+                incidencias.length === 0
+                    ? `<p class="text-xs text-gray-400 italic px-1">Sin incidencias registradas</p>`
+                    : incidencias
+                          .map((inc) => {
+                              const sev =
+                                  SEV_CONFIG[inc.severidad] || SEV_CONFIG.baja;
+                              return `
                     <div class="flex items-start gap-2 py-1.5 border-b border-gray-100 last:border-0">
                         <span class="text-sm mt-0.5">${sev.icon}</span>
                         <div class="flex-1 min-w-0">
@@ -7721,20 +7981,27 @@
                                 <span class="text-xs text-gray-400">${_fmtDt(inc.fecha)}</span>
                             </div>
                             ${inc.direccion ? `<div class="text-xs text-gray-500 mt-0.5">📍 ${escapeHtml(inc.direccion)}</div>` : ""}
-                            ${inc.notas     ? `<div class="text-xs text-gray-500 mt-0.5 italic">${escapeHtml(inc.notas)}</div>` : ""}
+                            ${inc.notas ? `<div class="text-xs text-gray-500 mt-0.5 italic">${escapeHtml(inc.notas)}</div>` : ""}
                         </div>
-                        ${puedeAgregar ? `
+                        ${
+                            puedeAgregar
+                                ? `
                         <button onclick="eliminarIncidencia(${viajeId},${t.id},${inc.id})"
                                 title="Eliminar"
-                                class="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors text-sm">✕</button>` : ""}
+                                class="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors text-sm">✕</button>`
+                                : ""
+                        }
                     </div>`;
-                }).join("");
+                          })
+                          .join("");
 
-            const tiposOpts = TIPOS_INCIDENCIA.map(tp =>
-                `<option value="${tp.value}" data-sev="${tp.sev}">${tp.label}</option>`
+            const tiposOpts = TIPOS_INCIDENCIA.map(
+                (tp) =>
+                    `<option value="${tp.value}" data-sev="${tp.sev}">${tp.label}</option>`,
             ).join("");
 
-            const formHtml = puedeAgregar ? `
+            const formHtml = puedeAgregar
+                ? `
                 <div id="${formId}" class="hidden mt-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                         <div>
@@ -7758,7 +8025,7 @@
                         <div>
                             <label class="block text-xs text-gray-500 mb-0.5">Fecha y hora *</label>
                             <input type="datetime-local" id="${formId}-fecha"
-                                   value="${new Date().toISOString().slice(0,16)}"
+                                   value="${new Date().toISOString().slice(0, 16)}"
                                    class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400"/>
                         </div>
                         <div>
@@ -7782,28 +8049,36 @@
                             Guardar
                         </button>
                     </div>
-                </div>` : "";
+                </div>`
+                : "";
 
-            const btnAgregar = puedeAgregar ? `
+            const btnAgregar = puedeAgregar
+                ? `
                 <button onclick="document.getElementById('${formId}').classList.toggle('hidden')"
                         class="mt-1.5 text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1">
                     ＋ Agregar incidencia
-                </button>` : "";
+                </button>`
+                : "";
 
-            const headerColor = incidencias.length === 0
-                ? "bg-gray-50 border-gray-200 text-gray-500"
-                : incidencias.some(i => i.severidad === "alta")
-                  ? "bg-red-50 border-red-200 text-red-700"
-                  : incidencias.some(i => i.severidad === "media")
-                    ? "bg-amber-50 border-amber-200 text-amber-700"
-                    : "bg-gray-50 border-gray-200 text-gray-600";
+            const headerColor =
+                incidencias.length === 0
+                    ? "bg-gray-50 border-gray-200 text-gray-500"
+                    : incidencias.some((i) => i.severidad === "alta")
+                      ? "bg-red-50 border-red-200 text-red-700"
+                      : incidencias.some((i) => i.severidad === "media")
+                        ? "bg-amber-50 border-amber-200 text-amber-700"
+                        : "bg-gray-50 border-gray-200 text-gray-600";
 
-            const badge = incidencias.length === 0
-                ? `<span class="text-xs text-gray-400 italic">Sin incidencias</span>`
-                : `<span class="text-xs font-semibold">${incidencias.length} incidencia${incidencias.length > 1 ? "s" : ""}</span>`;
+            const badge =
+                incidencias.length === 0
+                    ? `<span class="text-xs text-gray-400 italic">Sin incidencias</span>`
+                    : `<span class="text-xs font-semibold">${incidencias.length} incidencia${incidencias.length > 1 ? "s" : ""}</span>`;
 
             return `
-            <div class="mt-2 border rounded-lg overflow-hidden ${headerColor.split(' ').filter(c=>c.startsWith('border')).join(' ')}">
+            <div class="mt-2 border rounded-lg overflow-hidden ${headerColor
+                .split(" ")
+                .filter((c) => c.startsWith("border"))
+                .join(" ")}">
                 <div class="flex items-center justify-between px-2.5 py-1.5 ${headerColor}">
                     <span class="text-xs font-semibold">⚠️ Incidencias</span>
                     ${badge}
@@ -7818,21 +8093,28 @@
 
         function _autoSeveridad(formId) {
             const tipoEl = document.getElementById(`${formId}-tipo`);
-            const sevEl  = document.getElementById(`${formId}-sev`);
+            const sevEl = document.getElementById(`${formId}-sev`);
             if (!tipoEl || !sevEl) return;
             const opt = tipoEl.options[tipoEl.selectedIndex];
             if (opt?.dataset?.sev) sevEl.value = opt.dataset.sev;
         }
 
         async function guardarIncidencia(viajeId, tramoId, formId) {
-            const tipo  = document.getElementById(`${formId}-tipo`)?.value;
-            const sev   = document.getElementById(`${formId}-sev`)?.value;
+            const tipo = document.getElementById(`${formId}-tipo`)?.value;
+            const sev = document.getElementById(`${formId}-sev`)?.value;
             const fecha = document.getElementById(`${formId}-fecha`)?.value;
-            const dir   = document.getElementById(`${formId}-dir`)?.value || "";
-            const notas = document.getElementById(`${formId}-notas`)?.value || "";
+            const dir = document.getElementById(`${formId}-dir`)?.value || "";
+            const notas =
+                document.getElementById(`${formId}-notas`)?.value || "";
 
-            if (!tipo)  { alert("Selecciona el tipo de incidencia."); return; }
-            if (!fecha) { alert("La fecha es requerida."); return; }
+            if (!tipo) {
+                alert("Selecciona el tipo de incidencia.");
+                return;
+            }
+            if (!fecha) {
+                alert("La fecha es requerida.");
+                return;
+            }
 
             try {
                 const res = await fetch(
@@ -7844,30 +8126,44 @@
                             Authorization: `Bearer ${bitacoraAuthToken}`,
                         },
                         body: JSON.stringify({
-                            tramo_id:  tramoId,
-                            tipo:      TIPOS_INCIDENCIA.find(t => t.value === tipo)?.label || tipo,
+                            tramo_id: tramoId,
+                            tipo:
+                                TIPOS_INCIDENCIA.find((t) => t.value === tipo)
+                                    ?.label || tipo,
                             severidad: sev,
-                            fecha:     fecha,
+                            fecha: fecha,
                             direccion: dir,
-                            notas:     notas,
+                            notas: notas,
                         }),
-                    }
+                    },
                 );
                 const json = await res.json();
-                if (!res.ok || !json.ok) throw new Error(json.error || "Error guardando");
+                if (!res.ok || !json.ok)
+                    throw new Error(json.error || "Error guardando");
 
                 // Actualizar estado local
-                const idxViaje = allViajesData.findIndex(v => v.viaje_id === viajeId);
+                const idxViaje = allViajesData.findIndex(
+                    (v) => v.viaje_id === viajeId,
+                );
                 if (idxViaje !== -1) {
-                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(t => t.id === tramoId);
+                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(
+                        (t) => t.id === tramoId,
+                    );
                     if (idxTramo !== -1) {
-                        if (!allViajesData[idxViaje].tramos[idxTramo].incidencias)
-                            allViajesData[idxViaje].tramos[idxTramo].incidencias = [];
-                        allViajesData[idxViaje].tramos[idxTramo].incidencias.push(json.incidencia);
+                        if (
+                            !allViajesData[idxViaje].tramos[idxTramo]
+                                .incidencias
+                        )
+                            allViajesData[idxViaje].tramos[
+                                idxTramo
+                            ].incidencias = [];
+                        allViajesData[idxViaje].tramos[
+                            idxTramo
+                        ].incidencias.push(json.incidencia);
                     }
                 }
                 renderViajes();
-            } catch(e) {
+            } catch (e) {
                 alert(`Error: ${e.message}`);
                 console.error("guardarIncidencia:", e);
             }
@@ -7885,24 +8181,29 @@
                             Authorization: `Bearer ${bitacoraAuthToken}`,
                         },
                         body: JSON.stringify({ incidencia_id: incidenciaId }),
-                    }
+                    },
                 );
                 const json = await res.json();
-                if (!res.ok || !json.ok) throw new Error(json.error || "Error eliminando");
+                if (!res.ok || !json.ok)
+                    throw new Error(json.error || "Error eliminando");
 
                 // Actualizar estado local
-                const idxViaje = allViajesData.findIndex(v => v.viaje_id === viajeId);
+                const idxViaje = allViajesData.findIndex(
+                    (v) => v.viaje_id === viajeId,
+                );
                 if (idxViaje !== -1) {
-                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(t => t.id === tramoId);
+                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(
+                        (t) => t.id === tramoId,
+                    );
                     if (idxTramo !== -1) {
                         allViajesData[idxViaje].tramos[idxTramo].incidencias =
-                            allViajesData[idxViaje].tramos[idxTramo].incidencias.filter(
-                                i => i.id !== incidenciaId
-                            );
+                            allViajesData[idxViaje].tramos[
+                                idxTramo
+                            ].incidencias.filter((i) => i.id !== incidenciaId);
                     }
                 }
                 renderViajes();
-            } catch(e) {
+            } catch (e) {
                 alert(`Error: ${e.message}`);
                 console.error("eliminarIncidencia:", e);
             }
@@ -7936,7 +8237,8 @@
             };
 
             // Genera botones de acción para cada tramo (ocultos para lector)
-            const esLectorTramo = String(userRole || "").toLowerCase() === "lector";
+            const esLectorTramo =
+                String(userRole || "").toLowerCase() === "lector";
             function _botonesTramo(t) {
                 if (esLectorTramo) return "";
                 if (estadoViaje === "cancelado") return "";
@@ -8004,31 +8306,78 @@
                         ${
                             !apagado
                                 ? (() => {
-                                      const toInputVal = (v) => v ? v.replace(" ", "T").slice(0, 16) : "";
-                                      const fmtProg    = (v) => v ? _fmtDt(v) : '<span class="text-gray-300">—</span>';
+                                      const toInputVal = (v) =>
+                                          v
+                                              ? v.replace(" ", "T").slice(0, 16)
+                                              : "";
+                                      const fmtProg = (v) =>
+                                          v
+                                              ? _fmtDt(v)
+                                              : '<span class="text-gray-300">—</span>';
                                       // true si la hora real existe y llegó después de la programada
-                                      const esRetraso  = (prog, real) =>
-                                          prog && real && new Date(real) > new Date(prog);
+                                      const esRetraso = (prog, real) =>
+                                          prog &&
+                                          real &&
+                                          new Date(real) > new Date(prog);
                                       const campos = [
-                                          { campoReal: "salida_patio_real",  icon: "🚪", label: "Salida patio", prog: t.salida_patio,        real: t.salida_patio_real },
-                                          { campoReal: "cita_carga_real",    icon: "📦", label: "Cita carga",   prog: t.cita_carga,          real: t.cita_carga_real },
-                                          { campoReal: "salida_carga_real",  icon: "🚛", label: "Salida carga", prog: t.salida_carga,        real: t.salida_carga_real },
-                                          { campoReal: "descarga_real",      icon: "🏁", label: "Descarga",     prog: t.descarga_programada, real: t.descarga_real },
+                                          {
+                                              campoReal: "salida_patio_real",
+                                              icon: "🚪",
+                                              label: "Salida patio",
+                                              prog: t.salida_patio,
+                                              real: t.salida_patio_real,
+                                          },
+                                          {
+                                              campoReal: "cita_carga_real",
+                                              icon: "📦",
+                                              label: "Cita carga",
+                                              prog: t.cita_carga,
+                                              real: t.cita_carga_real,
+                                          },
+                                          {
+                                              campoReal: "salida_carga_real",
+                                              icon: "🚛",
+                                              label: "Salida carga",
+                                              prog: t.salida_carga,
+                                              real: t.salida_carga_real,
+                                          },
+                                          {
+                                              campoReal: "descarga_real",
+                                              icon: "🏁",
+                                              label: "Descarga",
+                                              prog: t.descarga_programada,
+                                              real: t.descarga_real,
+                                          },
                                       ];
-                                      const filas = campos.map(({ campoReal, icon, label, prog, real }) => {
-                                          const tarde = esRetraso(prog, real);
-                                          const cardBg    = tarde ? "bg-red-50 border-red-200"   : "bg-gray-50 border-gray-100";
-                                          const labelClr  = tarde ? "text-red-700 font-bold"     : "text-gray-600";
-                                          const inputClr  = tarde
-                                              ? "border-red-400 bg-red-50 text-red-700 focus:ring-red-400"
-                                              : "border-gray-200 bg-white focus:ring-blue-400";
-                                          const btnClr    = tarde
-                                              ? "text-red-600 border-red-200 bg-red-50 hover:bg-red-100"
-                                              : "text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100";
-                                          const realTexto = real
-                                              ? `<span class="font-mono ${tarde ? "text-red-700 font-bold" : "text-gray-700"}">${_fmtDt(real)}${tarde ? " ⚠️" : ""}</span>`
-                                              : `<span class="text-gray-300 italic">Sin registrar</span>`;
-                                          return `
+                                      const filas = campos
+                                          .map(
+                                              ({
+                                                  campoReal,
+                                                  icon,
+                                                  label,
+                                                  prog,
+                                                  real,
+                                              }) => {
+                                                  const tarde = esRetraso(
+                                                      prog,
+                                                      real,
+                                                  );
+                                                  const cardBg = tarde
+                                                      ? "bg-red-50 border-red-200"
+                                                      : "bg-gray-50 border-gray-100";
+                                                  const labelClr = tarde
+                                                      ? "text-red-700 font-bold"
+                                                      : "text-gray-600";
+                                                  const inputClr = tarde
+                                                      ? "border-red-400 bg-red-50 text-red-700 focus:ring-red-400"
+                                                      : "border-gray-200 bg-white focus:ring-blue-400";
+                                                  const btnClr = tarde
+                                                      ? "text-red-600 border-red-200 bg-red-50 hover:bg-red-100"
+                                                      : "text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100";
+                                                  const realTexto = real
+                                                      ? `<span class="font-mono ${tarde ? "text-red-700 font-bold" : "text-gray-700"}">${_fmtDt(real)}${tarde ? " ⚠️" : ""}</span>`
+                                                      : `<span class="text-gray-300 italic">Sin registrar</span>`;
+                                                  return `
                                 <div class="col-span-1 flex flex-col gap-0.5 border rounded p-1.5 ${cardBg}">
                                     <div class="flex items-center gap-1 text-xs">
                                         <span>${icon}</span>
@@ -8040,9 +8389,10 @@
                                     </div>
                                     <div class="flex items-center gap-1 pl-1">
                                         <span class="text-xs text-gray-500 w-20 flex-shrink-0">Real:</span>
-                                        ${esLectorTramo
-                                            ? `<span class="text-xs">${realTexto}</span>`
-                                            : `<input type="datetime-local"
+                                        ${
+                                            esLectorTramo
+                                                ? `<span class="text-xs">${realTexto}</span>`
+                                                : `<input type="datetime-local"
                                                id="ft-${t.id}-${campoReal}"
                                                value="${toInputVal(real)}"
                                                onchange="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',this)"
@@ -8055,7 +8405,9 @@
                                         }
                                     </div>
                                 </div>`;
-                                      }).join("");
+                                              },
+                                          )
+                                          .join("");
                                       return `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">${filas}</div>`;
                                   })()
                                 : ""
@@ -8414,10 +8766,18 @@
 
         // Guarda una hora REAL de un tramo (salida_patio_real, cita_carga_real, etc.)
         // Si usarAhora=true, toma la hora actual; si no, lee el valor del input.
-        async function guardarFechaTramo(viajeId, tramoId, campo, inputEl, usarAhora = false) {
+        async function guardarFechaTramo(
+            viajeId,
+            tramoId,
+            campo,
+            inputEl,
+            usarAhora = false,
+        ) {
             const camposValidos = [
-                "salida_patio_real", "cita_carga_real",
-                "salida_carga_real", "descarga_real",
+                "salida_patio_real",
+                "cita_carga_real",
+                "salida_carga_real",
+                "descarga_real",
             ];
             if (!camposValidos.includes(campo)) return;
 
@@ -8425,7 +8785,7 @@
             if (usarAhora) {
                 const ahora = new Date();
                 const pad = (n) => String(n).padStart(2, "0");
-                valor = `${ahora.getFullYear()}-${pad(ahora.getMonth()+1)}-${pad(ahora.getDate())}T${pad(ahora.getHours())}:${pad(ahora.getMinutes())}`;
+                valor = `${ahora.getFullYear()}-${pad(ahora.getMonth() + 1)}-${pad(ahora.getDate())}T${pad(ahora.getHours())}:${pad(ahora.getMinutes())}`;
                 const inp = document.getElementById(`ft-${tramoId}-${campo}`);
                 if (inp) inp.value = valor;
             } else {
@@ -8439,25 +8799,38 @@
                     "/bitacora_tracker/src/api/viajes.php?action=actualizar_tramo",
                     {
                         method: "PUT",
-                        headers: getAuthHeaders({ "Content-Type": "application/json" }),
-                        body: JSON.stringify({ tramo_id: tramoId, [campo]: valorEnvio }),
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({
+                            tramo_id: tramoId,
+                            [campo]: valorEnvio,
+                        }),
                     },
                 );
                 const json = await res.json().catch(() => ({}));
 
                 if (!res.ok || !json.ok) {
-                    alert("No se pudo guardar: " + (json.error || `Error ${res.status}`));
+                    alert(
+                        "No se pudo guardar: " +
+                            (json.error || `Error ${res.status}`),
+                    );
                     return;
                 }
 
                 // Actualizar en memoria → alertas se recalculan al re-renderizar
-                const idxViaje = allViajesData.findIndex((v) => v.viaje_id === viajeId);
+                const idxViaje = allViajesData.findIndex(
+                    (v) => v.viaje_id === viajeId,
+                );
                 if (idxViaje !== -1 && allViajesData[idxViaje].tramos) {
-                    const idxTramo = allViajesData[idxViaje].tramos.findIndex((t) => t.id === tramoId);
+                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(
+                        (t) => t.id === tramoId,
+                    );
                     if (idxTramo !== -1) {
-                        allViajesData[idxViaje].tramos[idxTramo][campo] = valorEnvio
-                            ? valorEnvio.replace("T", " ") + ":00"
-                            : null;
+                        allViajesData[idxViaje].tramos[idxTramo][campo] =
+                            valorEnvio
+                                ? valorEnvio.replace("T", " ") + ":00"
+                                : null;
                     }
                 }
                 renderViajes();
