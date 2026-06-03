@@ -22,30 +22,250 @@
         />
 
         <style>
+            :root {
+                --color-page: oklch(0.967 0.006 255);
+                --color-panel: oklch(0.982 0.004 255);
+                --color-card: oklch(0.995 0.003 255);
+                --color-line: oklch(0.902 0.011 255);
+                --color-line-strong: oklch(0.842 0.017 255);
+                --color-text: oklch(0.21 0.026 255);
+                --color-muted: oklch(0.49 0.028 255);
+                --color-primary: oklch(0.54 0.22 278);
+                --color-primary-strong: oklch(0.49 0.23 278);
+                --shadow-resting: 0 1px 2px rgba(17, 24, 39, 0.06);
+                --shadow-overlay: 0 24px 70px rgba(17, 24, 39, 0.28);
+                --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            html {
+                -webkit-text-size-adjust: 100%;
+            }
             body {
                 font-family: Inter, sans-serif;
-                background: #f3f4f6;
+                background: var(--color-page);
+                color: var(--color-text);
+                overflow-x: hidden;
+            }
+            .app-shell {
+                width: min(1600px, calc(100vw - 2rem));
+                margin-inline: auto;
+                padding-block: 1rem 2rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .panel-stack {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .section-shell {
+                background: var(--color-panel);
+                border: 1px solid var(--color-line);
+                border-radius: 0.75rem;
+                padding: 1rem;
+            }
+            .surface-card {
+                background: var(--color-card);
+                border: 1px solid var(--color-line);
+                border-radius: 0.75rem;
+                box-shadow: var(--shadow-resting);
+            }
+            button,
+            input,
+            select,
+            textarea {
+                font: inherit;
+            }
+            button {
+                transition:
+                    background-color 180ms var(--ease-out),
+                    border-color 180ms var(--ease-out),
+                    color 180ms var(--ease-out),
+                    box-shadow 180ms var(--ease-out),
+                    transform 120ms var(--ease-out);
+            }
+            button:active {
+                transform: translateY(1px);
+            }
+            button:disabled,
+            [aria-disabled="true"] {
+                cursor: not-allowed;
+                opacity: 0.62;
+                transform: none;
+            }
+            input:not([type="checkbox"]):not([type="radio"]),
+            select,
+            textarea {
+                border-color: var(--color-line-strong);
+                background-color: var(--color-card);
+                color: var(--color-text);
+            }
+            input::placeholder,
+            textarea::placeholder {
+                color: #7b8794;
+            }
+            input:focus,
+            select:focus,
+            textarea:focus {
+                border-color: var(--color-primary);
+                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
+                outline: none;
             }
             .tab-btn {
+                flex: 0 0 auto;
+                min-height: 2.75rem;
                 padding: 0.75rem 1.5rem;
                 border-radius: 0.5rem 0.5rem 0 0;
                 font-weight: 600;
                 cursor: pointer;
-                transition: 0.2s;
+                white-space: nowrap;
+                color: var(--color-muted);
+                transition:
+                    color 180ms var(--ease-out),
+                    background-color 180ms var(--ease-out),
+                    border-color 180ms var(--ease-out);
+            }
+            .tab-btn:hover {
+                background: rgba(79, 70, 229, 0.06);
+                color: #312e81;
             }
             .tab-active {
-                background: #fff;
-                color: #111827;
-                border-bottom: 3px solid #4f46e5;
+                background: var(--color-card);
+                color: var(--color-text);
+                border-bottom: 3px solid var(--color-primary);
             }
             .tab-content {
-                background: #fff;
+                background: var(--color-card);
                 padding: 1.5rem;
                 border-radius: 0 0.5rem 0.5rem 0.5rem;
                 min-height: 520px;
             }
+            .executive-toolbar {
+                border: 1px solid var(--color-line);
+                border-radius: 0.75rem;
+                background: var(--color-panel);
+                padding: 1rem;
+            }
+            .executive-filter-btn {
+                min-height: 2.25rem;
+                border: 1px solid var(--color-line-strong);
+                border-radius: 0.5rem;
+                background: var(--color-card);
+                color: var(--color-muted);
+                padding: 0.45rem 0.75rem;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+            .executive-filter-btn:hover {
+                border-color: var(--color-primary);
+                color: #312e81;
+            }
+            .executive-filter-btn.is-active {
+                border-color: var(--color-primary);
+                background: rgba(79, 70, 229, 0.08);
+                color: #312e81;
+                box-shadow: inset 0 -2px 0 var(--color-primary);
+            }
+            .executive-metrics {
+                border: 1px solid var(--color-line);
+                border-radius: 0.75rem;
+                background: var(--color-card);
+                overflow: hidden;
+            }
+            .executive-metric {
+                min-height: 5.25rem;
+                border-right: 1px solid var(--color-line);
+                border-bottom: 1px solid var(--color-line);
+                padding: 0.875rem 1rem;
+            }
+            .executive-metric:nth-child(7n) {
+                border-right: 0;
+            }
+            .executive-metric-label {
+                color: var(--color-muted);
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+            .executive-metric-value {
+                margin-top: 0.35rem;
+                color: var(--color-text);
+                font-size: 1.5rem;
+                font-weight: 750;
+                line-height: 1.1;
+            }
+            .executive-metric-hint {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                margin-top: 0.45rem;
+                color: var(--color-muted);
+                font-size: 0.75rem;
+            }
+            .executive-dot {
+                width: 0.55rem;
+                height: 0.55rem;
+                border-radius: 9999px;
+                background: var(--dot-color, var(--color-line-strong));
+            }
+            .executive-table {
+                border: 1px solid var(--color-line);
+                border-radius: 0.75rem;
+                background: var(--color-card);
+                overflow: hidden;
+            }
+            .executive-table table {
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            .executive-table th {
+                background: var(--color-panel);
+                color: var(--color-muted);
+                font-size: 0.75rem;
+                letter-spacing: 0.02em;
+                text-transform: uppercase;
+            }
+            .executive-table td {
+                vertical-align: top;
+            }
+            .executive-severity {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                border: 1px solid var(--severity-border, var(--color-line));
+                border-radius: 9999px;
+                background: var(--severity-bg, var(--color-card));
+                color: var(--severity-text, var(--color-text));
+                padding: 0.2rem 0.55rem;
+                font-size: 0.72rem;
+                font-weight: 700;
+            }
             .modal {
-                background: rgba(0, 0, 0, 0.45);
+                align-items: flex-start;
+                background: rgba(17, 24, 39, 0.52);
+                overflow-y: auto;
+            }
+            .modal > div {
+                margin-block: auto;
+                max-height: calc(100vh - 2rem);
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                background-color: var(--color-card);
+                box-shadow: var(--shadow-overlay);
+            }
+            .modal button[onclick^="closeModal"] {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 2.75rem;
+                min-height: 2.75rem;
+                border-radius: 0.5rem;
+                color: #5b6776;
+            }
+            .modal button[onclick^="closeModal"]:hover {
+                background: #eef2f7;
+                color: #111827;
             }
             .registro-board {
                 display: grid;
@@ -298,6 +518,111 @@
                 align-items: center;
                 justify-content: center;
             }
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+            :focus-visible {
+                outline: 3px solid #4f46e5;
+                outline-offset: 2px;
+            }
+            .tab-content,
+            .board-cell,
+            .modal,
+            .app-shell {
+                overflow-wrap: anywhere;
+            }
+            @media (max-width: 768px), (pointer: coarse) {
+                button,
+                [role="button"] {
+                    min-height: 44px;
+                    min-width: 44px;
+                }
+                input:not([type="checkbox"]):not([type="radio"]),
+                select,
+                textarea {
+                    min-height: 44px;
+                    font-size: 1rem;
+                }
+                input[type="checkbox"],
+                input[type="radio"] {
+                    min-height: 1.25rem;
+                    min-width: 1.25rem;
+                }
+                [id^="form-inc-"] input,
+                [id^="form-inc-"] select,
+                [id^="form-inc-"] textarea,
+                [id^="form-agregar-destino-"] input {
+                    font-size: 0.875rem !important;
+                    min-height: 44px;
+                }
+            }
+            @media (max-width: 640px) {
+                .app-shell {
+                    width: calc(100vw - 1rem);
+                    padding-block: 0.75rem 1.25rem;
+                    gap: 1rem;
+                }
+                .app-header {
+                    padding: 1rem !important;
+                    text-align: left;
+                }
+                .app-header img {
+                    margin-left: 0;
+                    margin-right: 0;
+                }
+                .app-header h1 {
+                    font-size: 1.25rem;
+                    line-height: 1.25;
+                }
+                #user-info {
+                    position: static !important;
+                    justify-content: space-between;
+                    margin-top: 1rem;
+                    width: 100%;
+                }
+                .tab-content {
+                    padding: 1rem;
+                    border-radius: 0 0 0.75rem 0.75rem;
+                    min-height: 360px;
+                }
+                .modal {
+                    padding: 0.75rem;
+                }
+                .modal > div {
+                    max-height: calc(100vh - 1.5rem);
+                    width: 100%;
+                }
+                .modal .p-8,
+                .modal .p-6,
+                .modal .p-5 {
+                    padding: 1rem !important;
+                }
+                .modal .text-2xl {
+                    font-size: 1.25rem !important;
+                    line-height: 1.35 !important;
+                }
+                .executive-metric:nth-child(n) {
+                    border-right: 0;
+                }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    scroll-behavior: auto !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
         </style>
 
         <script>
@@ -307,10 +632,8 @@
     </head>
 
     <body>
-        <div class="container mx-auto p-4 md:p-8">
-            <header
-                class="mb-6 bg-white p-6 rounded-xl shadow-md text-center relative"
-            >
+        <div class="app-shell">
+            <header class="app-header surface-card p-6 text-center relative">
                 <img
                     src="https://i.postimg.cc/CY2DgtbK/A-COLOR.png"
                     alt="Logo"
@@ -323,7 +646,7 @@
                     Centro de Monitoreo GEO-24 de TRACKER MEXICO GPS
                 </p>
                 <p class="text-sm text-gray-700">
-                    Desarrollo realizado por el Departamento de IA 2025
+                    Seguimiento operativo de viajes, GPS e incidencias
                 </p>
                 <div
                     id="user-info"
@@ -334,16 +657,17 @@
                         class="text-sm font-medium text-gray-700"
                     ></span>
                     <button
+                        type="button"
                         onclick="handleLogout()"
-                        class="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 text-sm"
+                        class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 text-sm"
                     >
-                        Cerrar Sesión
+                        Cerrar sesión
                     </button>
                 </div>
             </header>
 
             <div
-                class="flex items-center justify-between bg-white p-4 rounded-xl shadow-md mb-6"
+                class="surface-card flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4"
             >
                 <div
                     id="cliente-display"
@@ -351,19 +675,28 @@
                 >
                     Cliente:
                     <span id="cliente-display-name" class="text-gray-900"
-                        >N/A</span
+                        >Sin dato</span
                     >
                 </div>
-                <div class="text-sm text-gray-400 italic">
-                    Sistema de Monitoreo de Viajes
+                <div class="text-sm text-gray-400 italic sm:text-right">
+                    Seguimiento operativo de viajes
                 </div>
             </div>
 
-            <div class="flex border-b border-gray-300 overflow-x-auto">
+            <div
+                class="flex border-b border-gray-300 overflow-x-auto"
+                role="tablist"
+                aria-label="Secciones principales de la bitácora"
+            >
                 <button
                     id="tab-btn-0"
                     class="tab-btn tab-active"
                     onclick="changeTab(0)"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="tab-0"
+                    tabindex="0"
+                    type="button"
                 >
                     🚛 Viajes
                 </button>
@@ -371,6 +704,11 @@
                     id="tab-btn-1"
                     class="tab-btn text-gray-500"
                     onclick="changeTab(1)"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-1"
+                    tabindex="-1"
+                    type="button"
                 >
                     Validaciones GPS
                 </button>
@@ -378,6 +716,11 @@
                     id="tab-btn-2"
                     class="tab-btn text-gray-500"
                     onclick="changeTab(2)"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-2"
+                    tabindex="-1"
+                    type="button"
                 >
                     KPIs
                 </button>
@@ -385,6 +728,11 @@
                     id="tab-btn-3"
                     class="tab-btn text-gray-500"
                     onclick="changeTab(3)"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-3"
+                    tabindex="-1"
+                    type="button"
                 >
                     Informe Ejecutivo
                 </button>
@@ -392,6 +740,11 @@
                     id="tab-btn-4"
                     class="tab-btn text-gray-500"
                     onclick="changeTab(4)"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-4"
+                    tabindex="-1"
+                    type="button"
                 >
                     Informes Guardados
                 </button>
@@ -399,6 +752,11 @@
                     id="tab-btn-5"
                     class="tab-btn text-gray-500 hidden"
                     onclick="changeTab(5)"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-5"
+                    tabindex="-1"
+                    type="button"
                 >
                     🗑️ Papelera
                 </button>
@@ -406,7 +764,13 @@
 
             <div class="tab-content shadow-lg">
                 <!-- ── TAB 2: KPIs (antes tab-4) ── -->
-                <div id="tab-2" class="tab-content-item hidden">
+                <div
+                    id="tab-2"
+                    class="tab-content-item hidden panel-stack"
+                    role="tabpanel"
+                    aria-labelledby="tab-btn-2"
+                    tabindex="0"
+                >
                     <div
                         class="flex items-center justify-between flex-wrap gap-3 mb-4"
                         data-pdf-exclude="true"
@@ -415,11 +779,13 @@
                             KPIs de Cumplimiento
                         </h2>
 
-                        <div class="flex items-center gap-2">
+                        <div
+                            class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center"
+                        >
                             <button
                                 type="button"
                                 onclick="downloadKpisTabAsHTML()"
-                                class="bg-white text-gray-700 border px-4 py-2 rounded-lg hover:bg-gray-50"
+                                class="w-full bg-white text-gray-700 border px-4 py-2 rounded-lg hover:bg-gray-50 sm:w-auto"
                                 title="Descarga esta pestaña (KPIs + gráficos) en HTML"
                             >
                                 Descargar HTML
@@ -427,7 +793,7 @@
                             <button
                                 type="button"
                                 onclick="downloadKpisTabAsPDF(this)"
-                                class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800"
+                                class="w-full bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 sm:w-auto"
                                 title="Descarga esta pestaña (KPIs + gráficos) en PDF"
                             >
                                 Descargar PDF
@@ -435,7 +801,9 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+                    <div
+                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 lg:gap-6 mb-8"
+                    >
                         <div
                             class="bg-gray-800 text-white p-5 rounded-xl shadow-xl"
                         >
@@ -517,39 +885,65 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                        <div
-                            class="lg:col-span-3 bg-white p-6 rounded-xl shadow-md border"
-                        >
+                        <div class="lg:col-span-3 surface-card p-6">
                             <h3 class="font-semibold text-lg mb-4">
                                 Estado de Despachos
                             </h3>
-                            <canvas id="kpi-cumplimiento-chart"></canvas>
+                            <canvas
+                                id="kpi-cumplimiento-chart"
+                                role="img"
+                                aria-label="Gráfica de estado de despachos por conteo"
+                            >
+                                Resumen visual de despachos por estado.
+                            </canvas>
                         </div>
-                        <div
-                            class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md border"
-                        >
+                        <div class="lg:col-span-2 surface-card p-6">
                             <h3 class="font-semibold text-lg mb-4">
                                 Incidencias
                             </h3>
-                            <canvas id="kpi-incidencias-chart"></canvas>
+                            <canvas
+                                id="kpi-incidencias-chart"
+                                role="img"
+                                aria-label="Gráfica de incidencias por tipo"
+                            >
+                                Resumen visual de incidencias por tipo.
+                            </canvas>
                         </div>
                     </div>
+                    <div
+                        id="kpi-accessible-summary"
+                        class="sr-only"
+                        aria-live="polite"
+                    ></div>
                 </div>
 
-                <div id="tab-3" class="tab-content-item hidden">
+                <div
+                    id="tab-3"
+                    class="tab-content-item hidden panel-stack"
+                    role="tabpanel"
+                    aria-labelledby="tab-btn-3"
+                    tabindex="0"
+                >
                     <div
-                        class="flex items-center justify-between flex-wrap gap-3 mb-4"
+                        class="flex items-start justify-between flex-wrap gap-3"
                         data-pdf-exclude="true"
                     >
-                        <h2 class="text-2xl font-semibold text-gray-800">
-                            Informe Ejecutivo
-                        </h2>
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800">
+                                Informe Ejecutivo
+                            </h2>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Resumen operativo del rango seleccionado.
+                            </p>
+                        </div>
 
-                        <div class="flex items-center gap-2">
+                        <div
+                            class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center"
+                        >
                             <button
                                 type="button"
                                 onclick="downloadInformeTabAsHTML()"
-                                class="bg-white text-gray-700 border px-4 py-2 rounded-lg hover:bg-gray-50"
+                                class="w-full rounded-lg border bg-white px-4 py-2 text-gray-700 hover:bg-gray-50 sm:w-auto"
                                 title="Descarga esta pestaña (Informe Ejecutivo) en HTML"
                             >
                                 Descargar HTML
@@ -557,22 +951,28 @@
                             <button
                                 type="button"
                                 onclick="downloadInformeTabAsPDF(this)"
-                                class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800"
+                                class="w-full rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-900 sm:w-auto"
                                 title="Descarga esta pestaña (Informe Ejecutivo) en PDF"
                             >
                                 Descargar PDF
                             </button>
                         </div>
                     </div>
-                    <div class="mb-6" data-pdf-exclude="true">
-                        <h3 class="text-sm font-medium text-gray-700 mb-3">
-                            Filtro por fecha de despacho:
-                        </h3>
-                        <div class="flex flex-wrap items-center gap-3 mb-3">
+                    <div class="executive-toolbar" data-pdf-exclude="true">
+                        <div class="mb-3 flex items-center justify-between gap-3">
+                            <h3 class="text-sm font-semibold text-gray-800">
+                                Fecha de despacho
+                            </h3>
+                            <span class="text-xs text-gray-500">
+                                El informe se actualiza al cambiar el filtro
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
                             <button
                                 id="incf-btn-selected"
                                 type="button"
-                                class="px-4 py-2 rounded-xl font-semibold bg-indigo-600 text-white border border-indigo-600"
+                                class="executive-filter-btn is-active"
+                                aria-pressed="true"
                                 onclick="setIncExecutiveFilter('selected')"
                             >
                                 Fecha seleccionada
@@ -581,7 +981,8 @@
                             <button
                                 id="incf-btn-today"
                                 type="button"
-                                class="px-4 py-2 rounded-xl font-semibold bg-white text-gray-700 border"
+                                class="executive-filter-btn"
+                                aria-pressed="false"
                                 onclick="setIncExecutiveFilter('today')"
                             >
                                 Hoy
@@ -590,35 +991,38 @@
                             <button
                                 id="incf-btn-7"
                                 type="button"
-                                class="px-4 py-2 rounded-xl font-semibold bg-white text-gray-700 border"
+                                class="executive-filter-btn"
+                                aria-pressed="false"
                                 onclick="setIncExecutiveFilter('last7')"
                             >
-                                Últimos 7 dias
+                                Últimos 7 días
                             </button>
 
                             <button
                                 id="incf-btn-30"
                                 type="button"
-                                class="px-4 py-2 rounded-xl font-semibold bg-white text-gray-700 border"
+                                class="executive-filter-btn"
+                                aria-pressed="false"
                                 onclick="setIncExecutiveFilter('last30')"
                             >
-                                Últimos 30 dias
+                                Últimos 30 días
                             </button>
 
                             <button
                                 id="incf-btn-all"
                                 type="button"
-                                class="px-4 py-2 rounded-xl font-semibold bg-white text-gray-700 border"
+                                class="executive-filter-btn"
+                                aria-pressed="false"
                                 onclick="setIncExecutiveFilter('all')"
                             >
-                                Todo
+                                Todo el rango
                             </button>
 
                             <div
-                                class="flex items-center gap-2 flex-wrap ml-auto"
+                                class="flex w-full items-center gap-2 flex-wrap border-t pt-3 lg:ml-auto lg:w-auto lg:border-t-0 lg:pt-0"
                             >
-                                <span class="text-sm text-gray-600"
-                                    >Rango:</span
+                                <span class="text-sm font-medium text-gray-600"
+                                    >Rango manual</span
                                 >
 
                                 <label for="incf-from" class="sr-only"
@@ -627,7 +1031,7 @@
                                 <input
                                     id="incf-from"
                                     type="date"
-                                    class="p-2 border rounded-lg"
+                                    class="min-w-0 flex-1 rounded-lg border px-3 py-2 sm:flex-none"
                                 />
                                 <label for="incf-to" class="sr-only"
                                     >Fecha fin</label
@@ -635,12 +1039,12 @@
                                 <input
                                     id="incf-to"
                                     type="date"
-                                    class="p-2 border rounded-lg"
+                                    class="min-w-0 flex-1 rounded-lg border px-3 py-2 sm:flex-none"
                                 />
 
                                 <button
                                     type="button"
-                                    class="bg-gray-900 text-white px-4 py-2 rounded-xl font-semibold hover:bg-gray-800"
+                                    class="w-full rounded-lg bg-gray-800 px-4 py-2 font-semibold text-white hover:bg-gray-900 sm:w-auto"
                                     onclick="applyIncExecutiveRange()"
                                 >
                                     Aplicar
@@ -649,47 +1053,52 @@
                         </div>
                     </div>
 
-                    <div id="informe-container" class="overflow-x-auto">
-                        <p class="text-gray-600">
+                    <div id="informe-container">
+                        <p class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
                             Seleccione una fecha (arriba) para generar el
                             informe.
                         </p>
                     </div>
 
-                    <div class="mb-8">
-                        <div class="border rounded-xl overflow-hidden">
+                    <div>
+                        <div class="executive-table">
                             <div
-                                class="flex items-center justify-between px-4 py-3 bg-gray-50 border-b"
+                                class="flex items-start justify-between gap-3 border-b px-4 py-3"
                             >
-                                <h3 class="font-semibold text-gray-800">
-                                    Incidencias (columna S)
-                                </h3>
-                                <p class="text-xs text-gray-500">
-                                    Se muestran como: Unidad · Tipo de
-                                    incidencia · Fecha de ocurrencia
-                                </p>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">
+                                        Incidencias
+                                    </h3>
+                                    <p class="mt-0.5 text-xs text-gray-500">
+                                        Unidad, tipo, fecha y dirección del evento.
+                                    </p>
+                                </div>
                             </div>
 
                             <div class="overflow-x-auto">
                                 <table class="min-w-full text-sm">
-                                    <thead class="bg-white">
-                                        <tr class="text-gray-700 border-b">
+                                    <thead>
+                                        <tr class="border-b">
                                             <th
+                                                scope="col"
                                                 class="px-4 py-3 text-left font-semibold"
                                             >
-                                                Unidad
+                                                Severidad y unidad
                                             </th>
                                             <th
+                                                scope="col"
                                                 class="px-4 py-3 text-left font-semibold"
                                             >
                                                 Tipo de incidencia
                                             </th>
                                             <th
+                                                scope="col"
                                                 class="px-4 py-3 text-left font-semibold"
                                             >
                                                 Fecha
                                             </th>
                                             <th
+                                                scope="col"
                                                 class="px-4 py-3 text-left font-semibold"
                                             >
                                                 Dirección
@@ -706,28 +1115,37 @@
                     </div>
 
                     <div
-                        class="mt-8 text-right border-t pt-6 space-x-3"
+                        class="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:justify-end"
                         data-pdf-exclude="true"
                     >
                         <button
                             id="download-excel-report-btn"
+                            type="button"
                             onclick="downloadReportAsExcel()"
                             disabled
-                            class="bg-blue-600 text-white px-6 py-2 rounded-lg disabled:bg-gray-400 hover:bg-blue-700"
+                            class="w-full rounded-lg border bg-white px-5 py-2 text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 sm:w-auto"
                         >
-                            Descargar Detalle (XLSX)
+                            Descargar XLSX
                         </button>
                         <button
                             id="guardar-informe-btn"
+                            type="button"
                             onclick="guardarInformeEnBD()"
-                            class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+                            disabled
+                            class="w-full rounded-lg bg-indigo-600 px-5 py-2 font-semibold text-white hover:bg-indigo-700 sm:w-auto"
                         >
                             Guardar Informe
                         </button>
                     </div>
                 </div>
 
-                <div id="tab-4" class="tab-content-item hidden">
+                <div
+                    id="tab-4"
+                    class="tab-content-item hidden panel-stack"
+                    role="tabpanel"
+                    aria-labelledby="tab-btn-4"
+                    tabindex="0"
+                >
                     <h2 class="text-2xl font-semibold mb-4 text-gray-800">
                         Informes Guardados
                     </h2>
@@ -737,24 +1155,22 @@
                             onclick="cargarInformesGuardados()"
                             class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                         >
-                            Actualizar Lista
+                            Recargar informes guardados
                         </button>
                     </div>
 
-                    <div
-                        class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4"
-                    >
+                    <div class="section-shell mb-4">
                         <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                             <div class="md:col-span-2">
                                 <label
                                     for="informes-filtro-texto"
                                     class="block text-sm font-medium text-gray-700"
-                                    >Buscar</label
+                                    >Buscar informes</label
                                 >
                                 <input
                                     id="informes-filtro-texto"
                                     type="text"
-                                    placeholder="Título, ID, unidad, fecha de despacho..."
+                                    placeholder="Título, ID, unidad o fecha de despacho"
                                     oninput="applyInformesFilters()"
                                     class="mt-1 w-full p-2 border rounded-lg"
                                 />
@@ -763,7 +1179,7 @@
                                 <label
                                     for="informes-filtro-fecha-desde"
                                     class="block text-sm font-medium text-gray-700"
-                                    >Despacho desde</label
+                                    >Fecha de despacho desde</label
                                 >
                                 <input
                                     id="informes-filtro-fecha-desde"
@@ -776,7 +1192,7 @@
                                 <label
                                     for="informes-filtro-fecha-hasta"
                                     class="block text-sm font-medium text-gray-700"
-                                    >Despacho hasta</label
+                                    >Fecha de despacho hasta</label
                                 >
                                 <input
                                     id="informes-filtro-fecha-hasta"
@@ -813,7 +1229,7 @@
                                     onchange="applyInformesFilters()"
                                     class="h-4 w-4"
                                 />
-                                Solo con incidencias
+                                Solo informes con incidencias
                             </label>
 
                             <div class="flex items-center gap-3">
@@ -849,6 +1265,7 @@
                     >
                         <div
                             class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+                            role="document"
                         >
                             <div
                                 class="flex justify-between items-center mb-4 p-6 border-b"
@@ -864,6 +1281,8 @@
                                         "
                                         class="text-gray-400 hover:text-gray-600"
                                         title="Cerrar"
+                                        aria-label="Cerrar detalle de informe"
+                                        type="button"
                                     >
                                         <svg
                                             class="w-6 h-6"
@@ -890,7 +1309,13 @@
                 </div>
 
                 <!-- ── TAB 5: Papelera (solo admin) ── -->
-                <div id="tab-5" class="tab-content-item hidden">
+                <div
+                    id="tab-5"
+                    class="tab-content-item hidden panel-stack"
+                    role="tabpanel"
+                    aria-labelledby="tab-btn-5"
+                    tabindex="0"
+                >
                     <div
                         class="flex items-center justify-between flex-wrap gap-3 mb-4"
                     >
@@ -907,7 +1332,7 @@
                             onclick="cargarPapelera()"
                             class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                         >
-                            Actualizar
+                            Recargar papelera
                         </button>
                     </div>
 
@@ -918,9 +1343,15 @@
                     </div>
                 </div>
 
-                <div id="tab-1" class="tab-content-item hidden">
+                <div
+                    id="tab-1"
+                    class="tab-content-item hidden panel-stack"
+                    role="tabpanel"
+                    aria-labelledby="tab-btn-1"
+                    tabindex="0"
+                >
                     <h2 class="text-2xl font-semibold mb-4 text-gray-800">
-                        Validaciones GPS y Accesorios
+                        Validaciones de GPS y accesorios
                     </h2>
 
                     <div class="mb-4 text-sm text-gray-600">
@@ -930,9 +1361,7 @@
                         </p>
                     </div>
 
-                    <div
-                        class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4"
-                    >
+                    <div class="section-shell mb-4">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
                                 <label
@@ -943,7 +1372,7 @@
                                 <input
                                     id="validaciones-filtro-unidad"
                                     type="text"
-                                    placeholder="Buscar unidad..."
+                                    placeholder="Buscar por unidad..."
                                     oninput="applyValidacionesFilters()"
                                     class="mt-1 w-full p-2 border rounded-lg"
                                 />
@@ -978,7 +1407,7 @@
                                         Con validación
                                     </option>
                                     <option value="sin_validar">
-                                        Sin validación
+                                        GPS no validado
                                     </option>
                                 </select>
                             </div>
@@ -993,7 +1422,13 @@
 
                 <!-- ── TAB 8: VIAJES MULTI-TRAMO / MULTI-DÍA ── -->
                 <!-- ── TAB 0: VIAJES ── -->
-                <div id="tab-0" class="tab-content-item hidden">
+                <div
+                    id="tab-0"
+                    class="tab-content-item hidden panel-stack"
+                    role="tabpanel"
+                    aria-labelledby="tab-btn-0"
+                    tabindex="0"
+                >
                     <div
                         class="flex flex-wrap items-center justify-between gap-3 mb-5"
                     >
@@ -1016,20 +1451,19 @@
                                 id="viajes-reload-btn"
                                 class="text-xs bg-blue-800 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
                             >
-                                🔄 Actualizar
+                                🔄 Recargar viajes
                             </button>
                         </div>
                     </div>
 
                     <!-- Filtros -->
-                    <div
-                        class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5"
-                    >
+                    <div class="section-shell mb-5">
                         <div
                             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"
                         >
                             <div>
                                 <label
+                                    for="viajes-fecha-desde"
                                     class="block text-xs font-medium text-gray-600 mb-1"
                                     >Desde</label
                                 >
@@ -1042,6 +1476,7 @@
                             </div>
                             <div>
                                 <label
+                                    for="viajes-fecha-hasta"
                                     class="block text-xs font-medium text-gray-600 mb-1"
                                     >Hasta</label
                                 >
@@ -1054,6 +1489,7 @@
                             </div>
                             <div>
                                 <label
+                                    for="viajes-filtro-cliente"
                                     class="block text-xs font-medium text-gray-600 mb-1"
                                     >Cliente</label
                                 >
@@ -1067,6 +1503,7 @@
                             </div>
                             <div>
                                 <label
+                                    for="viajes-filtro-unidad"
                                     class="block text-xs font-medium text-gray-600 mb-1"
                                     >Unidad</label
                                 >
@@ -1080,6 +1517,7 @@
                             </div>
                             <div>
                                 <label
+                                    for="viajes-filtro-estado"
                                     class="block text-xs font-medium text-gray-600 mb-1"
                                     >Estado</label
                                 >
@@ -1132,7 +1570,7 @@
                         >
                         <span class="flex items-center gap-1"
                             ><span
-                                class="inline-block bg-purple-100 text-purple-700 px-1.5 rounded-full"
+                                class="inline-block bg-indigo-100 text-indigo-800 px-1.5 rounded-full"
                                 >Multi-día</span
                             ></span
                         >
@@ -1144,7 +1582,7 @@
                     <!-- Contenedor de cards de viajes -->
                     <div id="viajes-container">
                         <div class="text-center p-10 text-gray-400 text-sm">
-                            Cargando viajes...
+                            Cargando viajes del rango seleccionado...
                         </div>
                     </div>
                 </div>
@@ -1168,7 +1606,9 @@
                         Validación GPS
                     </h3>
                     <button
+                        type="button"
                         onclick="closeModal('gps-details-modal')"
+                        aria-label="Cerrar validación GPS"
                         class="text-gray-400 hover:text-gray-600"
                     >
                         ✕
@@ -1182,19 +1622,35 @@
             id="login-modal"
             class="hidden modal fixed inset-0 flex items-center justify-center z-50 p-4"
         >
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-8">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-                    Acceso a Bitácora
-                </h3>
+            <div
+                class="bg-white rounded-xl w-full max-w-sm overflow-hidden"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="login-title"
+            >
+                <div class="border-b bg-gray-50 px-6 py-5">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-indigo-700">
+                        Centro de monitoreo
+                    </p>
+                    <h3
+                        id="login-title"
+                        class="mt-1 text-2xl font-bold text-gray-900"
+                    >
+                        Acceso a Bitácora
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Ingresa con tu cuenta asignada para consultar tus unidades.
+                    </p>
+                </div>
                 <form
                     id="login-form"
                     onsubmit="handleLogin(event)"
-                    class="space-y-4"
+                    class="space-y-4 p-6"
                 >
                     <div>
                         <label
                             for="username"
-                            class="block text-sm font-medium text-gray-700"
+                            class="block text-sm font-semibold text-gray-700"
                             >Usuario</label
                         >
                         <input
@@ -1203,13 +1659,13 @@
                             name="username"
                             required
                             autocomplete="username"
-                            class="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                            class="mt-1 w-full rounded-lg border px-3 py-2.5"
                         />
                     </div>
                     <div>
                         <label
                             for="password"
-                            class="block text-sm font-medium text-gray-700"
+                            class="block text-sm font-semibold text-gray-700"
                             >Contraseña</label
                         >
                         <input
@@ -1218,23 +1674,22 @@
                             name="password"
                             required
                             autocomplete="current-password"
-                            class="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                            class="mt-1 w-full rounded-lg border px-3 py-2.5"
                         />
                     </div>
                     <div
                         id="login-error-message"
-                        class="text-sm text-red-600 hidden"
+                        class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+                        role="alert"
+                        aria-live="polite"
                     ></div>
                     <button
                         type="submit"
-                        class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-semibold"
+                        class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white hover:bg-indigo-700"
                     >
-                        Iniciar Sesión
+                        Iniciar sesión
                     </button>
                 </form>
-                <p class="text-center text-xs text-gray-500 mt-4">
-                    Editor: user/editor · Lector: view/read
-                </p>
             </div>
         </div>
 
@@ -1248,7 +1703,9 @@
                         Datos de Unidad
                     </h3>
                     <button
+                        type="button"
                         onclick="closeModal('data-modal')"
+                        aria-label="Cerrar datos de unidad"
                         class="text-gray-400 hover:text-gray-600"
                     >
                         ✕
@@ -1270,7 +1727,9 @@
                         Números de Emergencia 911
                     </h3>
                     <button
+                        type="button"
                         onclick="closeModal('emergency911-modal')"
+                        aria-label="Cerrar números de emergencia"
                         class="text-gray-400 hover:text-gray-600"
                     >
                         ✕
@@ -1292,12 +1751,12 @@
                             <option value="all">Todos los estados</option>
                         </select>
                         <label for="em911-search" class="sr-only"
-                            >Buscar municipio</label
+                            >Buscar municipio o estado</label
                         >
                         <input
                             id="em911-search"
                             type="text"
-                            placeholder="Buscar municipio..."
+                            placeholder="Buscar municipio o estado..."
                             class="p-2 border rounded-lg w-full"
                             oninput="applyEmergency911Filters()"
                         />
@@ -1314,16 +1773,19 @@
                             <thead class="bg-gray-50 sticky top-0">
                                 <tr>
                                     <th
+                                        scope="col"
                                         class="px-4 py-2 text-left font-semibold text-gray-700"
                                     >
                                         Estado
                                     </th>
                                     <th
+                                        scope="col"
                                         class="px-4 py-2 text-left font-semibold text-gray-700"
                                     >
                                         Municipio
                                     </th>
                                     <th
+                                        scope="col"
                                         class="px-4 py-2 text-left font-semibold text-gray-700"
                                     >
                                         Teléfono
@@ -1352,7 +1814,9 @@
                         Contactos de Emergencia
                     </h3>
                     <button
+                        type="button"
                         onclick="closeModal('emergency-contacts-modal')"
+                        aria-label="Cerrar contactos de emergencia"
                         class="text-gray-400 hover:text-gray-600"
                     >
                         ✕
@@ -1404,7 +1868,9 @@
                         </h3>
                     </div>
                     <button
+                        type="button"
                         onclick="closeConfirmSaveModal(false)"
+                        aria-label="Cerrar confirmación"
                         class="text-gray-400 hover:text-gray-600 text-xl"
                     >
                         ✕
@@ -1450,7 +1916,9 @@
                         Protocolo
                     </h3>
                     <button
+                        type="button"
                         onclick="closeModal('protocolo-modal')"
+                        aria-label="Cerrar protocolo"
                         class="text-gray-400 hover:text-gray-600"
                     >
                         ✕
@@ -1474,7 +1942,9 @@
                         Editar Origen y Destino
                     </h3>
                     <button
+                        type="button"
                         onclick="closeModal('edit-origen-destino-modal')"
+                        aria-label="Cerrar edición de origen y destino"
                         class="text-gray-400 hover:text-gray-600"
                     >
                         ✕
@@ -1548,7 +2018,7 @@
                                 type="submit"
                                 class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                             >
-                                Guardar Cambios
+                                Guardar origen y destino
                             </button>
                         </div>
                     </form>
@@ -1571,7 +2041,9 @@
                         Editar Fecha Programada
                     </h3>
                     <button
+                        type="button"
                         onclick="closeModal('edit-fecha-programada-modal')"
+                        aria-label="Cerrar edición de fecha programada"
                         class="text-gray-400 hover:text-gray-600 text-xl font-bold"
                     >
                         ✕
@@ -1654,7 +2126,7 @@
                                 id="efp-submit-btn"
                                 class="px-5 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition"
                             >
-                                Guardar Cambios
+                                Guardar nueva fecha
                             </button>
                         </div>
                     </form>
@@ -1690,14 +2162,30 @@
                 : extra;
         }
 
-        const BITACORA_PRODUCTION_SRC = "https://bitacora.trackergps.cloud/";
+        const BITACORA_PRODUCTION_SRC = "https://bitacora.trackergps.cloud/src";
+
+        function getLocalSrcBasePath() {
+            const pathname = window.location.pathname || "";
+            const srcIndex = pathname.indexOf("/src");
+            if (srcIndex >= 0) {
+                return pathname.slice(0, srcIndex + 4);
+            }
+            const firstSegment = pathname.split("/").filter(Boolean)[0] || "";
+            if (
+                firstSegment &&
+                ["localhost", "127.0.0.1"].includes(window.location.hostname)
+            ) {
+                return `/${firstSegment}/src`;
+            }
+            return "/src";
+        }
 
         function phpApiPath(path) {
             const cleanPath = String(path || "").replace(/^\/+/, "");
             if (window.location.protocol === "file:") {
                 return `${BITACORA_PRODUCTION_SRC}/${cleanPath}`;
             }
-            return `/src/${cleanPath}`;
+            return `${getLocalSrcBasePath()}/${cleanPath}`;
         }
 
         function setUserRole(role, unidades = [], tabs = [], clientes = []) {
@@ -1722,8 +2210,7 @@
                 sessionStorage.setItem("bitacoraUsername", username);
                 sessionStorage.setItem("bitacoraAuthToken", bitacoraAuthToken);
             } catch (e) {}
-            const loginModal = document.getElementById("login-modal");
-            if (loginModal) loginModal.classList.add("hidden");
+            closeModal("login-modal");
 
             const userInfo = document.getElementById("user-info");
             const usernameDisplay = document.getElementById("username-display");
@@ -1759,8 +2246,7 @@
             filteredDespachosData = [];
             renderAllTabs();
 
-            const loginModal = document.getElementById("login-modal");
-            if (loginModal) loginModal.classList.remove("hidden");
+            openModal("login-modal");
         }
 
         Chart.register(ChartDataLabels);
@@ -1809,8 +2295,7 @@
                         direccion: datosIncidencia.direccion || "",
                     }),
                 });
-                if (response.ok) console.log("Incidencia enviada con éxito");
-                else
+                if (!response.ok)
                     console.warn(
                         "Make respondió con error HTTP:",
                         response.status,
@@ -1827,6 +2312,74 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#39;");
+        }
+
+        function renderStateCard(message, options = {}) {
+            const {
+                fullWidth = false,
+                compact = false,
+                loading = false,
+                tone = "neutral",
+                framed = true,
+                description = "",
+                className = "",
+                messageClassName = "",
+                descriptionClassName = "",
+            } = options;
+
+            const presets = {
+                neutral: {
+                    shell: "bg-white rounded-xl shadow border border-gray-200",
+                    message: "text-lg font-medium text-gray-800",
+                    description: "text-sm text-gray-500",
+                    spinner: "border-blue-500",
+                },
+                soft: {
+                    shell: "bg-gray-50 rounded-xl border border-gray-200",
+                    message: "text-lg font-medium text-gray-800",
+                    description: "text-sm text-gray-600",
+                    spinner: "border-blue-500",
+                },
+                warning: {
+                    shell: "bg-orange-50 rounded-xl border-2 border-orange-200",
+                    message: "text-lg font-medium text-orange-800",
+                    description: "text-sm text-orange-600",
+                    spinner: "border-orange-500",
+                },
+                plain: {
+                    shell: "",
+                    message: "text-sm text-gray-500",
+                    description: "text-xs text-gray-400",
+                    spinner: "border-blue-500",
+                },
+            };
+
+            const preset = presets[tone] || presets.neutral;
+            const containerClasses = [
+                fullWidth ? "col-span-full" : "",
+                "text-center",
+                compact ? "p-6" : "p-10",
+                framed ? preset.shell : "",
+                className,
+            ]
+                .filter(Boolean)
+                .join(" ");
+
+            const spinnerHtml = loading
+                ? `<div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 ${preset.spinner} mb-4"></div>`
+                : "";
+
+            const messageClasses = [preset.message, messageClassName]
+                .filter(Boolean)
+                .join(" ");
+            const descriptionClasses = [
+                preset.description,
+                descriptionClassName,
+            ]
+                .filter(Boolean)
+                .join(" ");
+
+            return `<div class="${containerClasses}">${spinnerHtml}<p class="${messageClasses}">${escapeHtml(message)}</p>${description ? `<p class="mt-2 ${descriptionClasses}">${escapeHtml(description)}</p>` : ""}</div>`;
         }
 
         function handleIncidenciaTipoChange() {
@@ -2148,7 +2701,7 @@
 
             try {
                 const response = await fetch(
-                    "/bitacora_/src/usuarios/login.php",
+                    phpApiPath("usuarios/login.php"),
                     {
                         method: "POST",
                         headers: {
@@ -2193,6 +2746,131 @@
             return false;
         }
 
+        const focusableModalSelector = [
+            "a[href]",
+            "button:not([disabled])",
+            "textarea:not([disabled])",
+            "input:not([disabled])",
+            "select:not([disabled])",
+            '[tabindex]:not([tabindex="-1"])',
+        ].join(",");
+        let lastFocusedElementBeforeModal = null;
+        let activeModalId = null;
+
+        function ensureModalA11y(modal) {
+            if (!modal) return;
+            modal.setAttribute("role", "dialog");
+            modal.setAttribute("aria-modal", "true");
+            modal.setAttribute("tabindex", "-1");
+            const title = modal.querySelector("h1, h2, h3");
+            if (title) {
+                if (!title.id) title.id = `${modal.id || "modal"}-title`;
+                modal.setAttribute("aria-labelledby", title.id);
+            }
+            modal.querySelectorAll("button").forEach((button) => {
+                const text = String(button.textContent || "").trim();
+                if (
+                    (text === "✕" || text === "×" || text === "") &&
+                    !button.getAttribute("aria-label")
+                ) {
+                    button.setAttribute("aria-label", "Cerrar diálogo");
+                }
+                if (!button.getAttribute("type"))
+                    button.setAttribute("type", "button");
+            });
+        }
+
+        function focusFirstModalElement(modal) {
+            const focusable = Array.from(
+                modal.querySelectorAll(focusableModalSelector),
+            ).filter(
+                (el) =>
+                    el.offsetParent !== null || el === document.activeElement,
+            );
+            const first = focusable[0] || modal;
+            first.focus({ preventScroll: true });
+        }
+
+        function trapModalFocus(event) {
+            if (event.key !== "Tab" || !activeModalId) return;
+            const modal = document.getElementById(activeModalId);
+            if (!modal || modal.classList.contains("hidden")) return;
+            const focusable = Array.from(
+                modal.querySelectorAll(focusableModalSelector),
+            ).filter((el) => el.offsetParent !== null);
+            if (!focusable.length) {
+                event.preventDefault();
+                modal.focus();
+                return;
+            }
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }
+
+        function closeActiveModalFromKeyboard() {
+            if (!activeModalId) return;
+            if (activeModalId === "confirm-save-modal") {
+                closeConfirmSaveModal(false);
+                return;
+            }
+            closeModal(activeModalId);
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                closeActiveModalFromKeyboard();
+            } else {
+                trapModalFocus(event);
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".modal").forEach(ensureModalA11y);
+            setupTabsKeyboard();
+        });
+
+        function setupTabsKeyboard() {
+            const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+            tabs.forEach((tab, index) => {
+                tab.addEventListener("keydown", (event) => {
+                    if (
+                        !["ArrowRight", "ArrowLeft", "Home", "End"].includes(
+                            event.key,
+                        )
+                    )
+                        return;
+                    event.preventDefault();
+                    const visibleTabs = tabs.filter(
+                        (t) => !t.classList.contains("hidden"),
+                    );
+                    const current = visibleTabs.indexOf(tab);
+                    let nextIndex = current;
+                    if (event.key === "ArrowRight")
+                        nextIndex = (current + 1) % visibleTabs.length;
+                    if (event.key === "ArrowLeft")
+                        nextIndex =
+                            (current - 1 + visibleTabs.length) %
+                            visibleTabs.length;
+                    if (event.key === "Home") nextIndex = 0;
+                    if (event.key === "End") nextIndex = visibleTabs.length - 1;
+                    const nextTab = visibleTabs[nextIndex];
+                    if (!nextTab) return;
+                    nextTab.focus();
+                    const targetIndex = Number(
+                        String(nextTab.id || "").replace("tab-btn-", ""),
+                    );
+                    if (Number.isInteger(targetIndex)) changeTab(targetIndex);
+                });
+            });
+        }
+
         function updateTabVisibility() {
             const OPERATIVAS = 5;
             const TAB_COUNT = 6;
@@ -2210,8 +2888,18 @@
                 const tab = document.getElementById(`tab-${i}`);
 
                 const permitida = i === 5 ? esAdmin : allowed.includes(i);
-                if (btn) btn.classList.toggle("hidden", !permitida);
-                if (tab) tab.classList.add("hidden");
+                if (btn) {
+                    btn.classList.toggle("hidden", !permitida);
+                    btn.setAttribute(
+                        "aria-hidden",
+                        permitida ? "false" : "true",
+                    );
+                    btn.setAttribute("tabindex", permitida ? "-1" : "-1");
+                }
+                if (tab) {
+                    tab.classList.add("hidden");
+                    tab.setAttribute("hidden", "");
+                }
             }
 
             const primera = allowed[0] ?? 0;
@@ -2220,9 +2908,7 @@
 
         function changeTab(index) {
             if (!userRole) {
-                document
-                    .getElementById("login-modal")
-                    .classList.remove("hidden");
+                openModal("login-modal");
                 return;
             }
             const TAB_COUNT = 6;
@@ -2230,10 +2916,21 @@
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
                 if (btn && !btn.classList.contains("hidden")) {
-                    btn.classList.toggle("tab-active", i === index);
-                    btn.classList.toggle("text-gray-500", i !== index);
+                    const active = i === index;
+                    btn.classList.toggle("tab-active", active);
+                    btn.classList.toggle("text-gray-500", !active);
+                    btn.setAttribute(
+                        "aria-selected",
+                        active ? "true" : "false",
+                    );
+                    btn.setAttribute("tabindex", active ? "0" : "-1");
                 }
-                if (tab) tab.classList.toggle("hidden", i !== index);
+                if (tab) {
+                    const hidden = i !== index;
+                    tab.classList.toggle("hidden", hidden);
+                    if (hidden) tab.setAttribute("hidden", "");
+                    else tab.removeAttribute("hidden");
+                }
             }
             if (index === 0) loadViajesFromDb();
             if (index === 1) renderValidacionesGPS();
@@ -2263,10 +2960,26 @@
         }
 
         function openModal(id) {
-            document.getElementById(id).classList.remove("hidden");
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            ensureModalA11y(modal);
+            lastFocusedElementBeforeModal = document.activeElement;
+            activeModalId = id;
+            modal.classList.remove("hidden");
+            setTimeout(() => focusFirstModalElement(modal), 0);
         }
         function closeModal(id) {
-            document.getElementById(id).classList.add("hidden");
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.add("hidden");
+            if (activeModalId === id) activeModalId = null;
+            if (
+                lastFocusedElementBeforeModal &&
+                typeof lastFocusedElementBeforeModal.focus === "function"
+            ) {
+                lastFocusedElementBeforeModal.focus({ preventScroll: true });
+            }
+            lastFocusedElementBeforeModal = null;
         }
 
         function getUserClienteIds() {
@@ -2301,7 +3014,9 @@
             }
 
             const query = params.toString();
-            return `/bitacora_/src/despachos/obtener_despachos.php${query ? `?${query}` : ""}`;
+            return phpApiPath(
+                `despachos/obtener_despachos.php${query ? `?${query}` : ""}`,
+            );
         }
 
         async function loadDataFromMySQL(isInitialLoad = true) {
@@ -2679,19 +3394,19 @@
                     tramoNumero: row["tramo_numero"] || "",
                     folio: row["folio"] || "",
                     fechaProgramada: fechaProg,
-                    unidad: row["unidad"] || "N/A",
-                    placas: row["placas"] || "N/A",
-                    operador: row["operador"] || "N/A",
-                    telefono: row["teléfono"] || row["telefono"] || "N/A",
-                    ruta: row["ruta"] || "N/A",
-                    origen: row["origen"] || "N/A",
-                    destino: row["destino"] || "N/A",
+                    unidad: row["unidad"] || "Sin dato",
+                    placas: row["placas"] || "Sin dato",
+                    operador: row["operador"] || "Sin dato",
+                    telefono: row["teléfono"] || row["telefono"] || "Sin dato",
+                    ruta: row["ruta"] || "Sin dato",
+                    origen: row["origen"] || "Sin dato",
+                    destino: row["destino"] || "Sin dato",
                     lugarCarga:
                         row["lugar_carga"] ||
                         row["lugar_de_carga"] ||
                         row["carga"] ||
                         row["lugar de carga"] ||
-                        "N/A",
+                        "Sin dato",
                     instruccionesEspeciales:
                         row["instrucciones_especiales"] ||
                         row["instrucciones"] ||
@@ -2713,7 +3428,7 @@
                         row["descarga_prog"],
                         row["fecha"],
                     ),
-                    cliente: row["cliente"] || "N/A",
+                    cliente: row["cliente"] || "Sin dato",
 
                     // Mantener llenado manual, pero permitir precarga automática
                     realSalidaUnidad: "",
@@ -2852,17 +3567,46 @@
             renderAllTabs();
         }
 
+        function getActiveTabIndex() {
+            const activeTabBtn = document.querySelector(
+                '.tab-btn[role="tab"].tab-active',
+            );
+            if (!activeTabBtn) return 0;
+
+            const match = activeTabBtn.id?.match(/tab-btn-(\d+)/);
+            return match ? Number(match[1]) : 0;
+        }
+
         function renderAllTabs() {
+            const activeTabIndex = getActiveTabIndex();
+
             renderDatosGenerales();
             renderOrigenDestino();
             populateUnidadSelector();
             populateRegistroFilter();
             renderRegistroDespacho();
-            renderKPIs(filteredDespachosData);
-            renderInforme(filteredDespachosData);
-            renderIncidenciasExecutiveReport();
-            renderValidacionesGPS();
             updateClienteDisplay();
+
+            if (activeTabIndex === 1) {
+                renderValidacionesGPS();
+            }
+
+            if (activeTabIndex === 2) {
+                renderKPIs(filteredDespachosData);
+            }
+
+            if (activeTabIndex === 3) {
+                renderInforme(filteredDespachosData);
+                renderIncidenciasExecutiveReport();
+            }
+
+            if (activeTabIndex === 4) {
+                cargarInformesGuardados();
+            }
+
+            if (activeTabIndex === 5) {
+                cargarPapelera();
+            }
         }
         function renderDatosGenerales() {
             const c = document.getElementById("datos-generales-container");
@@ -2871,7 +3615,12 @@
             actualizarFiltrosDatosGenerales();
 
             if (filteredDespachosData.length === 0) {
-                c.innerHTML = `<div class="col-span-full text-center p-10 bg-white rounded-xl shadow"><h3 class="text-lg">No hay despachos para esta fecha</h3></div>`;
+                c.innerHTML = renderStateCard(
+                    "No hay despachos para esta fecha",
+                    {
+                        fullWidth: true,
+                    },
+                );
                 actualizarContadorDatosGenerales(0, 0);
                 return;
             }
@@ -2925,7 +3674,7 @@
                     : "";
 
                 c.innerHTML += `
-                  <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-100">
+                  <div class="surface-card p-5">
                     <div class="flex justify-between items-start mb-3">
                       <div>
                         <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
@@ -2941,7 +3690,7 @@
                       <p><strong>Operador:</strong> ${escapeHtml(d.operador)}</p>
                       <p><strong>Ruta:</strong> ${escapeHtml(d.ruta)}</p>
                       <p><strong>Origen:</strong> ${escapeHtml(d.origen)}</p>
-                      <p><strong>Lugar de carga:</strong> ${escapeHtml(d.lugarCarga || "N/A")}</p>
+                      <p><strong>Lugar de carga:</strong> ${escapeHtml(d.lugarCarga || "Sin dato")}</p>
                       <p><strong>Destino:</strong> ${escapeHtml(d.destino)}</p>
                       <p><strong>Cliente:</strong> ${escapeHtml(d.cliente)}</p>
                     </div>
@@ -2955,7 +3704,10 @@
             actualizarContadorDatosGenerales(mostrados, datosFiltrados.length);
 
             if (mostrados === 0) {
-                c.innerHTML = `<div class="col-span-full text-center p-10 bg-white rounded-xl shadow"><h3 class="text-lg">No hay despachos que coincidan con los filtros</h3></div>`;
+                c.innerHTML = renderStateCard(
+                    "No hay despachos que coincidan con los filtros",
+                    { fullWidth: true },
+                );
             }
         }
 
@@ -3028,7 +3780,10 @@
             const c = document.getElementById("origen-destino-container");
             c.innerHTML = "";
             if (filteredDespachosData.length === 0) {
-                c.innerHTML = `<div class="col-span-full text-center p-10 bg-white rounded-xl shadow"><h3 class="text-lg">Sin datos de rutas</h3></div>`;
+                c.innerHTML = renderStateCard(
+                    "No hay rutas cargadas para esta fecha.",
+                    { fullWidth: true },
+                );
                 return;
             }
 
@@ -3074,29 +3829,29 @@
                     : "";
 
                 c.innerHTML += `
-                  <div class="bg-white p-5 rounded-xl shadow border">
+                  <div class="surface-card p-5">
                     <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
                         d.unidad,
                     )}${tramoLabel}</h3>
                     <p class="text-sm text-gray-500">${escapeHtml(d.ruta)}</p>
                     <p class="text-sm mt-2"><strong>Origen:</strong>
                       <a href="${origenUrl}" target="_blank" class="text-blue-600 underline">${escapeHtml(
-                          d.origen || "N/A",
+                          d.origen || "Sin dato",
                       )}</a>
                     </p>
                     <p class="text-sm"><strong>Lugar de carga:</strong>
                         <a href="${lugardeCargaUrl}" target="_blank" class="text-blue-600 underline">
-                          ${escapeHtml(d.lugarCarga || "N/A")}
+                          ${escapeHtml(d.lugarCarga || "Sin dato")}
                         </a>
 
                       </p>
                     <p class="text-sm"><strong>Destino:</strong>
                       <a href="${destinoUrl}" target="_blank" class="text-blue-600 underline">${escapeHtml(
-                          d.destino || "N/A",
+                          d.destino || "Sin dato",
                       )}</a>
                     </p>
                     <p class="text-sm"><strong>Cliente:</strong> ${escapeHtml(
-                        d.cliente || "N/A",
+                        d.cliente || "Sin dato",
                     )}</p>
                     <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                       <p class="text-xs font-semibold text-amber-700 mb-1">INSTRUCCIONES ESPECIALES</p>
@@ -3165,7 +3920,9 @@
 
                     try {
                         const response = await fetch(
-                            "/bitacora_/src/origen_destino/actualizar_origen_destino.php",
+                            phpApiPath(
+                                "origen_destino/actualizar_origen_destino.php",
+                            ),
                             {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
@@ -3295,7 +4052,7 @@
                 try {
                     // 1. Actualizar MySQL
                     const response = await fetch(
-                        "/bitacora_/src/seguimiento/actualizar_fecha_programada.php",
+                        phpApiPath("seguimiento/actualizar_fecha_programada.php"),
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -3320,7 +4077,7 @@
 
                     // 2. Actualizar Google Sheets (en paralelo, no bloquea el flujo)
                     const sheetsPromise = fetch(
-                        "/bitacora_/src/api/actualizar_fecha_sheets.php",
+                        phpApiPath("api/actualizar_fecha_sheets.php"),
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -3677,7 +4434,7 @@
                   <p><strong>Teléfono:</strong></p><p>${escapeHtml(d.telefono)}</p>
                   <p><strong>Ruta:</strong></p><p>${escapeHtml(d.ruta)}</p>
                   <p><strong>Origen:</strong></p><p>${escapeHtml(d.origen)}</p>
-                  <p><strong>Lugar de carga:</strong></p><p>${escapeHtml(d.lugarCarga || "N/A")}</p>
+                  <p><strong>Lugar de carga:</strong></p><p>${escapeHtml(d.lugarCarga || "Sin dato")}</p>
                   <p><strong>Destino:</strong></p><p>${escapeHtml(d.destino)}</p>
                   <p><strong>Cliente:</strong></p><p>${escapeHtml(d.cliente)}</p>
                   <p><strong>Instrucciones Especiales:</strong></p><p>${escapeHtml(d.instruccionesEspeciales || "Sin instrucciones especiales")}</p>
@@ -4017,7 +4774,8 @@
             );
             const d = filteredDespachosData[index];
             if (!d) {
-                container.innerHTML = "<p>No hay datos.</p>";
+                container.innerHTML =
+                    "<p>Selecciona una unidad para ver el seguimiento.</p>";
                 container.classList.remove("hidden");
                 return;
             }
@@ -4152,7 +4910,7 @@
                       <p class="mt-3 text-xs text-gray-500">Última validación: <span class="font-semibold">${
                           d.gpsValidacionTimestamp
                               ? formatDateTime(d.gpsValidacionTimestamp)
-                              : "Sin registro"
+                              : "Sin fecha registrada"
                       }</span></p>
                     </div>
                   </div>
@@ -4161,19 +4919,19 @@
                     <div class="bg-gray-50 border rounded-xl p-4">
                       <p class="text-xs font-semibold text-gray-500 mb-1">ORIGEN</p>
                       <a href="${origenUrl}" target="_blank" class="text-blue-600 underline">
-                      ${escapeHtml(d.origen || "N/A")}
+                      ${escapeHtml(d.origen || "Sin dato")}
                       </a>
                     </div>
                     <div class="bg-gray-50 border rounded-xl p-4">
                       <p class="text-xs font-semibold text-gray-500 mb-1">LUGAR DE CARGA</p>
                       <a href="${lugardeCargaUrl}" target="_blank" class="text-blue-600 underline">
-                      ${escapeHtml(d.lugarCarga || "N/A")}
+                      ${escapeHtml(d.lugarCarga || "Sin dato")}
                       </a>
                     </div>
                     <div class="bg-gray-50 border rounded-xl p-4">
                       <p class="text-xs font-semibold text-gray-500 mb-1">DESTINO</p>
                       <a href="${destinoUrl}" target="_blank" class="text-blue-600 underline">
-                      ${escapeHtml(d.destino || "N/A")}
+                      ${escapeHtml(d.destino || "Sin dato")}
                       </a>
                     </div>
                   </div>
@@ -4321,17 +5079,17 @@
 
                           <button type="button" onclick="addIncidencia(${index})" ${disabled}
                             class="bg-slate-700 text-white px-4 py-2 rounded-md hover:bg-slate-800 disabled:bg-gray-400">
-                            Agregar
+                            Agregar incidencia
                           </button>
 
                           <button type="button" onclick="showProtocoloIncidenciaFromSelect()"
                             class="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700">
-                            Ver protocolo
+                            Ver protocolo de atención
                           </button>
 
                           <button type="button" id="btn-guardar-seguimiento-${index}" onclick="saveSeguimiento(${index})" ${disabled}
                             class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:bg-gray-400">
-                            Guardar
+                            Guardar seguimiento
                           </button>
                         </div>
                       </div>
@@ -4410,12 +5168,12 @@
         }
 
         function formatGpsEstado(gpsValidacionEstado) {
-            if (!gpsValidacionEstado) return "Sin registro";
+            if (!gpsValidacionEstado) return "Sin fecha registrada";
 
             try {
                 const items = JSON.parse(gpsValidacionEstado);
                 if (!Array.isArray(items) || items.length === 0)
-                    return "Sin validación";
+                    return "GPS no validado";
 
                 const labels = {
                     boton_panico: "Botón de pánico",
@@ -4513,7 +5271,7 @@
             const statusClass = gpsOk
                 ? "bg-green-100 text-green-800"
                 : "bg-red-100 text-red-800";
-            const statusText = gpsOk ? "Validado" : "Sin validación";
+            const statusText = gpsOk ? "Validado" : "GPS no validado";
 
             let validacionesHtml =
                 '<p class="text-gray-500 italic">Sin validaciones registradas</p>';
@@ -4565,11 +5323,11 @@
                     <div class="grid grid-cols-2 gap-3 text-sm">
                       <div>
                         <span class="font-medium text-gray-600">Cliente:</span>
-                        <p class="text-gray-800">${escapeHtml(d.cliente || "N/A")}</p>
+                        <p class="text-gray-800">${escapeHtml(d.cliente || "Sin dato")}</p>
                       </div>
                       <div>
                         <span class="font-medium text-gray-600">Placas:</span>
-                        <p class="text-gray-800">${escapeHtml(d.placas || "N/A")}</p>
+                        <p class="text-gray-800">${escapeHtml(d.placas || "Sin dato")}</p>
                       </div>
                       <div>
                         <span class="font-medium text-gray-600">Operador Monitor:</span>
@@ -4577,7 +5335,7 @@
                       </div>
                       <div>
                         <span class="font-medium text-gray-600">Última actualización:</span>
-                        <p class="text-gray-800">${d.gpsValidacionTimestamp ? formatDateTime(d.gpsValidacionTimestamp) : "Sin registro"}</p>
+                        <p class="text-gray-800">${d.gpsValidacionTimestamp ? formatDateTime(d.gpsValidacionTimestamp) : "Sin fecha registrada"}</p>
                       </div>
                     </div>
                   </div>
@@ -4642,17 +5400,17 @@
                         d.unidad
                     } | Folio ${String(d.folio).padStart(3, "0")}`,
                     cuerpo: [
-                        `Unidad: ${d.unidad || "N/A"}`,
+                        `Unidad: ${d.unidad || "Sin dato"}`,
                         `Folio: ${String(d.folio || "")}`,
                         `Fecha programada: ${d.fechaProgramada || ""}`,
-                        `Operador: ${d.operador || "N/A"}`,
-                        `Teléfono: ${d.telefono || "N/A"}`,
-                        `Ruta: ${d.ruta || "N/A"}`,
-                        `Origen: ${d.origen || "N/A"}`,
-                        `Destino: ${d.destino || "N/A"}`,
+                        `Operador: ${d.operador || "Sin dato"}`,
+                        `Teléfono: ${d.telefono || "Sin dato"}`,
+                        `Ruta: ${d.ruta || "Sin dato"}`,
+                        `Origen: ${d.origen || "Sin dato"}`,
+                        `Destino: ${d.destino || "Sin dato"}`,
                         `Severidad: ${incObj.severidad}`,
                         `Estatus: ${d.estatus || "Programado"}`,
-                        `Dirección: ${incObj.direccion || "N/A"}`,
+                        `Dirección: ${incObj.direccion || "Sin dato"}`,
                     ].join("\n"),
                     direccion: incObj.direccion || "",
                     unidad: d.unidad || "",
@@ -4695,9 +5453,7 @@
         }
 
         function closeConfirmSaveModal(confirmed) {
-            document
-                .getElementById("confirm-save-modal")
-                .classList.add("hidden");
+            closeModal("confirm-save-modal");
             if (confirmed && pendingSaveIndex !== null) {
                 executeSaveSeguimiento(pendingSaveIndex);
             }
@@ -4751,10 +5507,12 @@
             });
         }
 
-        const SEGUIMIENTO_SAVE_ENDPOINT =
-            "/bitacora_/src/seguimiento/guardar_seguimiento.php";
-        const SEGUIMIENTO_LOAD_ENDPOINT =
-            "/bitacora_/src/seguimiento/obtener_seguimiento.php";
+        const SEGUIMIENTO_SAVE_ENDPOINT = phpApiPath(
+            "seguimiento/guardar_seguimiento.php",
+        );
+        const SEGUIMIENTO_LOAD_ENDPOINT = phpApiPath(
+            "seguimiento/obtener_seguimiento.php",
+        );
 
         let seguimientosDbCache = {
             loaded: false,
@@ -4779,7 +5537,9 @@
 
         async function loadOrigenDestinoFromDb() {
             const res = await fetch(
-                `/bitacora_/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
+                phpApiPath(
+                    `origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
+                ),
                 { cache: "no-store" },
             );
             let json = null;
@@ -5221,7 +5981,14 @@
             }
 
             if (!data.length) {
-                container.innerHTML = `<div class="text-center p-6">No hay despachos para mostrar.</div>`;
+                container.innerHTML = renderStateCard(
+                    "No hay despachos con estos filtros.",
+                    {
+                        compact: true,
+                        framed: false,
+                        tone: "plain",
+                    },
+                );
                 return;
             }
 
@@ -5283,7 +6050,7 @@
                 uc.setAttribute("data-label", "Unidad");
                 uc.innerHTML = `
                   <div class="flex items-center gap-2">
-                    <span class="inline-block w-3 h-3 rounded-full ${dotClass}" title="${gpsOk ? "GPS validado" : "Sin validación GPS"}"></span>
+                    <span class="inline-block w-3 h-3 rounded-full ${dotClass}" title="${gpsOk ? "GPS validado" : "GPS no validado"}"></span>
                     <div class="flex flex-col">
                       <strong>${escapeHtml(d.unidad)}</strong>
                       <span class="text-sm text-gray-800">${tramoLabel}</span>
@@ -5299,7 +6066,7 @@
                     </button>
                   </div>
                   <p class="text-xs">${escapeHtml(d.placas)}</p>
-                  <p class="text-xs"><strong>Carga:</strong> ${escapeHtml(d.lugarCarga || "N/A")}</p>
+                  <p class="text-xs"><strong>Carga:</strong> ${escapeHtml(d.lugarCarga || "Sin dato")}</p>
                   <p class="text-xs italic">${
                       d.operadorMonitoreoId
                           ? "Operador: " + escapeHtml(d.operadorMonitoreoId)
@@ -5427,6 +6194,13 @@
             document.getElementById("kpi-despachos-cancelados").textContent =
                 cancelados.length + noRealizados.length;
 
+            const kpiSummary = document.getElementById(
+                "kpi-accessible-summary",
+            );
+            if (kpiSummary) {
+                kpiSummary.textContent = `KPIs de cumplimiento: ${total} despachos totales, ${aTiempo.length} a tiempo, ${conRetraso} con retraso, ${enProceso} en proceso, ${programados.length} programados y ${cancelados.length + noRealizados.length} cancelados o no realizados.`;
+            }
+
             const incCount = {};
             data.forEach((d) =>
                 (d.incidencias || []).forEach((i) => {
@@ -5518,6 +6292,7 @@
         function renderInforme(data) {
             const c = document.getElementById("informe-container");
             const btn = document.getElementById("download-excel-report-btn");
+            const saveBtn = document.getElementById("guardar-informe-btn");
 
             const window = getIncExecutiveDateWindow();
             const from = window.from || "";
@@ -5539,13 +6314,22 @@
             }
 
             if (!filteredData.length) {
-                c.innerHTML = `<p class="text-center p-6 bg-gray-100 rounded-lg">No hay datos para generar informe con el filtro seleccionado.</p>`;
+                c.innerHTML = renderStateCard(
+                    "No hay datos para generar informe con el filtro seleccionado.",
+                    {
+                        compact: true,
+                        framed: false,
+                        tone: "plain",
+                    },
+                );
                 btn.disabled = true;
+                if (saveBtn) saveBtn.disabled = true;
                 lastInformeData = [];
                 return;
             }
             lastInformeData = filteredData.slice();
             btn.disabled = false;
+            if (saveBtn) saveBtn.disabled = false;
 
             const total = filteredData.length;
             const incs = filteredData.reduce(
@@ -5585,52 +6369,95 @@
             ).length;
             const _infConRetraso = _infRealizados.length - _infATiempo;
             const _infEnProceso = _infEnRuta + _infCargando + _infSalidaCarga;
+            const metricItems = [
+                {
+                    label: "Total",
+                    value: total,
+                    hint: "Despachos",
+                    color: "#64748b",
+                },
+                {
+                    label: "A tiempo",
+                    value: _infATiempo,
+                    hint: "Realizados",
+                    color: "#16a34a",
+                },
+                {
+                    label: "Con retraso",
+                    value: _infConRetraso,
+                    hint: "Atención",
+                    color: "#dc2626",
+                },
+                {
+                    label: "En proceso",
+                    value: _infEnProceso,
+                    hint: "Ruta/carga",
+                    color: "#ca8a04",
+                },
+                {
+                    label: "Programados",
+                    value: _infProgramados,
+                    hint: "Pendientes",
+                    color: "#2563eb",
+                },
+                {
+                    label: "Cancelados",
+                    value: _infCancelados,
+                    hint: "Cerrados",
+                    color: "#64748b",
+                },
+                {
+                    label: "Incidencias",
+                    value: incs,
+                    hint: "Registradas",
+                    color: "#f97316",
+                },
+            ];
             c.innerHTML = `
-              <div class="bg-white border rounded-xl p-4">
-                <p class="text-gray-800 font-semibold text-lg mb-1">Resumen</p>
-                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mt-3">
-                  <div class="bg-gray-800 text-white p-4 rounded-xl shadow-md text-center">
-                    <p class="text-xs font-medium opacity-80">Total</p>
-                    <p class="text-3xl font-bold mt-1">${total}</p>
+              <div class="space-y-5">
+                <section aria-label="Resumen ejecutivo">
+                  <div class="mb-3 flex items-end justify-between gap-3">
+                    <div>
+                      <p class="text-sm font-semibold text-gray-800">Resumen</p>
+                      <p class="text-xs text-gray-500">Lectura rápida del desempeño operativo.</p>
+                    </div>
+                    <p class="text-xs text-gray-500">${escapeHtml(from || to ? `${from || "Inicio"} a ${to || "Hoy"}` : "Todo el rango")}</p>
                   </div>
-                  <div class="bg-green-600 text-white p-4 rounded-xl shadow-md text-center">
-                    <p class="text-xs font-medium opacity-80">A Tiempo</p>
-                    <p class="text-3xl font-bold mt-1">${_infATiempo}</p>
+                  <div class="executive-metrics grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7">
+                    ${metricItems
+                        .map(
+                            (item) => `
+                      <div class="executive-metric">
+                        <p class="executive-metric-label">${escapeHtml(item.label)}</p>
+                        <p class="executive-metric-value">${item.value}</p>
+                        <span class="executive-metric-hint">
+                          <span class="executive-dot" style="--dot-color: ${item.color}"></span>
+                          ${escapeHtml(item.hint)}
+                        </span>
+                      </div>
+                    `,
+                        )
+                        .join("")}
                   </div>
-                  <div class="bg-red-600 text-white p-4 rounded-xl shadow-md text-center">
-                    <p class="text-xs font-medium opacity-80">Con Retraso</p>
-                    <p class="text-3xl font-bold mt-1">${_infConRetraso}</p>
-                  </div>
-                  <div class="bg-yellow-500 text-white p-4 rounded-xl shadow-md text-center">
-                    <p class="text-xs font-medium opacity-80">En Proceso</p>
-                    <p class="text-3xl font-bold mt-1">${_infEnProceso}</p>
-                  </div>
-                  <div class="bg-blue-600 text-white p-4 rounded-xl shadow-md text-center">
-                    <p class="text-xs font-medium opacity-80">Programados</p>
-                    <p class="text-3xl font-bold mt-1">${_infProgramados}</p>
-                  </div>
-                  <div class="bg-slate-500 text-white p-4 rounded-xl shadow-md text-center">
-                    <p class="text-xs font-medium opacity-80">Cancelados</p>
-                    <p class="text-3xl font-bold mt-1">${_infCancelados}</p>
-                  </div>
-                  <div class="bg-orange-500 text-white p-4 rounded-xl shadow-md text-center">
-                    <p class="text-xs font-medium opacity-80">Incidencias</p>
-                    <p class="text-3xl font-bold mt-1">${incs}</p>
-                  </div>
-                </div>
+                </section>
 
-                <div class="bg-white border rounded-xl p-4 pt-2">
-                  <h3 class="text-lg font-semibold pl-4">Detalle</h3>
+                <section class="executive-table">
+                  <div class="flex items-start justify-between gap-3 border-b px-4 py-3">
+                    <div>
+                      <h3 class="font-semibold text-gray-800">Detalle</h3>
+                      <p class="mt-0.5 text-xs text-gray-500">Unidades, ruta, estatus y descarga.</p>
+                    </div>
+                  </div>
                   <div class="overflow-x-auto">
-                  <table class="min-w-full text-sm border rounded-lg overflow-hidden">
-                    <thead class="bg-gray-50">
+                  <table class="min-w-full text-sm">
+                    <thead>
                       <tr>
-                        <th class="px-4 py-2 text-left">Unidad</th>
-                        <th class="px-4 py-2 text-left">Ruta</th>
-                        <th class="px-4 py-2 text-left">Estatus</th>
-                        <th class="px-4 py-2 text-left">Prog. Descarga</th>
-                        <th class="px-4 py-2 text-left">Real Descarga</th>
-                        <th class="px-4 py-2 text-left min-w-[200px]">Observaciones</th>
+                        <th scope="col" class="px-4 py-2 text-left">Unidad</th>
+                        <th scope="col" class="px-4 py-2 text-left">Ruta</th>
+                        <th scope="col" class="px-4 py-2 text-left">Estatus</th>
+                        <th scope="col" class="px-4 py-2 text-left">Prog. Descarga</th>
+                        <th scope="col" class="px-4 py-2 text-left">Real Descarga</th>
+                        <th scope="col" class="px-4 py-2 text-left min-w-[200px]">Observaciones</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y bg-white">
@@ -5657,8 +6484,9 @@
                     </tbody>
                   </table>
                   </div>
-                </div>
-                `;
+                </section>
+              </div>
+            `;
         }
 
         function downloadReportAsExcel() {
@@ -5684,7 +6512,7 @@
                     .map((i) => `${i.tipo} (${formatDateTime(i.fecha)})`)
                     .join("; "),
                 "Direccion de Incidencias": (d.incidencias || [])
-                    .map((i) => i.direccion || "N/A")
+                    .map((i) => i.direccion || "Sin dato")
                     .join("; "),
             }));
             const ws = XLSX.utils.json_to_sheet(rows);
@@ -5727,7 +6555,7 @@
                     .map((i) => `${i.tipo} (${formatDateTime(i.fecha)})`)
                     .join("; "),
                 "Dirección de Incidencias": (d.incidencias || [])
-                    .map((i) => i.direccion || "N/A")
+                    .map((i) => i.direccion || "Sin dato")
                     .join("; "),
             }));
             const ws = XLSX.utils.json_to_sheet(rows);
@@ -5766,8 +6594,9 @@
             currentLimit: 100,
         };
 
-        const EMERGENCY_911_ENDPOINT =
-            "/bitacora_/src/contactos/obtener_numeros_emergencia.php";
+        const EMERGENCY_911_ENDPOINT = phpApiPath(
+            "contactos/obtener_numeros_emergencia.php",
+        );
 
         function normalizeEmergency911Row(r) {
             const estado = (r?.estado ?? "").toString().trim().toUpperCase();
@@ -5929,12 +6758,15 @@
             );
 
             if (!items || items.length === 0) {
-                container.innerHTML = `
-            <div class="col-span-full text-center p-10 bg-orange-50 border-2 border-orange-200 rounded-xl">
-              <p class="text-lg font-medium text-orange-800 mb-2">No hay contactos disponibles</p>
-              <p class="text-sm text-orange-600">Selecciona un solo cliente o registra contactos en el Directorio de Monitoreo del Planificador.</p>
-            </div>
-          `;
+                container.innerHTML = renderStateCard(
+                    "No hay contactos disponibles",
+                    {
+                        fullWidth: true,
+                        tone: "warning",
+                        description:
+                            "Selecciona un solo cliente o registra contactos en el Directorio de Monitoreo del Planificador.",
+                    },
+                );
                 return;
             }
 
@@ -5970,7 +6802,7 @@
                         : "Sin correo";
 
                     return `
-            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all">
+            <div class="surface-card p-6 hover:shadow-md transition-shadow">
               <div class="flex items-start justify-between mb-4">
                 <div>
                   <h4 class="font-bold text-lg text-gray-900 mb-1">${escapeHtml(
@@ -6021,12 +6853,14 @@
                 "emergency-contacts-body",
             );
 
-            container.innerHTML = `
-          <div class="col-span-full text-center p-10 bg-gray-50 rounded-xl">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-            <p class="text-gray-600">Cargando contactos de emergencia...</p>
-          </div>
-        `;
+            container.innerHTML = renderStateCard(
+                "Cargando contactos de emergencia...",
+                {
+                    fullWidth: true,
+                    loading: true,
+                    tone: "soft",
+                },
+            );
 
             openModal("emergency-contacts-modal");
 
@@ -6070,11 +6904,8 @@
                 const btn = document.getElementById(id);
                 if (!btn) return;
                 const active = m === mode;
-                btn.classList.toggle("bg-indigo-600", active);
-                btn.classList.toggle("text-white", active);
-                btn.classList.toggle("border-indigo-600", active);
-                btn.classList.toggle("bg-white", !active);
-                btn.classList.toggle("text-gray-700", !active);
+                btn.classList.toggle("is-active", active);
+                btn.setAttribute("aria-pressed", active ? "true" : "false");
             });
             renderInforme(filteredDespachosData);
             renderIncidenciasExecutiveReport();
@@ -6095,12 +6926,8 @@
             ].forEach((id) => {
                 const btn = document.getElementById(id);
                 if (!btn) return;
-                btn.classList.remove(
-                    "bg-indigo-600",
-                    "text-white",
-                    "border-indigo-600",
-                );
-                btn.classList.add("bg-white", "text-gray-700");
+                btn.classList.remove("is-active");
+                btn.setAttribute("aria-pressed", "false");
             });
             renderInforme(filteredDespachosData);
             renderIncidenciasExecutiveReport();
@@ -6182,25 +7009,39 @@
             tbody.innerHTML = rows
                 .map((r) => {
                     const sevLower = String(r.sev).toLowerCase();
-                    const incidenciaClass =
+                    const severity =
                         sevLower === "rojo"
-                            ? "incidencia-rojo"
+                            ? {
+                                  text: "Crítica",
+                                  bg: "#fef2f2",
+                                  border: "#fecaca",
+                                  color: "#991b1b",
+                                  dot: "#dc2626",
+                              }
                             : sevLower === "naranja"
-                              ? "incidencia-naranja"
-                              : "incidencia-verde";
-
-                    const badgeText =
-                        sevLower === "rojo"
-                            ? "🔴 CRÍTICA"
-                            : sevLower === "naranja"
-                              ? "🟠 RELEVANTE"
-                              : "🟢 ORDINARIA";
+                              ? {
+                                    text: "Relevante",
+                                    bg: "#fff7ed",
+                                    border: "#fed7aa",
+                                    color: "#9a3412",
+                                    dot: "#f97316",
+                                }
+                              : {
+                                    text: "Ordinaria",
+                                    bg: "#f0fdf4",
+                                    border: "#bbf7d0",
+                                    color: "#166534",
+                                    dot: "#16a34a",
+                                };
 
                     return `
-                    <tr class="${incidenciaClass}">
+                    <tr class="bg-white hover:bg-gray-50">
                       <td class="px-4 py-3">
-                        <div class="flex items-center gap-2">
-                          <span class="text-xs font-bold">${badgeText}</span>
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="executive-severity" style="--severity-bg: ${severity.bg}; --severity-border: ${severity.border}; --severity-text: ${severity.color};">
+                            <span class="executive-dot" style="--dot-color: ${severity.dot}"></span>
+                            ${severity.text}
+                          </span>
                           <span class="font-semibold">${escapeHtml(r.unidad)}</span>
                         </div>
                       </td>
@@ -6284,7 +7125,7 @@
                 };
 
                 const res = await fetch(
-                    "/bitacora_/src/informe/guardar_informe.php",
+                    phpApiPath("informe/guardar_informe.php"),
                     {
                         method: "POST",
                         headers: getAuthHeaders({
@@ -6489,15 +7330,15 @@
             const container = document.getElementById("papelera-container");
             if (!container) return;
 
-            container.innerHTML = `
-                <div class="text-center p-6">
-                  <p class="text-gray-500">Cargando papelera...</p>
-                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mt-2"></div>
-                </div>`;
+            container.innerHTML = renderStateCard("Cargando papelera...", {
+                compact: true,
+                loading: true,
+                tone: "plain",
+            });
 
             try {
                 const res = await fetch(
-                    "/bitacora_/src/despachos/obtener_papelera.php",
+                    phpApiPath("despachos/obtener_papelera.php"),
                     { cache: "no-store", headers: getAuthHeaders() },
                 );
                 const text = await res.text();
@@ -6540,14 +7381,14 @@
                     <table class="min-w-full text-sm border rounded-lg overflow-hidden">
                       <thead class="bg-gray-100">
                         <tr>
-                          <th class="px-4 py-2 text-left">Folio</th>
-                          <th class="px-4 py-2 text-left">Cliente</th>
-                          <th class="px-4 py-2 text-left">Unidad</th>
-                          <th class="px-4 py-2 text-left">Tramos</th>
-                          <th class="px-4 py-2 text-left">Estado</th>
-                          <th class="px-4 py-2 text-left">Eliminado por</th>
-                          <th class="px-4 py-2 text-left">Fecha</th>
-                          <th class="px-4 py-2 text-left">Motivo</th>
+                          <th scope="col" class="px-4 py-2 text-left">Folio</th>
+                          <th scope="col" class="px-4 py-2 text-left">Cliente</th>
+                          <th scope="col" class="px-4 py-2 text-left">Unidad</th>
+                          <th scope="col" class="px-4 py-2 text-left">Tramos</th>
+                          <th scope="col" class="px-4 py-2 text-left">Estado</th>
+                          <th scope="col" class="px-4 py-2 text-left">Eliminado por</th>
+                          <th scope="col" class="px-4 py-2 text-left">Fecha</th>
+                          <th scope="col" class="px-4 py-2 text-left">Motivo</th>
                         </tr>
                       </thead>
                       <tbody class="divide-y bg-white">
@@ -6586,12 +7427,14 @@
             );
             if (!container) return;
 
-            container.innerHTML = `
-                <div class="text-center p-6">
-                  <p class="text-gray-500">Cargando informes guardados...</p>
-                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mt-2"></div>
-                </div>
-      `;
+            container.innerHTML = renderStateCard(
+                "Cargando informes guardados...",
+                {
+                    compact: true,
+                    loading: true,
+                    tone: "plain",
+                },
+            );
 
             try {
                 const params = new URLSearchParams();
@@ -6605,7 +7448,9 @@
                 }
                 const query = params.toString();
                 const res = await fetch(
-                    `/bitacora_/src/informe/obtener_informes.php${query ? `?${query}` : ""}`,
+                    phpApiPath(
+                        `informe/obtener_informes.php${query ? `?${query}` : ""}`,
+                    ),
                     {
                         cache: "no-store",
                         headers: getAuthHeaders(),
@@ -6751,7 +7596,7 @@
                                   ${titulo}
                               </h3>
                               <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                          ID: ${id || "N/A"}
+                          ID: ${id || "Sin dato"}
                               </span>
                           </div>
                           <div class="flex items-center text-sm text-gray-500 mb-4">
@@ -6932,11 +7777,11 @@
                       <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 text-gray-700">
                           <tr>
-                            <th class="text-left p-3">Folio</th>
-                            <th class="text-left p-3">Unidad</th>
-                            <th class="text-left p-3">Ruta</th>
-                            <th class="text-left p-3">Estatus</th>
-                            <th class="text-left p-3">Incidencias</th>
+                            <th scope="col" class="text-left p-3">Folio</th>
+                            <th scope="col" class="text-left p-3">Unidad</th>
+                            <th scope="col" class="text-left p-3">Ruta</th>
+                            <th scope="col" class="text-left p-3">Estatus</th>
+                            <th scope="col" class="text-left p-3">Incidencias</th>
                           </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 bg-white">
@@ -6999,7 +7844,7 @@
 
             try {
                 const res = await fetch(
-                    "/bitacora_/src/informe/eliminar_informe.php",
+                    phpApiPath("informe/eliminar_informe.php"),
                     {
                         method: "POST",
                         headers: getAuthHeaders({
@@ -7142,10 +7987,15 @@
             });
 
             if (filtradas.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-12 text-gray-400 text-sm">
-                        No hay registros que coincidan con los filtros.
-                    </div>`;
+                grid.innerHTML = renderStateCard(
+                    "No hay registros que coincidan con los filtros.",
+                    {
+                        fullWidth: true,
+                        compact: true,
+                        framed: false,
+                        tone: "plain",
+                    },
+                );
                 return;
             }
 
@@ -7332,7 +8182,7 @@
 
             try {
                 const res = await fetch(
-                    `/bitacora_/src/despachos/obtener_viajes.php?${params}`,
+                    phpApiPath(`despachos/obtener_viajes.php?${params}`),
                     { headers: getAuthHeaders({ Accept: "application/json" }) },
                 );
                 const json = await res.json();
@@ -7368,7 +8218,7 @@
                         t.ruta ||
                         (t.origen && t.destino
                             ? `${t.origen} → ${t.destino}`
-                            : v.ruta || "N/A");
+                            : v.ruta || "Sin dato");
 
                     // Estatus especial para cancelados
                     const estatusEspecial =
@@ -7397,17 +8247,17 @@
 
                         // Fechas y clasificación
                         fechaProgramada,
-                        cliente: v.cliente || "N/A",
-                        unidad: v.unidad || "N/A",
-                        placas: v.placas || "N/A",
-                        operador: v.operador || "N/A",
-                        telefono: v.telefono || "N/A",
+                        cliente: v.cliente || "Sin dato",
+                        unidad: v.unidad || "Sin dato",
+                        placas: v.placas || "Sin dato",
+                        operador: v.operador || "Sin dato",
+                        telefono: v.telefono || "Sin dato",
 
                         // Ruta
                         ruta: rutaTramo,
-                        origen: t.origen || "N/A",
-                        destino: t.destino || "N/A",
-                        lugarCarga: t.lugar_carga || "N/A",
+                        origen: t.origen || "Sin dato",
+                        destino: t.destino || "Sin dato",
+                        lugarCarga: t.lugar_carga || "Sin dato",
                         instruccionesEspeciales: t.instrucciones || "",
 
                         // Citas programadas → calcularEstatusAutomatico las lee
@@ -7482,10 +8332,14 @@
                 counter.textContent = `${datos.length} viaje${datos.length !== 1 ? "s" : ""}`;
 
             if (datos.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center p-10 bg-white rounded-xl shadow">
-                        <p class="text-gray-500 text-sm">No hay viajes en el rango seleccionado</p>
-                    </div>`;
+                container.innerHTML = renderStateCard(
+                    "No hay viajes para el rango seleccionado.",
+                    {
+                        compact: true,
+                        framed: false,
+                        tone: "plain",
+                    },
+                );
                 return;
             }
 
@@ -7634,9 +8488,10 @@
 
                     return `
                     <div class="mb-7">
-                        <div class="flex items-center justify-between gap-2 flex-wrap mb-2 px-1 border-b-2 border-blue-900 pb-2
-                                    cursor-pointer select-none hover:opacity-80 transition-opacity"
-                             onclick="toggleGrupoCliente('${clienteKey}')">
+                        <button type="button"
+                                class="w-full flex items-center justify-between gap-2 flex-wrap mb-2 px-1 border-b-2 border-blue-900 pb-2 text-left cursor-pointer select-none hover:opacity-80 transition-opacity"
+                                aria-expanded="${colapsado ? "false" : "true"}"
+                                onclick="toggleGrupoCliente('${clienteKey}')">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-sm font-bold text-blue-900 uppercase tracking-wide">🏢 ${escapeHtml(cliente)}</span>
                                 <span class="text-xs text-gray-400 font-medium">${totalViajes} viaje${totalViajes !== 1 ? "s" : ""}</span>
@@ -7649,7 +8504,7 @@
                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
-                        </div>
+                        </button>
                         ${colapsado ? "" : viajes.map((v) => _renderViajeCard(v)).join("")}
                     </div>`;
                 })
@@ -7727,8 +8582,8 @@
                 v.estado !== "en_curso" &&
                 v.estado !== "completado" &&
                 v.estado !== "cancelado"
-                    ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)"
-                           class="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-1 rounded-full font-semibold transition-colors">
+                    ? `<button type="button" onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)"
+                           class="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-2 rounded-full font-semibold transition-colors">
                        🚛 En curso
                    </button>`
                     : "";
@@ -7737,16 +8592,16 @@
                 !esLector &&
                 v.estado !== "completado" &&
                 v.estado !== "cancelado"
-                    ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)"
-                           class="text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-1 rounded-full font-semibold transition-colors">
+                    ? `<button type="button" onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)"
+                           class="text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-2 rounded-full font-semibold transition-colors">
                        ✅ Completar
                    </button>`
                     : "";
 
             const btnCancelar =
                 !esLector && v.estado !== "cancelado"
-                    ? `<button onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)"
-                           class="text-xs bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-1 rounded-full font-semibold transition-colors ml-auto">
+                    ? `<button type="button" onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)"
+                           class="text-xs bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-2 rounded-full font-semibold transition-colors sm:ml-auto">
                        ✕ Cancelar viaje
                    </button>`
                     : "";
@@ -7760,8 +8615,11 @@
 
             return `
             <div class="${cardClase}" data-viaje-id="${v.viaje_id}">
-                <div class="flex items-center justify-between p-4 cursor-pointer ${cardHover} transition-colors"
-                     onclick="toggleViaje(${v.viaje_id})">
+                <button type="button"
+                        class="w-full flex items-center justify-between p-4 text-left cursor-pointer ${cardHover} transition-colors"
+                        aria-expanded="${expandido ? "true" : "false"}"
+                        aria-controls="viaje-detalle-${v.viaje_id}"
+                        onclick="toggleViaje(${v.viaje_id})">
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="flex-shrink-0 w-9 h-9 rounded-full bg-blue-800 text-white flex items-center justify-center font-bold text-sm">
                             ${v.total_tramos}
@@ -7801,12 +8659,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </div>
-                </div>
+                </button>
 
                 ${
                     expandido
                         ? `
-                <div class="border-t border-gray-100 bg-gray-50 px-4 pb-4 pt-3">
+                <div id="viaje-detalle-${v.viaje_id}" class="border-t border-gray-100 bg-gray-50 px-4 pb-4 pt-3">
                     ${
                         !esLector
                             ? `
@@ -7866,12 +8724,13 @@
                 </span>`;
                 }
                 return `
-                <label class="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+                <label class="flex items-center gap-2 text-xs cursor-pointer select-none min-h-10">
                     <input type="checkbox" ${checked}
                            data-gps-key="${g.key}"
                            data-tramo-id="${t.id}"
                            data-viaje-id="${viajeId}"
-                           class="gps-check w-3.5 h-3.5 rounded accent-blue-600"
+                           aria-label="Validar ${escapeHtml(g.label)}"
+                           class="gps-check w-5 h-5 rounded accent-blue-600"
                            onchange="guardarGpsTramo(${viajeId}, ${t.id})"/>
                     <span class="${checked ? "text-gray-800" : "text-gray-500"}">${g.label}</span>
                 </label>`;
@@ -7994,7 +8853,7 @@
 
             const listaHtml =
                 incidencias.length === 0
-                    ? `<p class="text-xs text-gray-400 italic px-1">Sin incidencias registradas</p>`
+                    ? `<p class="text-xs text-gray-400 italic px-1">Aún no hay incidencias en este tramo.</p>`
                     : incidencias
                           .map((inc) => {
                               const sev =
@@ -8014,8 +8873,9 @@
                         ${
                             puedeAgregar
                                 ? `
-                        <button onclick="eliminarIncidencia(${viajeId},${t.id},${inc.id})"
+                        <button type="button" onclick="eliminarIncidencia(${viajeId},${t.id},${inc.id})"
                                 title="Eliminar"
+                                aria-label="Eliminar incidencia"
                                 class="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors text-sm">✕</button>`
                                 : ""
                         }
@@ -8068,13 +8928,13 @@
                         </div>
                     </div>
                     <div class="flex gap-2 justify-end">
-                        <button onclick="document.getElementById('${formId}').classList.add('hidden')"
+                        <button type="button" onclick="document.getElementById('${formId}').classList.add('hidden')"
                                 class="text-xs px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">
                             Cancelar
                         </button>
-                        <button onclick="guardarIncidencia(${viajeId},${t.id},'${formId}')"
+                        <button type="button" onclick="guardarIncidencia(${viajeId},${t.id},'${formId}')"
                                 class="text-xs px-3 py-1 rounded bg-red-600 text-white font-semibold hover:bg-red-700">
-                            Guardar
+                            Guardar incidencia
                         </button>
                     </div>
                 </div>`
@@ -8082,7 +8942,7 @@
 
             const btnAgregar = puedeAgregar
                 ? `
-                <button onclick="document.getElementById('${formId}').classList.toggle('hidden')"
+                <button type="button" onclick="document.getElementById('${formId}').classList.toggle('hidden')"
                         class="mt-1.5 text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1">
                     ＋ Agregar incidencia
                 </button>`
@@ -8273,14 +9133,14 @@
                 const tid = t.id;
                 const vid = viajeId;
                 if (t.estado === "pendiente") {
-                    return `<button onclick="cambiarEstadoTramo(${vid},${tid},'en_curso',this)"
-                                class="text-xs bg-blue-600 text-white px-2.5 py-1 rounded font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap">
+                    return `<button type="button" onclick="cambiarEstadoTramo(${vid},${tid},'en_curso',this)"
+                                class="text-xs bg-blue-600 text-white px-3 py-2 rounded font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap">
                                 🚛 En curso
                             </button>`;
                 }
                 if (t.estado === "en_curso") {
-                    return `<button onclick="cambiarEstadoTramo(${vid},${tid},'completado',this)"
-                                class="text-xs bg-green-600 text-white px-2.5 py-1 rounded font-semibold hover:bg-green-700 transition-colors whitespace-nowrap">
+                    return `<button type="button" onclick="cambiarEstadoTramo(${vid},${tid},'completado',this)"
+                                class="text-xs bg-green-600 text-white px-3 py-2 rounded font-semibold hover:bg-green-700 transition-colors whitespace-nowrap">
                                 ✅ Completar
                             </button>`;
                 }
@@ -8425,9 +9285,10 @@
                                                value="${toInputVal(real)}"
                                                onchange="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',this)"
                                                class="flex-1 min-w-0 text-xs border rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 ${inputClr}"/>
-                                        <button onclick="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',null,true)"
+                                        <button type="button" onclick="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',null,true)"
                                                 title="Registrar hora actual"
-                                                class="flex-shrink-0 text-xs border rounded px-1.5 py-0.5 font-bold transition-colors ${btnClr}">
+                                                aria-label="Registrar hora actual para ${label}"
+                                                class="flex-shrink-0 text-xs border rounded px-2 py-1 font-bold transition-colors ${btnClr}">
                                             ↺
                                         </button>`
                                         }
@@ -8450,7 +9311,7 @@
                         })()}
                         ${!apagado ? _seccionGps(t, viajeId) : ""}
                         ${_seccionIncidencias(t, viajeId, estadoViaje)}
-                        ${_botonesTramo(t) ? `<div class="flex gap-2 mt-2">${_botonesTramo(t)}</div>` : ""}
+                        ${_botonesTramo(t) ? `<div class="flex flex-wrap gap-2 mt-2">${_botonesTramo(t)}</div>` : ""}
                     </div>
                 </div>`;
                 })
@@ -8467,7 +9328,7 @@
             const formAgregarDestino = mostrarAgregar
                 ? `
                 <div class="pt-1">
-                    <button onclick="abrirFormAgregarDestino(${viajeId})"
+                    <button type="button" onclick="abrirFormAgregarDestino(${viajeId})"
                             id="btn-agregar-destino-${viajeId}"
                             class="w-full flex items-center justify-center gap-2 text-xs text-purple-700 border border-dashed border-purple-300 bg-purple-50 hover:bg-purple-100 rounded-lg py-2 font-semibold transition-colors">
                         ＋ Agregar destino
@@ -8512,9 +9373,9 @@
                             </div>
                         </div>
                         <div class="flex gap-2 justify-end">
-                            <button onclick="cerrarFormAgregarDestino(${viajeId})"
+                            <button type="button" onclick="cerrarFormAgregarDestino(${viajeId})"
                                     class="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5">Cancelar</button>
-                            <button onclick="guardarNuevoDestino(${viajeId},this)"
+                            <button type="button" onclick="guardarNuevoDestino(${viajeId},this)"
                                     class="text-xs bg-purple-600 text-white px-4 py-1.5 rounded font-semibold hover:bg-purple-700 transition-colors">
                                 💾 Guardar destino
                             </button>
@@ -8626,7 +9487,7 @@
 
             try {
                 const res = await fetch(
-                    "/bitacora_/src/despachos/cambiar_estado_viaje.php",
+                    phpApiPath("despachos/cambiar_estado_viaje.php"),
                     {
                         method: "POST",
                         headers: getAuthHeaders({
@@ -9028,7 +9889,8 @@
             const from = dateWindow.from || "";
             const to = dateWindow.to || "";
 
-            if (incExecutiveFilterMode === "all") return "Periodo: Todo";
+            if (incExecutiveFilterMode === "all")
+                return "Periodo: todo el rango";
             if (from && to && from === to) return `Fecha: ${from}`;
             if (from && to) return `Periodo: ${from} al ${to}`;
             if (from) return `Periodo: desde ${from}`;
