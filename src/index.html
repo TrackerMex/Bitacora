@@ -1,33 +1,10 @@
 <!doctype html>
-<html lang="es" data-theme="light" data-theme-preference="light">
+<html lang="es">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="referrer" content="strict-origin-when-cross-origin" />
         <title>BITÁCORA ELECTRÓNICA PARA MONITOREO DE LOGÍSTICA</title>
-        <script>
-            (() => {
-                const key = "bitacoraThemePreference";
-                const valid = new Set(["system", "light", "dark"]);
-                let preference = "system";
-                try {
-                    const stored = localStorage.getItem(key);
-                    if (valid.has(stored)) preference = stored;
-                } catch (_) {}
-                const prefersDark =
-                    window.matchMedia &&
-                    window.matchMedia("(prefers-color-scheme: dark)").matches;
-                const resolved =
-                    preference === "system"
-                        ? prefersDark
-                            ? "dark"
-                            : "light"
-                        : preference;
-                document.documentElement.dataset.theme = resolved;
-                document.documentElement.dataset.themePreference = preference;
-                document.documentElement.style.colorScheme = resolved;
-            })();
-        </script>
 
         <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
@@ -55,62 +32,9 @@
                 --color-muted: oklch(0.49 0.028 255);
                 --color-primary: oklch(0.54 0.22 278);
                 --color-primary-strong: oklch(0.49 0.23 278);
-                --color-input: var(--color-card);
-                --color-table-head: var(--color-panel);
-                --color-row-hover: oklch(0.972 0.007 255);
-                --color-success-soft: #d1fae5;
-                --color-success-text: #065f46;
-                --color-danger-soft: #fee2e2;
-                --color-danger-text: #991b1b;
-                --color-warning-soft: #fef3c7;
-                --color-warning-text: #92400e;
-                --color-info-soft: #dbeafe;
-                --color-info-text: #1e40af;
-                --color-orange-soft: #ffedd5;
-                --color-orange-text: #c2410c;
-                --theme-icon: "◐";
-                --theme-label: "Sistema";
                 --shadow-resting: 0 1px 2px rgba(17, 24, 39, 0.06);
                 --shadow-overlay: 0 24px 70px rgba(17, 24, 39, 0.28);
                 --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-            }
-            html[data-theme="dark"] {
-                color-scheme: dark;
-                --color-page: oklch(0.17 0.018 255);
-                --color-panel: oklch(0.215 0.021 255);
-                --color-card: oklch(0.245 0.023 255);
-                --color-line: oklch(0.34 0.026 255);
-                --color-line-strong: oklch(0.43 0.032 255);
-                --color-text: oklch(0.93 0.012 255);
-                --color-muted: oklch(0.71 0.022 255);
-                --color-primary: oklch(0.68 0.18 278);
-                --color-primary-strong: oklch(0.74 0.16 278);
-                --color-input: oklch(0.205 0.02 255);
-                --color-table-head: oklch(0.205 0.02 255);
-                --color-row-hover: oklch(0.285 0.025 255);
-                --color-success-soft: oklch(0.29 0.065 150);
-                --color-success-text: oklch(0.86 0.105 150);
-                --color-danger-soft: oklch(0.28 0.075 25);
-                --color-danger-text: oklch(0.83 0.12 25);
-                --color-warning-soft: oklch(0.31 0.07 80);
-                --color-warning-text: oklch(0.88 0.11 85);
-                --color-info-soft: oklch(0.3 0.06 255);
-                --color-info-text: oklch(0.84 0.1 255);
-                --color-orange-soft: oklch(0.3 0.075 55);
-                --color-orange-text: oklch(0.86 0.12 55);
-                --theme-icon: "☾";
-                --theme-label: "Oscuro";
-                --shadow-resting: 0 1px 2px rgba(0, 0, 0, 0.2);
-                --shadow-overlay: 0 28px 80px rgba(0, 0, 0, 0.55);
-            }
-            html[data-theme="light"] {
-                color-scheme: light;
-                --theme-icon: "☼";
-                --theme-label: "Claro";
-            }
-            html[data-theme-preference="system"] {
-                --theme-icon: "◐";
-                --theme-label: "Sistema";
             }
             html {
                 -webkit-text-size-adjust: 100%;
@@ -342,205 +266,6 @@
             .modal button[onclick^="closeModal"]:hover {
                 background: #eef2f7;
                 color: #111827;
-            }
-            .theme-switch {
-                display: inline-flex;
-                align-items: center;
-                gap: 0.5rem;
-                min-height: 2.5rem;
-                border: 1px solid var(--color-line);
-                border-radius: 9999px;
-                background: var(--color-panel);
-                color: var(--color-text);
-                padding: 0.35rem 0.75rem;
-                font-size: 0.8125rem;
-                font-weight: 700;
-                box-shadow: var(--shadow-resting);
-            }
-            .theme-switch::before {
-                content: var(--theme-icon);
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 1.35rem;
-                height: 1.35rem;
-                border-radius: 9999px;
-                background: var(--color-card);
-                color: var(--color-primary);
-                line-height: 1;
-            }
-            .theme-switch-label::before {
-                content: var(--theme-label);
-            }
-            html[data-theme="dark"] .modal button[onclick^="closeModal"]:hover {
-                background: oklch(0.31 0.025 255);
-                color: var(--color-text);
-            }
-            html[data-theme="dark"] .bg-white,
-            html[data-theme="dark"] .bg-gray-50,
-            html[data-theme="dark"] .bg-gray-100,
-            html[data-theme="dark"] .bg-slate-50 {
-                background-color: var(--color-card) !important;
-            }
-            html[data-theme="dark"] .bg-gray-800,
-            html[data-theme="dark"] .bg-gray-900,
-            html[data-theme="dark"] .bg-slate-800,
-            html[data-theme="dark"] .bg-slate-900 {
-                background-color: oklch(0.2 0.022 255) !important;
-            }
-            html[data-theme="dark"] .text-gray-900,
-            html[data-theme="dark"] .text-gray-800,
-            html[data-theme="dark"] .text-gray-700,
-            html[data-theme="dark"] .text-slate-900,
-            html[data-theme="dark"] .text-slate-800,
-            html[data-theme="dark"] .text-slate-700 {
-                color: var(--color-text) !important;
-            }
-            html[data-theme="dark"] .text-gray-600,
-            html[data-theme="dark"] .text-gray-500,
-            html[data-theme="dark"] .text-gray-400,
-            html[data-theme="dark"] .text-slate-600,
-            html[data-theme="dark"] .text-slate-500 {
-                color: var(--color-muted) !important;
-            }
-            html[data-theme="dark"] .border,
-            html[data-theme="dark"] .border-t,
-            html[data-theme="dark"] .border-b,
-            html[data-theme="dark"] .border-l,
-            html[data-theme="dark"] .border-r,
-            html[data-theme="dark"] .border-gray-100,
-            html[data-theme="dark"] .border-gray-200,
-            html[data-theme="dark"] .border-gray-300,
-            html[data-theme="dark"] .border-slate-200 {
-                border-color: var(--color-line) !important;
-            }
-            html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
-            html[data-theme="dark"] select,
-            html[data-theme="dark"] textarea {
-                background-color: var(--color-input) !important;
-                border-color: var(--color-line-strong) !important;
-                color: var(--color-text) !important;
-            }
-            html[data-theme="dark"] input:disabled,
-            html[data-theme="dark"] textarea:disabled,
-            html[data-theme="dark"] select:disabled,
-            html[data-theme="dark"] .bg-gray-100,
-            html[data-theme="dark"] .bg-gray-200,
-            html[data-theme="dark"] .bg-gray-300,
-            html[data-theme="dark"] .bg-gray-400 {
-                background-color: oklch(0.19 0.018 255) !important;
-                color: var(--color-muted) !important;
-            }
-            html[data-theme="dark"] .text-red-600,
-            html[data-theme="dark"] .text-red-700,
-            html[data-theme="dark"] .text-red-800 {
-                color: var(--color-danger-text) !important;
-            }
-            html[data-theme="dark"] .text-green-600,
-            html[data-theme="dark"] .text-green-700,
-            html[data-theme="dark"] .text-green-800 {
-                color: var(--color-success-text) !important;
-            }
-            html[data-theme="dark"] .text-yellow-600,
-            html[data-theme="dark"] .text-yellow-700,
-            html[data-theme="dark"] .text-yellow-800,
-            html[data-theme="dark"] .text-amber-600,
-            html[data-theme="dark"] .text-amber-700,
-            html[data-theme="dark"] .text-amber-800 {
-                color: var(--color-warning-text) !important;
-            }
-            html[data-theme="dark"] .text-blue-600,
-            html[data-theme="dark"] .text-blue-700,
-            html[data-theme="dark"] .text-blue-800,
-            html[data-theme="dark"] .text-indigo-600,
-            html[data-theme="dark"] .text-indigo-700,
-            html[data-theme="dark"] .text-indigo-800 {
-                color: var(--color-info-text) !important;
-            }
-            html[data-theme="dark"] table,
-            html[data-theme="dark"] tbody,
-            html[data-theme="dark"] thead,
-            html[data-theme="dark"] tr {
-                background-color: transparent !important;
-                color: var(--color-text);
-            }
-            html[data-theme="dark"] thead,
-            html[data-theme="dark"] .executive-table th {
-                background-color: var(--color-table-head) !important;
-            }
-            html[data-theme="dark"] tr:hover,
-            html[data-theme="dark"] .hover\:bg-gray-50:hover,
-            html[data-theme="dark"] .hover\:bg-gray-100:hover {
-                background-color: var(--color-row-hover) !important;
-            }
-            html[data-theme="dark"] .divide-y > :not([hidden]) ~ :not([hidden]) {
-                border-color: var(--color-line) !important;
-            }
-            html[data-theme="dark"] .shadow-md,
-            html[data-theme="dark"] .shadow-lg,
-            html[data-theme="dark"] .shadow-xl,
-            html[data-theme="dark"] .shadow-2xl {
-                box-shadow: var(--shadow-resting) !important;
-            }
-            html[data-theme="dark"] .modal .shadow-2xl {
-                box-shadow: var(--shadow-overlay) !important;
-            }
-            html[data-theme="dark"] .tab-active {
-                background: var(--color-card) !important;
-                color: var(--color-text) !important;
-            }
-            html[data-theme="dark"] .tab-btn:hover {
-                background: oklch(0.29 0.035 278);
-                color: var(--color-text);
-            }
-            html[data-theme="dark"] .estatus-verde,
-            html[data-theme="dark"] .badge-realizado,
-            html[data-theme="dark"] .incidencia-verde,
-            html[data-theme="dark"] .bg-green-50,
-            html[data-theme="dark"] .bg-green-100 {
-                background-color: var(--color-success-soft) !important;
-                color: var(--color-success-text) !important;
-            }
-            html[data-theme="dark"] .estatus-rojo,
-            html[data-theme="dark"] .badge-no-realizado,
-            html[data-theme="dark"] .incidencia-rojo,
-            html[data-theme="dark"] .bg-red-50,
-            html[data-theme="dark"] .bg-red-100 {
-                background-color: var(--color-danger-soft) !important;
-                color: var(--color-danger-text) !important;
-            }
-            html[data-theme="dark"] .estatus-en-ruta,
-            html[data-theme="dark"] .badge-en-ruta,
-            html[data-theme="dark"] .badge-no-programada,
-            html[data-theme="dark"] .bg-yellow-50,
-            html[data-theme="dark"] .bg-yellow-100,
-            html[data-theme="dark"] .bg-amber-50,
-            html[data-theme="dark"] .bg-amber-100 {
-                background-color: var(--color-warning-soft) !important;
-                color: var(--color-warning-text) !important;
-            }
-            html[data-theme="dark"] .estatus-cargando,
-            html[data-theme="dark"] .badge-cargando,
-            html[data-theme="dark"] .incidencia-naranja,
-            html[data-theme="dark"] .bg-orange-50,
-            html[data-theme="dark"] .bg-orange-100 {
-                background-color: var(--color-orange-soft) !important;
-                color: var(--color-orange-text) !important;
-            }
-            html[data-theme="dark"] .estatus-salida-carga,
-            html[data-theme="dark"] .estatus-cancelado,
-            html[data-theme="dark"] .badge-programado,
-            html[data-theme="dark"] .badge-salida-carga,
-            html[data-theme="dark"] .bg-blue-50,
-            html[data-theme="dark"] .bg-blue-100,
-            html[data-theme="dark"] .bg-indigo-50,
-            html[data-theme="dark"] .bg-indigo-100 {
-                background-color: var(--color-info-soft) !important;
-                color: var(--color-info-text) !important;
-            }
-            html[data-theme="dark"] .pdf-export-root,
-            html[data-theme="dark"] .pdf-export-root * {
-                color-scheme: light;
             }
             .registro-board {
                 display: grid;
@@ -853,10 +578,6 @@
                     margin-left: 0;
                     margin-right: 0;
                 }
-                .theme-switch {
-                    position: static !important;
-                    margin-bottom: 0.75rem;
-                }
                 .app-header h1 {
                     font-size: 1.25rem;
                     line-height: 1.25;
@@ -927,16 +648,6 @@
                 <p class="text-sm text-gray-700">
                     Seguimiento operativo de viajes, GPS e incidencias
                 </p>
-                <button
-                    id="theme-toggle"
-                    type="button"
-                    class="theme-switch absolute left-4 top-4"
-                    aria-label="Cambiar tema"
-                    title="Tema: Sistema"
-                    onclick="cycleThemePreference()"
-                >
-                    <span class="theme-switch-label"></span>
-                </button>
                 <div
                     id="user-info"
                     class="absolute top-4 right-4 flex items-center gap-3 hidden"
@@ -1248,7 +959,9 @@
                         </div>
                     </div>
                     <div class="executive-toolbar" data-pdf-exclude="true">
-                        <div class="mb-3 flex items-center justify-between gap-3">
+                        <div
+                            class="mb-3 flex items-center justify-between gap-3"
+                        >
                             <h3 class="text-sm font-semibold text-gray-800">
                                 Fecha de despacho
                             </h3>
@@ -1343,7 +1056,9 @@
                     </div>
 
                     <div id="informe-container">
-                        <p class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
+                        <p
+                            class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600"
+                        >
                             Seleccione una fecha (arriba) para generar el
                             informe.
                         </p>
@@ -1359,7 +1074,8 @@
                                         Incidencias
                                     </h3>
                                     <p class="mt-0.5 text-xs text-gray-500">
-                                        Unidad, tipo, fecha y dirección del evento.
+                                        Unidad, tipo, fecha y dirección del
+                                        evento.
                                     </p>
                                 </div>
                             </div>
@@ -1918,7 +1634,9 @@
                 aria-labelledby="login-title"
             >
                 <div class="border-b bg-gray-50 px-6 py-5">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-indigo-700">
+                    <p
+                        class="text-xs font-semibold uppercase tracking-wide text-indigo-700"
+                    >
                         Centro de monitoreo
                     </p>
                     <h3
@@ -1928,7 +1646,8 @@
                         Acceso a Bitácora
                     </h3>
                     <p class="mt-1 text-sm text-gray-500">
-                        Ingresa con tu cuenta asignada para consultar tus unidades.
+                        Ingresa con tu cuenta asignada para consultar tus
+                        unidades.
                     </p>
                 </div>
                 <form
@@ -2449,90 +2168,6 @@
             return bitacoraAuthToken
                 ? { ...extra, Authorization: `Bearer ${bitacoraAuthToken}` }
                 : extra;
-        }
-
-        const THEME_STORAGE_KEY = "bitacoraThemePreference";
-        const THEME_OPTIONS = ["system", "light", "dark"];
-        let themePreference = "system";
-        let themeMediaQuery = null;
-
-        function getSystemTheme() {
-            return window.matchMedia &&
-                window.matchMedia("(prefers-color-scheme: dark)").matches
-                ? "dark"
-                : "light";
-        }
-
-        function resolveTheme(preference = themePreference) {
-            return preference === "system" ? getSystemTheme() : preference;
-        }
-
-        function getStoredThemePreference() {
-            try {
-                const stored = localStorage.getItem(THEME_STORAGE_KEY);
-                return THEME_OPTIONS.includes(stored) ? stored : "system";
-            } catch (_) {
-                return "system";
-            }
-        }
-
-        function applyThemePreference(preference, persist = true) {
-            themePreference = THEME_OPTIONS.includes(preference)
-                ? preference
-                : "system";
-            const resolved = resolveTheme(themePreference);
-            document.documentElement.dataset.theme = resolved;
-            document.documentElement.dataset.themePreference = themePreference;
-            document.documentElement.style.colorScheme = resolved;
-            if (persist) {
-                try {
-                    localStorage.setItem(THEME_STORAGE_KEY, themePreference);
-                } catch (_) {}
-            }
-            updateThemeToggleLabel();
-        }
-
-        function updateThemeToggleLabel() {
-            const btn = document.getElementById("theme-toggle");
-            if (!btn) return;
-            const label =
-                themePreference === "system"
-                    ? `Sistema (${resolveTheme() === "dark" ? "oscuro" : "claro"})`
-                    : themePreference === "dark"
-                      ? "Oscuro"
-                      : "Claro";
-            btn.setAttribute("aria-label", `Cambiar tema. Actual: ${label}`);
-            btn.title = `Tema: ${label}`;
-        }
-
-        function cycleThemePreference() {
-            const currentIndex = THEME_OPTIONS.indexOf(themePreference);
-            const next =
-                THEME_OPTIONS[(currentIndex + 1) % THEME_OPTIONS.length] ||
-                "system";
-            applyThemePreference(next, true);
-        }
-
-        function initThemeControls() {
-            applyThemePreference(getStoredThemePreference(), false);
-            if (window.matchMedia) {
-                themeMediaQuery = window.matchMedia(
-                    "(prefers-color-scheme: dark)",
-                );
-                const handleSystemThemeChange = () => {
-                    if (themePreference === "system") {
-                        applyThemePreference("system", false);
-                    }
-                };
-                if (themeMediaQuery.addEventListener) {
-                    themeMediaQuery.addEventListener(
-                        "change",
-                        handleSystemThemeChange,
-                    );
-                } else if (themeMediaQuery.addListener) {
-                    themeMediaQuery.addListener(handleSystemThemeChange);
-                }
-            }
         }
 
         const BITACORA_PRODUCTION_SRC = "https://bitacora.trackergps.cloud/src";
@@ -3073,19 +2708,16 @@
             if (errorMessage) errorMessage.classList.add("hidden");
 
             try {
-                const response = await fetch(
-                    phpApiPath("usuarios/login.php"),
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            username: usernameInput,
-                            password: password,
-                        }),
+                const response = await fetch(phpApiPath("usuarios/login.php"), {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
                     },
-                );
+                    body: JSON.stringify({
+                        username: usernameInput,
+                        password: password,
+                    }),
+                });
 
                 const data = await response.json();
 
@@ -4425,7 +4057,9 @@
                 try {
                     // 1. Actualizar MySQL
                     const response = await fetch(
-                        phpApiPath("seguimiento/actualizar_fecha_programada.php"),
+                        phpApiPath(
+                            "seguimiento/actualizar_fecha_programada.php",
+                        ),
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -8524,9 +8158,9 @@
 
         let allViajesData = [];
         let viajesExpandidos = {};
-        let gruposColapsados = {}; // clave = nombre cliente, valor = true si colapsado
-        let historialAbierto = {}; // clave = cliente (o "__single"), valor = true si historial de completados visible
-        const HISTORIAL_VISIBLES = 5; // cuántos completados recientes se muestran sin abrir el historial
+        let gruposColapsados = {};
+        let historialAbierto = {};
+        const HISTORIAL_VISIBLES = 5;
 
         async function loadViajesFromDb() {
             if (!userRole || !bitacoraAuthToken) return;
@@ -8792,27 +8426,24 @@
             return `${mins}m`;
         }
 
-        // Agrupa los viajes por cliente cuando el usuario es admin con múltiples clientes.
-        // Para monitoristas y lectores (un solo cliente) devuelve lista plana sin ruptura visual.
-        // Parte una lista de viajes en: activos + N completados recientes (siempre visibles)
-        // y el resto de completados dentro de un historial colapsable.
-        // scopeKey identifica el ámbito (cliente, o "__single") para el estado del toggle.
         function _renderListaViajes(viajes, scopeKey) {
             const esCompletado = (v) => v.estado === "completado";
             const activos = viajes.filter((v) => !esCompletado(v));
 
             // Completados ordenados por recencia (última descarga real, con respaldos)
             const _fechaComplecion = (v) =>
-                v.ultima_descarga || v.fecha_fin || v.updated_at || v.created_at || "";
-            const completados = viajes
-                .filter(esCompletado)
-                .sort((a, b) => {
-                    const da = dayjs(_fechaComplecion(a));
-                    const db = dayjs(_fechaComplecion(b));
-                    const va = da.isValid() ? da.valueOf() : 0;
-                    const vb = db.isValid() ? db.valueOf() : 0;
-                    return vb - va; // más reciente primero
-                });
+                v.ultima_descarga ||
+                v.fecha_fin ||
+                v.updated_at ||
+                v.created_at ||
+                "";
+            const completados = viajes.filter(esCompletado).sort((a, b) => {
+                const da = dayjs(_fechaComplecion(a));
+                const db = dayjs(_fechaComplecion(b));
+                const va = da.isValid() ? da.valueOf() : 0;
+                const vb = db.isValid() ? db.valueOf() : 0;
+                return vb - va; // más reciente primero
+            });
 
             const recientes = completados.slice(0, HISTORIAL_VISIBLES);
             const enHistorial = completados.slice(HISTORIAL_VISIBLES);
@@ -10436,7 +10067,7 @@
             const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">`;
 
             return `<!doctype html>
-<html lang="es" data-theme="light" data-theme-preference="light">
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10574,28 +10205,7 @@
                 .pdf-export-root .incidencia-rojo { background-color: #fee2e2 !important; }
                 .pdf-export-root .incidencia-naranja { background-color: #ffedd5 !important; }
                 .pdf-export-root .incidencia-verde { background-color: #dcfce7 !important; }
-                .pdf-export-root .surface-card,
-                .pdf-export-root .section-shell,
-                .pdf-export-root .executive-toolbar,
-                .pdf-export-root .executive-metrics,
-                .pdf-export-root .executive-table,
-                .pdf-export-root .executive-metric {
-                    background-color: #ffffff !important;
-                    border-color: #e5e7eb !important;
-                    color: #111827 !important;
-                }
-                .pdf-export-root .executive-table th,
-                .pdf-export-root .executive-table thead {
-                    background-color: #f9fafb !important;
-                    color: #4b5563 !important;
-                }
-                .pdf-export-root .executive-metric-label,
-                .pdf-export-root .executive-metric-hint {
-                    color: #6b7280 !important;
-                }
-                .pdf-export-root .executive-metric-value {
-                    color: #111827 !important;
-                }
+
                 .pdf-export-root thead { background-color: #f9fafb; }
                 .pdf-export-root tbody { background-color: #ffffff; }
                 .pdf-export-root th { color: #374151; font-weight: 600; }
