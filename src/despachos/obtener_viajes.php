@@ -53,6 +53,18 @@ function str_or_null($v)
     return $s === "" ? null : $s;
 }
 
+function firma_ruta_v($origen, $lugar_carga, $destino)
+{
+    $norm = function ($v) {
+        return mb_strtolower(trim((string) ($v ?? "")), "UTF-8");
+    };
+    $firma = $norm($origen) . "|" . $norm($lugar_carga) . "|" . $norm($destino);
+    return $firma === "||" ? null : $firma;
+}
+
+// Umbral de usos a partir del cual un tramo muestra el badge "ruta frecuente".
+const RUTA_FRECUENTE_MIN_USOS = 5;
+
 try {
     if ($_SERVER["REQUEST_METHOD"] !== "GET") {
         throw new Exception("Método no permitido. Use GET.");
@@ -260,31 +272,130 @@ try {
                 continue;
             }
             $viajes[$vid]["tramos"][] = [
-                "id"                   => (int) $t["id"],
-                "viaje_id"             => $vid,
-                "tramo_numero"         => (int) $t["tramo_numero"],
-                "origen"               => (string) $t["origen"],
-                "lugar_carga"          => (string) $t["lugar_carga"],
-                "destino"              => (string) $t["destino"],
-                "ruta"                 => (string) $t["ruta"],
-                "instrucciones"        => (string) $t["instrucciones"],
-                "gps_estado"           => $t["gps_estado"]           ? (string) $t["gps_estado"]           : null,
-                "gps_timestamp"        => $t["gps_timestamp"]        ? (string) $t["gps_timestamp"]        : null,
-                "salida_patio"         => $t["salida_patio"]         ? (string) $t["salida_patio"]         : null,
-                "salida_patio_real"    => $t["salida_patio_real"]    ? (string) $t["salida_patio_real"]    : null,
-                "cita_carga"           => $t["cita_carga"]           ? (string) $t["cita_carga"]           : null,
-                "cita_carga_real"      => $t["cita_carga_real"]      ? (string) $t["cita_carga_real"]      : null,
-                "salida_carga"         => $t["salida_carga"]         ? (string) $t["salida_carga"]         : null,
-                "salida_carga_real"    => $t["salida_carga_real"]    ? (string) $t["salida_carga_real"]    : null,
-                "descarga_programada"  => $t["descarga_programada"]  ? (string) $t["descarga_programada"]  : null,
-                "descarga_real"        => $t["descarga_real"]        ? (string) $t["descarga_real"]        : null,
-                "estado"               => (string) $t["estado"],
-                "incidencias"          => [],
+                "id" => (int) $t["id"],
+                "viaje_id" => $vid,
+                "tramo_numero" => (int) $t["tramo_numero"],
+                "origen" => (string) $t["origen"],
+                "lugar_carga" => (string) $t["lugar_carga"],
+                "destino" => (string) $t["destino"],
+                "ruta" => (string) $t["ruta"],
+                "instrucciones" => (string) $t["instrucciones"],
+                "gps_estado" => $t["gps_estado"]
+                    ? (string) $t["gps_estado"]
+                    : null,
+                "gps_timestamp" => $t["gps_timestamp"]
+                    ? (string) $t["gps_timestamp"]
+                    : null,
+                "salida_patio" => $t["salida_patio"]
+                    ? (string) $t["salida_patio"]
+                    : null,
+                "salida_patio_real" => $t["salida_patio_real"]
+                    ? (string) $t["salida_patio_real"]
+                    : null,
+                "cita_carga" => $t["cita_carga"]
+                    ? (string) $t["cita_carga"]
+                    : null,
+                "cita_carga_real" => $t["cita_carga_real"]
+                    ? (string) $t["cita_carga_real"]
+                    : null,
+                "salida_carga" => $t["salida_carga"]
+                    ? (string) $t["salida_carga"]
+                    : null,
+                "salida_carga_real" => $t["salida_carga_real"]
+                    ? (string) $t["salida_carga_real"]
+                    : null,
+                "descarga_programada" => $t["descarga_programada"]
+                    ? (string) $t["descarga_programada"]
+                    : null,
+                "descarga_real" => $t["descarga_real"]
+                    ? (string) $t["descarga_real"]
+                    : null,
+                "estado" => (string) $t["estado"],
+                // Enriquecimiento desde el catálogo de rutas (se llena más abajo)
+                "veces_usada" => 0,
+                "es_ruta_frecuente" => false,
+                "es_favorito" => false,
+                "incidencias" => [],
             ];
         }
         $stmt_t->close();
 
-        // Cargar incidencias para todos los viajes de esta página
+        // -------------------------------------------------------------------
+        // Enriquecer tramos con datos del catálogo de rutas (tramos_catalogo):
+        // veces_usada, es_favorito y el flag es_ruta_frecuente (>= umbral).
+        // Match por (cliente_id, firma_ruta) normalizada. Una sola consulta
+        // para todos los clientes de la página.
+        // -------------------------------------------------------------------
+        $cliente_ids_pagina = [];
+        foreach ($viajes as $vw) {
+            $cliente_ids_pagina[(int) $vw["cliente_id"]] = true;
+        }
+        $cliente_ids_pagina = array_keys($cliente_ids_pagina);
+
+        if (count($cliente_ids_pagina) > 0) {
+            $ph_c = implode(
+                ",",
+                array_fill(0, count($cliente_ids_pagina), "?"),
+            );
+            // firma_ruta puede ser NULL en filas legacy/ocultas → se excluyen.
+            $sql_cat = "
+                SELECT cliente_id, firma_ruta, veces_usada, es_favorito
+                  FROM tramos_catalogo
+                 WHERE activo = 1
+                   AND firma_ruta IS NOT NULL
+                   AND cliente_id IN ($ph_c)
+            ";
+            $stmt_cat = $conn->prepare($sql_cat);
+            if ($stmt_cat) {
+                $refs_cat = [str_repeat("i", count($cliente_ids_pagina))];
+                $copy_cat = $cliente_ids_pagina;
+                foreach ($copy_cat as $k => $v) {
+                    $refs_cat[] = &$copy_cat[$k];
+                }
+                call_user_func_array([$stmt_cat, "bind_param"], $refs_cat);
+                $stmt_cat->execute();
+                $res_cat = $stmt_cat->get_result();
+
+                // Mapa "cliente_id|firma" → [veces_usada, es_favorito]
+                $catalogo = [];
+                while ($cr = $res_cat->fetch_assoc()) {
+                    $key = (int) $cr["cliente_id"] . "|" . $cr["firma_ruta"];
+                    $catalogo[$key] = [
+                        "veces_usada" => (int) $cr["veces_usada"],
+                        "es_favorito" => (int) $cr["es_favorito"] === 1,
+                    ];
+                }
+                $stmt_cat->close();
+
+                // Aplicar enriquecimiento a cada tramo
+                foreach ($viajes as $vid => &$vref) {
+                    $cid = (int) $vref["cliente_id"];
+                    foreach ($vref["tramos"] as &$tref) {
+                        $firma = firma_ruta_v(
+                            $tref["origen"],
+                            $tref["lugar_carga"],
+                            $tref["destino"],
+                        );
+                        if ($firma === null) {
+                            continue;
+                        }
+                        $key = $cid . "|" . $firma;
+                        if (isset($catalogo[$key])) {
+                            $tref["veces_usada"] =
+                                $catalogo[$key]["veces_usada"];
+                            $tref["es_favorito"] =
+                                $catalogo[$key]["es_favorito"];
+                            $tref["es_ruta_frecuente"] =
+                                $catalogo[$key]["veces_usada"] >=
+                                RUTA_FRECUENTE_MIN_USOS;
+                        }
+                    }
+                    unset($tref);
+                }
+                unset($vref);
+            }
+        }
+
         if (count($viaje_ids) > 0) {
             $ph_inc = implode(",", array_fill(0, count($viaje_ids), "?"));
             $sql_inc = "
@@ -297,25 +408,33 @@ try {
             if ($stmt_inc) {
                 $refs_inc = [str_repeat("i", count($viaje_ids))];
                 $copy_inc = $viaje_ids;
-                foreach ($copy_inc as $k => $v) { $refs_inc[] = &$copy_inc[$k]; }
+                foreach ($copy_inc as $k => $v) {
+                    $refs_inc[] = &$copy_inc[$k];
+                }
                 call_user_func_array([$stmt_inc, "bind_param"], $refs_inc);
                 $stmt_inc->execute();
                 $res_inc = $stmt_inc->get_result();
                 while ($inc = $res_inc->fetch_assoc()) {
-                    $vid = (int)$inc["viaje_id"];
-                    $tid = (int)$inc["tramo_id"];
-                    if (!isset($viajes[$vid])) continue;
+                    $vid = (int) $inc["viaje_id"];
+                    $tid = (int) $inc["tramo_id"];
+                    if (!isset($viajes[$vid])) {
+                        continue;
+                    }
                     foreach ($viajes[$vid]["tramos"] as &$tramo) {
                         if ($tramo["id"] === $tid) {
                             $tramo["incidencias"][] = [
-                                "id"         => (int)$inc["id"],
-                                "tramo_id"   => $tid,
-                                "tipo"       => (string)$inc["tipo"],
-                                "severidad"  => (string)$inc["severidad"],
-                                "fecha"      => (string)$inc["fecha"],
-                                "direccion"  => $inc["direccion"] ? (string)$inc["direccion"] : null,
-                                "notas"      => $inc["notas"]     ? (string)$inc["notas"]     : null,
-                                "created_at" => (string)$inc["created_at"],
+                                "id" => (int) $inc["id"],
+                                "tramo_id" => $tid,
+                                "tipo" => (string) $inc["tipo"],
+                                "severidad" => (string) $inc["severidad"],
+                                "fecha" => (string) $inc["fecha"],
+                                "direccion" => $inc["direccion"]
+                                    ? (string) $inc["direccion"]
+                                    : null,
+                                "notas" => $inc["notas"]
+                                    ? (string) $inc["notas"]
+                                    : null,
+                                "created_at" => (string) $inc["created_at"],
                             ];
                             break;
                         }
