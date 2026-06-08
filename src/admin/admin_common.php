@@ -48,7 +48,7 @@ function read_json_body() {
   return $data;
 }
 
-function parse_admin_tabs($raw, $role = 'editor') {
+function parse_admin_tabs($raw, $role = 'lector') {
   if (is_array($raw)) {
     $parts = $raw;
   } else {
@@ -65,9 +65,9 @@ function parse_admin_tabs($raw, $role = 'editor') {
     sort($tabs);
     return $tabs;
   }
-  return strtolower(clean_string($role)) === 'lector'
-    ? [3, 4, 5, 6, 7]
-    : [0, 1, 2, 3, 4, 5, 6, 7];
+  return strtolower(clean_string($role)) === 'admin'
+    ? [0, 1, 2, 3, 4, 5]
+    : [0, 1, 2, 3, 4];
 }
 
 function require_admin_user($conn) {
@@ -165,8 +165,8 @@ function get_or_create_cliente_admin($conn, $nombre, $activo = 1) {
 function upsert_admin_user($conn, $email, $password, $nombre, $role, $activo, $tabs) {
   $email = strtolower(clean_string($email));
   $nombre = clean_string($nombre);
-  $role = strtolower(clean_string($role ?: 'editor'));
-  if (!in_array($role, ['admin', 'editor', 'lector'], true)) {
+  $role = strtolower(clean_string($role ?: 'lector'));
+  if (!in_array($role, ['admin', 'lector'], true)) {
     throw new Exception('Rol invalido', 400);
   }
   if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {

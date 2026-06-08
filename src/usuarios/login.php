@@ -25,10 +25,15 @@ function default_tabs_for_role($role) {
   $role = strtolower(trim((string)$role));
   // Nueva estructura de 5 tabs: 0=Viajes, 1=GPS, 2=KPIs, 3=Informe, 4=Informes Guardados
   // Lector: todas las tabs en modo lectura (los controles de escritura se ocultan por JS según role)
-  return [0, 1, 2, 3, 4];
+  return $role === 'admin' ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4];
 }
 
 function fetch_user_tabs($conn, $usuario_id, $role) {
+  $role = strtolower(trim((string)$role));
+  if ($role === 'lector') {
+    return default_tabs_for_role($role);
+  }
+
   $tabs = [];
   $stmt = $conn->prepare(
     'SELECT tab_index FROM usuario_tabs WHERE usuario_id = ? ORDER BY tab_index ASC'
@@ -188,7 +193,11 @@ try {
   }
 
   $usuario_id = intval($user['id']);
-  $role = (string)$user['role'];
+  $role = strtolower(trim((string)$user['role']));
+  if ($role === 'editor') {
+    http_response_code(403);
+    throw new Exception('El rol editor no tiene acceso a la bitácora. Use un usuario lector.');
+  }
   $tabs = fetch_user_tabs($conn, $usuario_id, $role);
   $clientes = fetch_user_clients($conn, $usuario_id, $role);
   $unidades = fetch_allowed_units($conn, $usuario_id, $role, $clientes);

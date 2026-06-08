@@ -25,9 +25,9 @@ function normalize_slug($value) {
 function parse_tabs($value, $role) {
   $value = trim((string)$value);
   if ($value === '') {
-    return strtolower((string)$role) === 'lector'
-      ? [3, 4, 5, 6, 7]
-      : [0, 1, 2, 3, 4, 5, 6, 7];
+    return strtolower((string)$role) === 'admin'
+      ? [0, 1, 2, 3, 4, 5]
+      : [0, 1, 2, 3, 4];
   }
 
   $tabs = [];
@@ -64,7 +64,7 @@ try {
   $password = trim((string)get_input_value('password', $argvMap));
   $clienteNombre = trim((string)get_input_value('cliente', $argvMap));
   $nombre = trim((string)get_input_value('nombre', $argvMap, $clienteNombre));
-  $role = strtolower(trim((string)get_input_value('role', $argvMap, 'editor')));
+  $role = strtolower(trim((string)get_input_value('role', $argvMap, 'lector')));
   $tabs = parse_tabs(get_input_value('tabs', $argvMap, ''), $role);
 
   if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -76,8 +76,8 @@ try {
   if ($clienteNombre === '') {
     throw new Exception('Cliente requerido.');
   }
-  if (!in_array($role, ['admin', 'editor', 'lector'], true)) {
-    throw new Exception('Role inválido. Use admin, editor o lector.');
+  if (!in_array($role, ['admin', 'lector'], true)) {
+    throw new Exception('Role inválido. Use admin o lector.');
   }
 
   require_once __DIR__ . '/../db/db.php';
