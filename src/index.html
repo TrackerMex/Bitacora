@@ -2130,6 +2130,12 @@
         : extra;
     }
 
+    function trackerViajesApiUrl(action, methodOverride = "") {
+      const params = new URLSearchParams({ action });
+      if (methodOverride) params.set("_method", methodOverride);
+      return `/bitacora_tracker/src/api/viajes.php?${params.toString()}`;
+    }
+
     const SESSION_KEYS = [
       "bitacoraUserRole",
       "bitacoraUserUnidades",
@@ -2337,7 +2343,6 @@
       try {
         renderAllTabs();
       } catch (e) {
-        console.error("Error limpiando UI al cerrar sesión:", e);
       }
       openModal("login-modal");
     }
@@ -2628,7 +2633,7 @@
       const urlWebhook =
         "https://hook.us2.make.com/yndsuutplxn2j0n18o6l4u5qykhjrflj";
       try {
-        const response = await fetch(urlWebhook, {
+        await fetch(urlWebhook, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -2638,10 +2643,7 @@
             direccion: datosIncidencia.direccion || "",
           }),
         });
-        if (!response.ok)
-          console.warn("Make respondió con error HTTP:", response.status);
       } catch (error) {
-        console.error("Error al conectar con Make:", error);
       }
     }
 
@@ -3052,7 +3054,6 @@
 
         await loadDataFromMySQL(false);
       } catch (error) {
-        console.error("Login error:", error);
         if (errorMessage) {
           errorMessage.textContent =
             "Error al iniciar sesión. Intenta de nuevo.";
@@ -3416,7 +3417,6 @@
           (r) => r.nombre && r.nombre.trim(),
         );
       } catch (error) {
-        console.error("Error cargando contactos de emergencia:", error);
         return [];
       }
     }
@@ -3502,9 +3502,6 @@
           .map((h) => (typeof h === "string" ? h.trim().toLowerCase() : h));
         rows = data;
       } else {
-        console.warn(
-          "[Bitácora] La primera fila del proxy son datos, no encabezados. Usando mapeo fijo por índice. Corrige GOOGLE_SHEETS_RANGE_DATOS en .env del servidor para incluir la fila de headers.",
-        );
         headers = fallbackHeaders;
         rows = data;
       }
@@ -3796,10 +3793,8 @@
             renderAllTabs();
           })
           .catch((e) => {
-            console.warn("Error cargando datos desde BD:", e);
           });
       } catch (e) {
-        console.warn("Error iniciando carga desde BD:", e);
       }
     }
 
@@ -3862,7 +3857,6 @@
       try {
         applySeguimientosDbToArray(filteredDespachosData);
       } catch (e) {
-        console.warn("Error aplicando seguimientos desde BD:", e);
       }
       renderAllTabs();
     }
@@ -4219,7 +4213,6 @@
               alert("Error: " + result.message);
             }
           } catch (error) {
-            console.error("Error al actualizar origen/destino:", error);
             alert("Error al conectar con el servidor. Intente nuevamente.");
           } finally {
             submitBtn.disabled = false;
@@ -4393,10 +4386,6 @@
               "Fecha programada actualizada correctamente en base de datos. Respaldo de Google Sheets sincronizado.",
             );
           } else {
-            console.warn(
-              "Respaldo de Google Sheets no sincronizado:",
-              sheetsResult,
-            );
             alert(
               "Fecha programada actualizada correctamente en base de datos. El respaldo de Google Sheets queda pendiente.",
               "⚠️ No se pudo actualizar Google Sheets: " +
@@ -4404,7 +4393,6 @@
             );
           }
         } catch (error) {
-          console.error("Error al actualizar fecha programada:", error);
           alert("Error al conectar con el servidor. Intente nuevamente.");
         } finally {
           submitBtn.disabled = false;
@@ -5556,7 +5544,6 @@
         };
         enviarIncidencia(datosIncidencia);
       } catch (e) {
-        console.warn("No se pudo preparar/enviar la incidencia a Make:", e);
       }
     }
 
@@ -5626,7 +5613,6 @@
       renderSeguimientoForm(index);
 
       saveSeguimientoToDb(filteredDespachosData[index]).catch((err) => {
-        console.error("Error guardando seguimiento en BD", err);
       });
     }
 
@@ -6729,10 +6715,6 @@
             (a.estado + a.municipio).localeCompare(b.estado + b.municipio),
           );
         } catch (err) {
-          console.warn(
-            "No se pudo cargar números 911 desde BD, usando embebido.",
-            err,
-          );
           emergency911Cache.rows = fallback
             .slice()
             .map(normalizeEmergency911Row)
@@ -6938,7 +6920,6 @@
 
         renderEmergencyContacts(emergencyContactsCache.items);
       } catch (error) {
-        console.error("Error cargando contactos:", error);
         renderEmergencyContacts([]);
       }
     }
@@ -7332,7 +7313,6 @@
           const decoded = JSON.parse(inf.datos_informe);
           if (Array.isArray(decoded)) detalles = decoded;
         } catch (e) {
-          console.warn("Error parsing datos_informe:", e);
         }
       }
       const unidades = detalles
@@ -7604,7 +7584,6 @@
             });
           }
         } catch (e) {
-          console.warn("Error formateando fecha:", e);
         }
 
         const totalDespachos = parseInt(informe.total_despachos) || 0;
@@ -8096,17 +8075,13 @@
         .join("");
     }
     (async function init() {
-      const _dbg = (...a) => console.log("[INIT_DBG]", ...a);
       try {
-        _dbg("start");
       } catch (_) {}
       try {
         try {
           initThemeControls();
         } catch (_) {}
-        _dbg("initThemeControls done");
         resetTabsToHidden();
-        _dbg("resetTabsToHidden done");
         let restoredSession = false;
         try {
           const savedRole = getStoredSessionValue("bitacoraUserRole");
@@ -8116,13 +8091,6 @@
           const savedUsername = getStoredSessionValue("bitacoraUsername");
           const savedToken = getStoredSessionValue("bitacoraAuthToken");
 
-          _dbg("stored values:", {
-            savedRole: !!savedRole,
-            savedToken: !!savedToken,
-            savedUsername: !!savedUsername,
-            savedClientesLen: savedClientes?.length,
-            savedTabsLen: savedTabs?.length,
-          });
 
           if (savedToken) {
             let restoredUser = null;
@@ -8133,18 +8101,12 @@
               removeStoredSession();
               throw new Error("Rol editor no permitido en bitácora");
             }
-            _dbg("parsed arrays:", {
-              clientesLen: restoredClientes.length,
-              tabsLen: restoredTabs.length,
-              unidadesLen: restoredUnidades.length,
-            });
             if (
               savedRole &&
               savedUsername &&
               restoredClientes.length > 0 &&
               restoredTabs.length > 0
             ) {
-              _dbg("FAST PATH - using stored data");
               restoredUser = {
                 username: savedUsername,
                 role: savedRole,
@@ -8153,13 +8115,7 @@
                 clientes: restoredClientes,
               };
             } else {
-              _dbg("SLOW PATH - calling fetchSessionUserFromToken");
               restoredUser = await fetchSessionUserFromToken(savedToken);
-              _dbg("SLOW PATH result:", {
-                role: restoredUser?.role,
-                username: restoredUser?.username,
-                clientesLen: restoredUser?.clientes?.length,
-              });
             }
 
             if (String(restoredUser?.role || "").toLowerCase() === "editor") {
@@ -8169,43 +8125,28 @@
 
             username = restoredUser.username;
             bitacoraAuthToken = savedToken;
-            _dbg("calling setUserRole with role:", restoredUser.role);
             setUserRole(
               restoredUser.role,
               restoredUser.unidades || [],
               restoredUser.tabs || [],
               restoredUser.clientes || [],
             );
-            _dbg(
-              "setUserRole called. userRole now:",
-              typeof userRole !== "undefined" ? userRole : "UNDEF",
-            );
             restoredSession = true;
           } else if (savedRole || savedUsername || savedToken) {
-            _dbg("partial session found, removing");
             removeStoredSession();
           } else {
-            _dbg("no session data found");
           }
         } catch (e) {
-          console.error("[INIT_DBG] Error restoring session:", e);
           removeStoredSession();
           userRole = null;
           bitacoraAuthToken = "";
         }
 
-        _dbg("final check:", {
-          restoredSession,
-          userRole: typeof userRole !== "undefined" ? userRole : "UNDEF",
-        });
         if (!restoredSession || !userRole) {
-          _dbg("opening login modal");
           openModal("login-modal");
         } else {
-          _dbg("session restored OK, modal should stay hidden");
         }
       } catch (outerErr) {
-        console.error("[INIT_DBG] OUTER ERROR:", outerErr);
       }
     })();
 
@@ -8255,7 +8196,6 @@
         renderViajes();
         buildDespachosDesdeViajes(allViajesData);
       } catch (e) {
-        console.error("loadViajesFromDb:", e);
       }
     }
 
@@ -8362,13 +8302,11 @@
       try {
         renderKPIs(filteredDespachosData);
       } catch (e) {
-        console.warn("buildDespachosDesdeViajes → renderKPIs:", e);
       }
       try {
         renderInforme(filteredDespachosData);
         renderIncidenciasExecutiveReport();
       } catch (e) {
-        console.warn("buildDespachosDesdeViajes → renderInforme:", e);
       }
     }
 
@@ -9305,13 +9243,12 @@
 
       try {
         const res = await fetch(
-          "/bitacora_tracker/src/api/viajes.php?action=guardar_gps",
+          trackerViajesApiUrl("guardar_gps", "PUT"),
           {
-            method: "PUT",
-            headers: {
+            method: "POST",
+            headers: getAuthHeaders({
               "Content-Type": "application/json",
-              Authorization: `Bearer ${bitacoraAuthToken}`,
-            },
+            }),
             body: JSON.stringify({
               tramo_id: tramoId,
               gps_estado: gpsEstado,
@@ -9336,7 +9273,6 @@
         }
         renderViajes();
       } catch (e) {
-        console.error("guardarGpsTramo:", e);
       }
     }
 
@@ -9542,7 +9478,6 @@
         renderViajes();
       } catch (e) {
         alert(`Error: ${e.message}`);
-        console.error("guardarIncidencia:", e);
       }
     }
 
@@ -9552,13 +9487,12 @@
       if (!confirm("¿Eliminar esta incidencia?")) return;
       try {
         const res = await fetch(
-          "/bitacora_tracker/src/api/viajes.php?action=eliminar_incidencia",
+          trackerViajesApiUrl("eliminar_incidencia", "DELETE"),
           {
-            method: "DELETE",
-            headers: {
+            method: "POST",
+            headers: getAuthHeaders({
               "Content-Type": "application/json",
-              Authorization: `Bearer ${bitacoraAuthToken}`,
-            },
+            }),
             body: JSON.stringify({ incidencia_id: incidenciaId }),
           },
         );
@@ -9582,7 +9516,6 @@
         renderViajes();
       } catch (e) {
         alert(`Error: ${e.message}`);
-        console.error("eliminarIncidencia:", e);
       }
     }
 
@@ -10014,7 +9947,6 @@
         }
         renderViajes();
       } catch (e) {
-        console.error("cambiarEstadoViaje:", e);
         alert("Error de red al cambiar el estado.");
         if (btn) {
           btn.disabled = false;
@@ -10039,14 +9971,14 @@
         // también auto-avanza el siguiente tramo a "en_curso".
         const usarCompletarTramo = nuevoEstado === "completado";
         const endpoint = usarCompletarTramo
-          ? "/bitacora_tracker/src/api/viajes.php?action=completar_tramo"
-          : "/bitacora_tracker/src/api/viajes.php?action=actualizar_tramo";
+          ? trackerViajesApiUrl("completar_tramo", "PUT")
+          : trackerViajesApiUrl("actualizar_tramo", "PUT");
         const bodyPayload = usarCompletarTramo
           ? { tramo_id: tramoId }
           : { tramo_id: tramoId, estado: nuevoEstado };
 
         const res = await fetch(endpoint, {
-          method: "PUT",
+          method: "POST",
           headers: getAuthHeaders({
             "Content-Type": "application/json",
           }),
@@ -10102,7 +10034,6 @@
         }
         renderViajes();
       } catch (e) {
-        console.error("cambiarEstadoTramo:", e);
         alert("Error de red al cambiar el estado del tramo.");
         if (btn) {
           btn.disabled = false;
@@ -10145,9 +10076,9 @@
 
       try {
         const res = await fetch(
-          "/bitacora_tracker/src/api/viajes.php?action=actualizar_tramo",
+          trackerViajesApiUrl("actualizar_tramo", "PUT"),
           {
-            method: "PUT",
+            method: "POST",
             headers: getAuthHeaders({
               "Content-Type": "application/json",
             }),
@@ -10178,7 +10109,6 @@
         }
         renderViajes();
       } catch (e) {
-        console.error("guardarFechaTramo:", e);
         alert("Error de red al guardar la fecha.");
       }
     }
@@ -10251,7 +10181,6 @@
           if (canvas.height) img.height = canvas.height;
           cloneCanvases[i].replaceWith(img);
         } catch (e) {
-          console.warn("No se pudo convertir un canvas a imagen.", e);
           cloneCanvases[i].remove();
         }
       }
@@ -10583,7 +10512,6 @@
         container = buildPdfContainer(title, subtitle, clone);
         await saveElementAsPdf(container, filename);
       } catch (e) {
-        console.error("Error generando PDF:", e);
         alert(e?.message || "No se pudo generar el PDF. Intenta de nuevo.");
       } finally {
         if (container) container.remove();
