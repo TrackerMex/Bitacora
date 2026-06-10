@@ -53,9 +53,10 @@ function to_mysql_datetime_or_null($value)
     }
 }
 
-function resolve_despacho($conn, $despachoId, $folio, $unidad, $fechaProgramada)
+function resolve_despacho($conn, $despachoId, $folio, $unidad, $fechaProgramada, $tramoNumero = 0)
 {
     $despachoId = intval($despachoId);
+    $tramoNumero = intval($tramoNumero);
 
     if ($despachoId > 0) {
         $stmt = $conn->prepare(
@@ -79,20 +80,37 @@ function resolve_despacho($conn, $despachoId, $folio, $unidad, $fechaProgramada)
         }
     }
 
-    $stmt = $conn->prepare(
-        "SELECT d.id, d.cliente_id
-           FROM despachos d
-           INNER JOIN unidades u ON u.id = d.unidad_id
-          WHERE d.folio = ?
-            AND u.economico = ?
-            AND d.fecha_programada = ?
-          ORDER BY d.tramo_numero ASC, d.id ASC
-          LIMIT 1",
-    );
-    if (!$stmt) {
-        throw new Exception("Error preparando búsqueda de despacho: " . $conn->error);
+    if ($tramoNumero > 0) {
+        $stmt = $conn->prepare(
+            "SELECT d.id, d.cliente_id
+               FROM despachos d
+              INNER JOIN unidades u ON u.id = d.unidad_id
+              WHERE d.folio = ?
+                AND u.economico = ?
+                AND d.fecha_programada = ?
+                AND d.tramo_numero = ?
+              LIMIT 1",
+        );
+        if (!$stmt) {
+            throw new Exception("Error preparando búsqueda de despacho: " . $conn->error);
+        }
+        $stmt->bind_param("sssi", $folio, $unidad, $fechaProgramada, $tramoNumero);
+    } else {
+        $stmt = $conn->prepare(
+            "SELECT d.id, d.cliente_id
+               FROM despachos d
+              INNER JOIN unidades u ON u.id = d.unidad_id
+              WHERE d.folio = ?
+                AND u.economico = ?
+                AND d.fecha_programada = ?
+              ORDER BY d.tramo_numero ASC, d.id ASC
+              LIMIT 1",
+        );
+        if (!$stmt) {
+            throw new Exception("Error preparando búsqueda de despacho: " . $conn->error);
+        }
+        $stmt->bind_param("sss", $folio, $unidad, $fechaProgramada);
     }
-    $stmt->bind_param("sss", $folio, $unidad, $fechaProgramada);
     if (!$stmt->execute()) {
         throw new Exception("Error buscando despacho: " . $stmt->error);
     }
@@ -133,6 +151,9 @@ try {
         : "";
     $fechaProgramada = to_mysql_date($fechaProgramadaRaw);
     $despachoInputId = $data["despachoId"] ?? ($data["despacho_id"] ?? 0);
+    $tramoNumero = isset($data["tramoNumero"])
+        ? intval($data["tramoNumero"])
+        : 0;
 
     if ($folio === "" || $unidad === "" || $fechaProgramada === "") {
         throw new Exception(
@@ -189,6 +210,7 @@ try {
         $folio,
         $unidad,
         $fechaProgramada,
+        $tramoNumero,
     );
     $despachoId = $despacho["despacho_id"];
     $clienteId = $despacho["cliente_id"];

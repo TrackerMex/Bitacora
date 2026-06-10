@@ -75,6 +75,7 @@ try {
       s.id,
       COALESCE(s.cliente_id, d_match.cliente_id) AS cliente_id,
       COALESCE(s.despacho_id, d_match.id) AS despacho_id,
+      COALESCE(d_match.tramo_numero, 0) AS tramo_numero,
       s.folio,
       s.unidad,
       s.fecha_programada,
@@ -95,12 +96,8 @@ try {
       s.observaciones,
       GROUP_CONCAT(CONCAT(i.tipo, ' | ', i.severidad, ' | ', i.fecha, ' | ', COALESCE(i.direccion, '')) SEPARATOR ';;') AS incidencias
     FROM seguimiento_despacho s
-    LEFT JOIN unidades u_match
-      ON u_match.economico = s.unidad
     LEFT JOIN despachos d_match
-      ON d_match.unidad_id = u_match.id
-     AND d_match.folio = s.folio
-     AND d_match.fecha_programada = s.fecha_programada
+      ON d_match.id = s.despacho_id
     LEFT JOIN seguimiento_incidencias i
       ON i.seguimiento_id = s.id
     $where_sql
