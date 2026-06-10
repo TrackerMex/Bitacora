@@ -2581,7 +2581,10 @@
                 if (!Array.isArray(arr)) return new Map();
                 const m = new Map();
                 arr.forEach((d) =>
-                    m.set(`${d.folio}-${d.unidad}-${d.fechaProgramada}`, d),
+                    m.set(
+                        `${d.folio}-${d.unidad}-${d.fechaProgramada}-${d.tramoNumero || 0}`,
+                        d,
+                    ),
                 );
                 return m;
             } catch (e) {
@@ -2809,7 +2812,7 @@
 
                 applyAutoTimesToBase(base, row, eventosAuto);
 
-                const key = `${base.folio}-${base.unidad}-${base.fechaProgramada}`;
+                const key = `${base.folio}-${base.unidad}-${base.fechaProgramada}-${base.tramoNumero || 0}`;
                 if (savedMap.has(key)) {
                     const saved = savedMap.get(key);
                     const merged = { ...base, ...saved };
@@ -3449,16 +3452,16 @@
                     }
 
                     // Actualizar seguimientosDbCache
-                    const oldKey = makeSeguimientoKey(
-                        folio,
-                        unidad,
-                        fechaActual,
-                    );
-                    const newKey = makeSeguimientoKey(
-                        folio,
-                        unidad,
-                        fechaNueva,
-                    );
+                    const tramoNum =
+                        filteredDespachosData[index]?.tramoNumero || 0;
+                    const oldKey =
+                        makeSeguimientoKey(folio, unidad, fechaActual) +
+                        "|" +
+                        tramoNum;
+                    const newKey =
+                        makeSeguimientoKey(folio, unidad, fechaNueva) +
+                        "|" +
+                        tramoNum;
                     if (seguimientosDbCache.map.has(oldKey)) {
                         const cached = seguimientosDbCache.map.get(oldKey);
                         cached.fechaProgramada = fechaNueva;
@@ -4903,7 +4906,9 @@
         function makeSeguimientoKeyForDespacho(d) {
             return (
                 makeSeguimientoDespachoKey(d?.despachoId ?? d?.despacho_id) ||
-                makeSeguimientoKey(d?.folio, d?.unidad, d?.fechaProgramada)
+                makeSeguimientoKey(d?.folio, d?.unidad, d?.fechaProgramada) +
+                    "|" +
+                    (d?.tramoNumero || 0)
             );
         }
 
@@ -4934,8 +4939,12 @@
                 key:
                     makeSeguimientoDespachoKey(despachoId) ||
                     makeSeguimientoKey(folio, unidad, fechaProgramada),
-                legacyKey: makeSeguimientoKey(folio, unidad, fechaProgramada),
+                legacyKey:
+                    makeSeguimientoKey(folio, unidad, fechaProgramada) +
+                    "|" +
+                    (r?.tramo_numero ?? 0),
                 despachoId,
+                tramoNumero: r?.tramo_numero ?? 0,
                 clienteId: r?.cliente_id ?? "",
                 folio,
                 unidad,
@@ -4964,11 +4973,10 @@
             if (!seguimientosDbCache.loaded || !arr?.length) return;
             arr.forEach((d) => {
                 const key = makeSeguimientoKeyForDespacho(d);
-                const legacyKey = makeSeguimientoKey(
-                    d.folio,
-                    d.unidad,
-                    d.fechaProgramada,
-                );
+                const legacyKey =
+                    makeSeguimientoKey(d.folio, d.unidad, d.fechaProgramada) +
+                    "|" +
+                    (d.tramoNumero || 0);
                 const s =
                     seguimientosDbCache.map.get(key) ||
                     seguimientosDbCache.map.get(legacyKey);
@@ -5119,11 +5127,10 @@
             }
 
             const key = makeSeguimientoKeyForDespacho(d);
-            const legacyKey = makeSeguimientoKey(
-                d.folio,
-                d.unidad,
-                d.fechaProgramada,
-            );
+            const legacyKey =
+                makeSeguimientoKey(d.folio, d.unidad, d.fechaProgramada) +
+                "|" +
+                (d.tramoNumero || 0);
             seguimientosDbCache.map.set(key, {
                 key,
                 legacyKey,
