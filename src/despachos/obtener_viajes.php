@@ -238,7 +238,7 @@ try {
                 vt.salida_patio,      vt.salida_patio_real,
                 vt.cita_carga,        vt.cita_carga_real,
                 vt.salida_carga,      vt.salida_carga_real,
-                vt.descarga_programada, vt.descarga_real,
+                vt.descarga_programada, vt.descarga_real, vt.vacio_real,
                 vt.estado, vt.created_at, vt.updated_at
             FROM viaje_tramos vt
             WHERE vt.viaje_id IN ($ph_v)
@@ -309,6 +309,9 @@ try {
                     : null,
                 "descarga_real" => $t["descarga_real"]
                     ? (string) $t["descarga_real"]
+                    : null,
+                "vacio_real" => $t["vacio_real"]
+                    ? (string) $t["vacio_real"]
                     : null,
                 "estado" => (string) $t["estado"],
                 // Enriquecimiento desde el catálogo de rutas (se llena más abajo)

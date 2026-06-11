@@ -148,16 +148,11 @@ try {
         : "";
     $gpsTs = to_mysql_datetime_or_null($data["gpsValidacionTimestamp"] ?? null);
 
-    $realSalidaUnidad = to_mysql_datetime_or_null(
-        $data["realSalidaUnidad"] ?? null,
-    );
     $realCarga = to_mysql_datetime_or_null($data["realCarga"] ?? null);
     $realSalida = to_mysql_datetime_or_null($data["realSalida"] ?? null);
     $realDescarga = to_mysql_datetime_or_null($data["realDescarga"] ?? null);
+    $realVacio = to_mysql_datetime_or_null($data["realVacio"] ?? null);
 
-    $citaSalidaUnidad = to_mysql_datetime_or_null(
-        $data["citaSalidaUnidad"] ?? null,
-    );
     $citaCarga = to_mysql_datetime_or_null($data["citaCarga"] ?? null);
     $citaSalida = to_mysql_datetime_or_null($data["citaSalida"] ?? null);
     $citaDescarga = to_mysql_datetime_or_null($data["citaDescarga"] ?? null);
@@ -196,21 +191,20 @@ try {
     $sql = "INSERT INTO seguimiento_despacho (
       cliente_id, despacho_id, folio, unidad, fecha_programada,
       operador_monitoreo, gps_estado, gps_timestamp,
-      real_salida_unidad, real_carga, real_salida, real_descarga,
-      cita_salida_unidad, cita_carga, cita_salida, cita_descarga,
+      real_carga, real_salida, real_descarga, real_vacio,
+      cita_carga, cita_salida, cita_descarga,
       confirmacion_entrega, estatus, estatus_especial, observaciones
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
       cliente_id = VALUES(cliente_id),
       despacho_id = VALUES(despacho_id),
       operador_monitoreo = VALUES(operador_monitoreo),
       gps_estado = VALUES(gps_estado),
       gps_timestamp = VALUES(gps_timestamp),
-      real_salida_unidad = VALUES(real_salida_unidad),
       real_carga = VALUES(real_carga),
       real_salida = VALUES(real_salida),
       real_descarga = VALUES(real_descarga),
-      cita_salida_unidad = VALUES(cita_salida_unidad),
+      real_vacio = VALUES(real_vacio),
       cita_carga = VALUES(cita_carga),
       cita_salida = VALUES(cita_salida),
       cita_descarga = VALUES(cita_descarga),
@@ -225,7 +219,7 @@ try {
     }
 
     $stmt->bind_param(
-        "iissssssssssssssssss",
+        "iisssssssssssssssss",
         $clienteId,
         $despachoId,
         $folio,
@@ -234,11 +228,10 @@ try {
         $operadorMonitoreo,
         $gpsEstado,
         $gpsTs,
-        $realSalidaUnidad,
         $realCarga,
         $realSalida,
         $realDescarga,
-        $citaSalidaUnidad,
+        $realVacio,
         $citaCarga,
         $citaSalida,
         $citaDescarga,
