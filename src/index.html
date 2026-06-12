@@ -8953,6 +8953,15 @@
             };
 
             // Salida patio — aplica en pendiente y en_curso
+            if (["pendiente", "en_curso"].includes(t.estado)) {
+                const ms = retraso(t.salida_patio, t.salida_patio_real);
+                if (ms)
+                    return {
+                        campo: "Salida patio",
+                        ms,
+                        tieneReal: !!t.salida_patio_real,
+                    };
+            }
             // Cita carga — aplica en en_curso
             if (t.estado === "en_curso") {
                 const ms = retraso(t.cita_carga, t.cita_carga_real);
@@ -10437,19 +10446,15 @@
                                                   real &&
                                                   new Date(real) >
                                                       new Date(prog);
-                                              const salidaPatioInfo = `
-                                        <div class="col-span-1 sm:col-span-2 flex flex-col gap-1 border rounded p-2 bg-slate-50 border-slate-200">
-                                            <div class="flex items-center justify-between gap-2 flex-wrap text-xs">
-                                            <div class="flex gap-1 pl-1 text-xs text-gray-500">
-                                                <span class="w-20 flex-shrink-0">Salida Patio:</span>
-                                                <span class="font-mono text-gray-700">${fmtProg(t.salida_patio)}</span>
-                                            </div>
-                                                <span class="text-slate-500">Capturada por cliente</span>
-                                            </div>
-                                        </div>`;
                                               const campos = [
                                                   {
+                                                      campoReal:
+                                                          "salida_patio_real",
                                                       icon: "🚪",
+                                                      label: "Salida patio",
+                                                      grupo: "patio",
+                                                      prog: t.salida_patio,
+                                                      real: t.salida_patio_real,
                                                   },
                                                   {
                                                       campoReal:
@@ -10466,7 +10471,7 @@
                                                       icon: "🚛",
                                                       label: "Salida carga",
                                                       grupo: "carga",
-                                                      prog: t.salida_carga,
+                                                      prog: null,
                                                       real: t.salida_carga_real,
                                                   },
                                                   {
@@ -10559,10 +10564,15 @@
                                                       )
                                                       .join("");
                                               return `<div class="mt-2 space-y-2">
-                                                ${salidaPatioInfo}
                                                 <details open class="tramo-panel border-t border-gray-200">
                                                   <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
-                                                    Carga programada: llegada ${fmtProg(t.cita_carga)} · salida ${fmtProg(t.salida_carga)}
+                                                    Salida de patio programada: ${fmtProg(t.salida_patio)}
+                                                  </summary>
+                                                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">${renderFilas("patio")}</div>
+                                                </details>
+                                                <details open class="tramo-panel border-t border-gray-200">
+                                                  <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
+                                                    Carga programada: llegada ${fmtProg(t.cita_carga)}
                                                   </summary>
                                                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">${renderFilas("carga")}</div>
                                                 </details>
@@ -10879,6 +10889,7 @@
             if (!canEditViajes()) return denyReadOnlyViajes();
 
             const camposValidos = [
+                "salida_patio_real",
                 "cita_carga_real",
                 "salida_carga_real",
                 "descarga_real",
