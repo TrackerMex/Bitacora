@@ -43,7 +43,7 @@
                 font-family: Inter, sans-serif;
                 background: var(--color-page);
                 color: var(--color-text);
-                overflow-x: hidden;
+                overflow-x: auto;
             }
             .hidden {
                 display: none !important;
@@ -72,6 +72,9 @@
                 border: 1px solid var(--color-line);
                 border-radius: 0.75rem;
                 box-shadow: var(--shadow-resting);
+            }
+            .section-surface {
+                background: transparent;
             }
             button,
             input,
@@ -114,6 +117,62 @@
                 box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
                 outline: none;
             }
+            .tramo-control {
+                min-height: 44px;
+                border-radius: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+            .tramo-touch-button {
+                min-height: 44px;
+                min-width: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0.5rem;
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+            .tramo-action-button {
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.375rem;
+                border-radius: 0.5rem;
+                padding: 0.625rem 0.875rem;
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+            .monitor-record {
+                border-bottom: 1px solid var(--color-line);
+                background: transparent;
+            }
+            .monitor-record + .monitor-record {
+                margin-top: 0;
+            }
+            .monitor-record--new {
+                border-color: #bbf7d0;
+                background: #f0fdf4;
+            }
+            .tramo-row {
+                display: flex;
+                gap: 0.75rem;
+                padding: 0.75rem;
+                border-bottom: 1px solid var(--color-line);
+                background: var(--color-card);
+            }
+            .tramo-row:last-child {
+                border-bottom: 0;
+            }
+            .tramo-row--muted {
+                background: var(--color-panel);
+                opacity: 0.72;
+            }
+            .tramo-panel {
+                background: var(--color-card);
+            }
             .tab-btn {
                 flex: 0 0 auto;
                 min-height: 2.75rem;
@@ -138,10 +197,9 @@
                 border-bottom: 3px solid var(--color-primary);
             }
             .tab-content {
-                background: var(--color-card);
                 padding: 1.5rem;
-                border-radius: 0 0.5rem 0.5rem 0.5rem;
                 min-height: 520px;
+                background: var(--color-card);
             }
             .executive-toolbar {
                 border: 1px solid var(--color-line);
@@ -599,6 +657,7 @@
                     width: 100%;
                 }
                 .tab-content {
+                    background: var(--color-card);
                     padding: 1rem;
                     border-radius: 0 0 0.75rem 0.75rem;
                     min-height: 360px;
@@ -858,7 +917,7 @@
                 </button>
             </div>
 
-            <div class="tab-content shadow-lg">
+            <div class="tab-content">
                 <!-- ── TAB 2: KPIs (antes tab-4) ── -->
                 <div
                     id="tab-2"
@@ -901,7 +960,7 @@
                         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 lg:gap-6 mb-8"
                     >
                         <div
-                            class="bg-gray-800 text-white p-5 rounded-xl shadow-xl"
+                            class="bg-gray-800 text-white p-5 rounded-lg border border-gray-700"
                         >
                             <p class="text-sm font-medium opacity-80">
                                 Total Despachos
@@ -914,7 +973,7 @@
                             </p>
                         </div>
                         <div
-                            class="bg-green-600 text-white p-5 rounded-xl shadow-xl"
+                            class="bg-green-600 text-white p-5 rounded-lg border border-green-700"
                         >
                             <p class="text-sm font-medium opacity-80">
                                 A Tiempo
@@ -927,7 +986,7 @@
                             </p>
                         </div>
                         <div
-                            class="bg-red-600 text-white p-5 rounded-xl shadow-xl"
+                            class="bg-red-600 text-white p-5 rounded-lg border border-red-700"
                         >
                             <p class="text-sm font-medium opacity-80">
                                 Con Retraso
@@ -940,7 +999,7 @@
                             </p>
                         </div>
                         <div
-                            class="bg-yellow-600 text-white p-5 rounded-xl shadow-xl"
+                            class="bg-yellow-600 text-white p-5 rounded-lg border border-yellow-700"
                         >
                             <p class="text-sm font-medium opacity-80">
                                 En Proceso
@@ -953,7 +1012,7 @@
                             </p>
                         </div>
                         <div
-                            class="bg-blue-600 text-white p-5 rounded-xl shadow-xl"
+                            class="bg-blue-600 text-white p-5 rounded-lg border border-blue-700"
                         >
                             <p class="text-sm font-medium opacity-80">
                                 Programados
@@ -966,7 +1025,7 @@
                             </p>
                         </div>
                         <div
-                            class="bg-blue-400 text-white p-5 rounded-xl shadow-xl"
+                            class="bg-blue-400 text-white p-5 rounded-lg border border-blue-500"
                         >
                             <p class="text-sm font-medium opacity-80">
                                 Cancelados
@@ -2869,7 +2928,7 @@
 
             const presets = {
                 neutral: {
-                    shell: "bg-white rounded-xl shadow border border-gray-200",
+                    shell: "bg-white rounded-lg border border-gray-200",
                     message: "text-lg font-medium text-gray-800",
                     description: "text-sm text-gray-500",
                     spinner: "border-blue-500",
@@ -4225,7 +4284,7 @@
                     : "";
 
                 c.innerHTML += `
-                          <div class="surface-card p-5">
+                          <div class="monitor-record p-5">
                             <div class="flex justify-between items-start mb-3">
                               <div>
                                 <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
@@ -4245,7 +4304,7 @@
                               <p><strong>Destino:</strong> ${escapeHtml(d.destino)}</p>
                               <p><strong>Cliente:</strong> ${escapeHtml(d.cliente)}</p>
                             </div>
-                            <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <div class="mt-3 border-t border-amber-200 pt-3">
                               <p class="text-xs font-semibold text-amber-700 mb-1">INSTRUCCIONES ESPECIALES</p>
                               <p class="text-sm text-gray-700">${escapeHtml(d.instruccionesEspeciales || "Sin instrucciones especiales")}</p>
                             </div>
@@ -4362,7 +4421,7 @@
                     : "";
 
                 c.innerHTML += `
-                          <div class="surface-card p-5">
+                          <div class="monitor-record p-5">
                             <h3 class="font-bold text-lg text-blue-800">${escapeHtml(
                                 d.unidad,
                             )}${tramoLabel}</h3>
@@ -4386,7 +4445,7 @@
                             <p class="text-sm"><strong>Cliente:</strong> ${escapeHtml(
                                 d.cliente || "Sin dato",
                             )}</p>
-                            <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <div class="mt-3 border-t border-amber-200 pt-3">
                               <p class="text-xs font-semibold text-amber-700 mb-1">INSTRUCCIONES ESPECIALES</p>
                               <p class="text-sm text-gray-700">${escapeHtml(d.instruccionesEspeciales || "Sin instrucciones especiales")}</p>
                             </div>
@@ -5315,7 +5374,7 @@
             const refField = (label, progIso) => {
                 const hasProg = progIso && progIso.trim();
                 return `
-                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div class="p-2">
                           <label class="block text-xs font-semibold text-gray-500 mb-1">${label}</label>
                           <p class="text-sm font-medium text-gray-700">${hasProg ? formatDateTime(progIso) : '<span class="text-gray-400 italic">Sin programar</span>'}</p>
                         </div>
@@ -5324,7 +5383,7 @@
 
             const inputField = (label, name, realIso) => {
                 return `
-                        <div class="p-3 bg-white border border-gray-300 rounded-lg">
+                        <div class="p-2">
                           <label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
                           <input
                             name="${name}"
@@ -5345,7 +5404,7 @@
 
 
                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="bg-gray-50 border rounded-xl p-4">
+                            <div class="border-b border-gray-200 pb-4">
                               <label class="block text-sm font-semibold text-gray-700 mb-2">ID del Operador de Monitoreo</label>
                               <select name="operadorMonitoreoId" class="w-full p-2 border rounded-md" ${disabled}>
                                 <option value="">-- Seleccione --</option>
@@ -5369,7 +5428,7 @@
                               </select>
                             </div>
 
-                            <div class="bg-gray-50 border rounded-xl p-4">
+                            <div class="border-b border-gray-200 pb-4">
                               <label class="block text-sm font-semibold text-gray-700 mb-2">Validación GPS y accesorios</label>
                               <div class="space-y-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
                                 ${renderGpsCheckboxes(d.gpsValidacionEstado, disabled)}
@@ -5383,19 +5442,19 @@
                           </div>
 
                           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
-                            <div class="bg-gray-50 border rounded-xl p-4">
+                            <div class="border-b border-gray-200 pb-4">
                               <p class="text-xs font-semibold text-gray-500 mb-1">ORIGEN</p>
                               <a href="${origenUrl}" target="_blank" class="text-blue-600 underline">
                               ${escapeHtml(d.origen || "Sin dato")}
                               </a>
                             </div>
-                            <div class="bg-gray-50 border rounded-xl p-4">
+                            <div class="border-b border-gray-200 pb-4">
                               <p class="text-xs font-semibold text-gray-500 mb-1">LUGAR DE CARGA</p>
                               <a href="${lugardeCargaUrl}" target="_blank" class="text-blue-600 underline">
                               ${escapeHtml(d.lugarCarga || "Sin dato")}
                               </a>
                             </div>
-                            <div class="bg-gray-50 border rounded-xl p-4">
+                            <div class="border-b border-gray-200 pb-4">
                               <p class="text-xs font-semibold text-gray-500 mb-1">DESTINO</p>
                               <a href="${destinoUrl}" target="_blank" class="text-blue-600 underline">
                               ${escapeHtml(d.destino || "Sin dato")}
@@ -5404,7 +5463,7 @@
                           </div>
 
                           <!-- CARGA -->
-                          <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                          <div class="border border-blue-200 bg-blue-50 p-4">
                             <h4 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
                               <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">📦</span>
                               CARGA
@@ -5417,7 +5476,7 @@
                           </div>
 
                           <!-- DESCARGA -->
-                          <div class="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                          <div class="border border-green-200 bg-green-50 p-4">
                             <h4 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
                               <span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">📥</span>
                               DESCARGA
@@ -5429,11 +5488,11 @@
                             </div>
                           </div>
 
-                          <div class="bg-gray-50 border-2 rounded-xl p-4">
+                          <div class="border border-gray-200 bg-gray-50 p-4">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Estatus del Despacho</label>
 
                             <!-- Estatus automático calculado -->
-                            <div class="bg-white border-2 border-indigo-200 rounded-lg p-4 mb-3">
+                            <div class="border-t border-indigo-200 pt-3 mb-3">
                               <div class="flex items-center justify-between mb-2">
                                 <div id="estatus-badge-container" class="mb-4">
                                 ${renderEstatusBadge(calcularEstatusAutomatico(d))}
@@ -5452,19 +5511,19 @@
 
                               <!-- Badges de progreso por etapa -->
                               <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                                <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realCarga && String(d.realCarga).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
+                                <div class="progress-badge text-center p-2 transition-colors duration-200 ${d.realCarga && String(d.realCarga).trim() ? "text-green-700" : "text-gray-500 opacity-70"}">
                                   <div class="progress-icon text-xl mb-1">${d.realCarga && String(d.realCarga).trim() ? "✅" : "📦"}</div>
                                   <div class="text-xs font-medium text-gray-700">Llegada Carga</div>
                                 </div>
-                                <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realSalida && String(d.realSalida).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
+                                <div class="progress-badge text-center p-2 transition-colors duration-200 ${d.realSalida && String(d.realSalida).trim() ? "text-green-700" : "text-gray-500 opacity-70"}">
                                   <div class="progress-icon text-xl mb-1">${d.realSalida && String(d.realSalida).trim() ? "✅" : "🚚"}</div>
                                   <div class="text-xs font-medium text-gray-700">Salida Carga</div>
                                 </div>
-                                <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realDescarga && String(d.realDescarga).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
+                                <div class="progress-badge text-center p-2 transition-colors duration-200 ${d.realDescarga && String(d.realDescarga).trim() ? "text-green-700" : "text-gray-500 opacity-70"}">
                                   <div class="progress-icon text-xl mb-1">${d.realDescarga && String(d.realDescarga).trim() ? "✅" : "📥"}</div>
                                   <div class="text-xs font-medium text-gray-700">Arribo Descarga</div>
                                 </div>
-                                <div class="progress-badge text-center p-2 rounded-lg transition-all duration-300 ${d.realVacio && String(d.realVacio).trim() ? "bg-green-100 border-2 border-green-500" : "bg-gray-100 border-2 border-gray-300 opacity-50"}">
+                                <div class="progress-badge text-center p-2 transition-colors duration-200 ${d.realVacio && String(d.realVacio).trim() ? "text-green-700" : "text-gray-500 opacity-70"}">
                                   <div class="progress-icon text-xl mb-1">${d.realVacio && String(d.realVacio).trim() ? "âœ…" : "&#10003;"}</div>
                                   <div class="text-xs font-medium text-gray-700">Vacío</div>
                                 </div>
@@ -7236,7 +7295,7 @@
                         : "Sin correo";
 
                     return `
-                    <div class="surface-card p-6 hover:shadow-md transition-shadow">
+                    <div class="monitor-record p-6">
                       <div class="flex items-start justify-between mb-4">
                         <div>
                           <h4 class="font-bold text-lg text-gray-900 mb-1">${escapeHtml(
@@ -8021,7 +8080,7 @@
                     parseInt(informe.total_incidencias) || 0;
 
                 html += `
-                          <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                          <div class="monitor-record">
                               <div class="p-5">
                                   <div class="flex justify-between items-start mb-3">
                                       <h3 class="font-bold text-lg text-blue-800 truncate" title="${titulo}">
@@ -8038,19 +8097,19 @@
                                       <span class="truncate">${fechaFormateada}</span>
                                   </div>
                                   <div class="grid grid-cols-2 gap-3 mb-4">
-                                      <div class="bg-gray-50 p-3 rounded-lg">
+                                      <div class="p-3">
                                           <p class="text-xs text-gray-500">Total Despachos</p>
                                           <p class="text-lg font-bold">${totalDespachos}</p>
                                       </div>
-                                      <div class="bg-green-50 p-3 rounded-lg">
+                                      <div class="p-3">
                                           <p class="text-xs text-gray-500">A Tiempo</p>
                                           <p class="text-lg font-bold text-green-600">${aTiempo}</p>
                                       </div>
-                                      <div class="bg-red-50 p-3 rounded-lg">
+                                      <div class="p-3">
                                           <p class="text-xs text-gray-500">Con Retraso</p>
                                           <p class="text-lg font-bold text-red-600">${conRetraso}</p>
                                       </div>
-                                      <div class="bg-yellow-50 p-3 rounded-lg">
+                                      <div class="p-3">
                                           <p class="text-xs text-gray-500">Incidencias</p>
                                           <p class="text-lg font-bold text-yellow-600">${totalIncidencias}</p>
                                       </div>
@@ -8436,12 +8495,12 @@
                     );
                     const sinDatos = !f.gps_estado;
 
-                    // Colores del borde superior de la card según estado GPS
+                    // Estados visuales del registro GPS.
                     const topBar = sinDatos
-                        ? "border-t-4 border-gray-300"
+                        ? "border-gray-200"
                         : todoOk
-                          ? "border-t-4 border-green-500"
-                          : "border-t-4 border-amber-400";
+                          ? "border-green-200 bg-green-50"
+                          : "border-amber-200 bg-amber-50";
 
                     const badgeCls = sinDatos
                         ? "bg-gray-100 text-gray-500"
@@ -8480,7 +8539,7 @@
                     }).join("");
 
                     return `
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 ${topBar} overflow-hidden flex flex-col">
+                        <div class="monitor-record ${topBar} flex flex-col">
                             <!-- Header -->
                             <div class="px-4 pt-3 pb-2 flex items-start justify-between gap-2">
                                 <div>
@@ -8510,7 +8569,7 @@
                             </div>
 
                             <!-- Separador -->
-                            <div class="border-t border-gray-100 mx-4"></div>
+                            <div class="border-t border-gray-200 mx-4"></div>
 
                             <!-- Items GPS -->
                             <div class="px-4 py-2.5 grid grid-cols-1 gap-1 flex-1">
@@ -9179,10 +9238,17 @@
                     ).length;
 
                     const badgeActivos = activos
-                        ? `<span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">${activos} activo${activos !== 1 ? "s" : ""}</span>`
+                        ? _renderBadge(
+                              VIAJE_UI_TOKENS.estado.en_curso,
+                              `${activos} activo${activos !== 1 ? "s" : ""}`,
+                              UI_BADGE_BASE,
+                          )
                         : "";
                     const badgeRetraso = conRetraso
-                        ? `<span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">⚠️ ${conRetraso}</span>`
+                        ? _renderBadge(
+                              VIAJE_UI_TOKENS.badge.retrasoActivo,
+                              `⚠️ ${conRetraso}`,
+                          )
                         : "";
 
                     const placasHtml = u.placas
@@ -9276,16 +9342,28 @@
                     const colapsado = !!gruposColapsados[cliente];
 
                     const badgeRetraso = conRetraso
-                        ? `<span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">⚠️ ${conRetraso} con retraso</span>`
+                        ? _renderBadge(
+                              VIAJE_UI_TOKENS.badge.retrasoActivo,
+                              `⚠️ ${conRetraso} con retraso`,
+                          )
                         : "";
                     const badgeEnCurso = enCurso
-                        ? `<span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">${enCurso} en curso</span>`
+                        ? _renderBadge(
+                              `${UI_BADGE_BASE} ${VIAJE_UI_TOKENS.estado.en_curso}`,
+                              `${enCurso} en curso`,
+                          )
                         : "";
                     const badgePlanif = planificados
-                        ? `<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">${planificados} planificado${planificados !== 1 ? "s" : ""}</span>`
+                        ? _renderBadge(
+                              `${UI_BADGE_BASE} ${VIAJE_UI_TOKENS.estado.planificado}`,
+                              `${planificados} planificado${planificados !== 1 ? "s" : ""}`,
+                          )
                         : "";
                     const badgeNuevos = nuevos
-                        ? `<span class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">${nuevos} nuevo${nuevos !== 1 ? "s" : ""}</span>`
+                        ? _renderBadge(
+                              VIAJE_UI_TOKENS.badge.nuevo,
+                              `${nuevos} nuevo${nuevos !== 1 ? "s" : ""}`,
+                          )
                         : "";
 
                     const clienteKey = escapeHtml(cliente).replace(/'/g, "\\'");
@@ -9323,6 +9401,119 @@
             return dayjs().diff(creado, "hour") < 24;
         }
 
+        const UI_BADGE_BASE = "text-xs font-semibold px-2 py-0.5 rounded-full";
+        const UI_BADGE_STRONG = "text-xs font-bold px-2 py-0.5 rounded-full";
+
+        const VIAJE_UI_TOKENS = {
+            estado: {
+                planificado: "bg-blue-100 text-blue-800",
+                en_curso: "bg-yellow-100 text-yellow-800",
+                completado: "bg-green-100 text-green-800",
+                cancelado: "bg-gray-100 text-gray-500",
+                default: "bg-gray-100 text-gray-600",
+            },
+            badge: {
+                retraso: `${UI_BADGE_STRONG} bg-red-100 text-red-700`,
+                retrasoActivo: `${UI_BADGE_STRONG} bg-red-100 text-red-700 animate-pulse`,
+                retrasoConfirmado: `${UI_BADGE_STRONG} bg-orange-100 text-orange-700`,
+                incidencia: `${UI_BADGE_STRONG} bg-amber-100 text-amber-800`,
+                gpsPendiente: `${UI_BADGE_BASE} bg-gray-100 text-gray-600`,
+                multiDia: `${UI_BADGE_BASE} bg-indigo-100 text-indigo-700`,
+                nuevo: `${UI_BADGE_STRONG} bg-green-500 text-white shadow-sm`,
+            },
+            record: {
+                base: "monitor-record",
+                nuevo: "monitor-record monitor-record--new",
+                hover: "hover:bg-gray-50",
+                hoverNuevo: "hover:bg-green-100",
+            },
+            toggle: {
+                open: "border-blue-200 bg-blue-50 text-blue-700",
+                closed: "border-gray-200 bg-white text-gray-600",
+            },
+            actionButton: {
+                en_curso:
+                    "text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-2 rounded-full font-semibold transition-colors",
+                completado:
+                    "text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-2 rounded-full font-semibold transition-colors",
+                cancelado:
+                    "text-xs bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-2 rounded-full font-semibold transition-colors",
+            },
+        };
+
+        const TRAMO_UI_TOKENS = {
+            icon: {
+                pendiente: "⏳",
+                en_curso: "🚛",
+                completado: "✅",
+                cancelado: "❌",
+            },
+            badge: {
+                pendiente: "bg-gray-100 text-gray-600",
+                en_curso: "bg-blue-100 text-blue-700",
+                completado: "bg-green-100 text-green-700",
+                cancelado: "bg-red-100 text-red-600",
+                default: "bg-gray-100 text-gray-500",
+                incidencia: `${UI_BADGE_BASE} bg-amber-100 text-amber-800`,
+            },
+            row: {
+                active: "tramo-row",
+                muted: "tramo-row tramo-row--muted",
+                activeCompact: "tramo-row items-center",
+                mutedCompact: "tramo-row tramo-row--muted items-center",
+            },
+            stepNumber: {
+                active: "bg-blue-50 border-blue-200 text-blue-700",
+                completado: "bg-green-100 border-green-300 text-green-700",
+                cancelado: "bg-red-50 border-red-200 text-red-500",
+            },
+            connector: {
+                active: "bg-blue-200",
+                muted: "bg-gray-200",
+            },
+            title: {
+                active: "font-semibold text-sm text-gray-800",
+                muted: "font-semibold text-sm text-gray-400 line-through",
+            },
+            headerState: {
+                empty: "bg-gray-50 border-gray-200 text-gray-500",
+                ok: "bg-green-50 border-green-200 text-green-700",
+                warning: "bg-amber-50 border-amber-200 text-amber-700",
+                danger: "bg-red-50 border-red-200 text-red-700",
+                neutral: "bg-gray-50 border-gray-200 text-gray-600",
+            },
+            fieldState: {
+                normal: {
+                    shell: "border-gray-200",
+                    label: "text-gray-600",
+                    input: "border-gray-200 bg-white focus:ring-blue-400",
+                    action: "text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100",
+                    value: "text-gray-700",
+                },
+                late: {
+                    shell: "border-red-200",
+                    label: "text-red-700 font-bold",
+                    input: "border-red-400 bg-red-50 text-red-700 focus:ring-red-400",
+                    action: "text-red-600 border-red-200 bg-red-50 hover:bg-red-100",
+                    value: "text-red-700 font-bold",
+                },
+            },
+            actionButton: {
+                en_curso:
+                    "tramo-action-button bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap",
+                completado:
+                    "tramo-action-button bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors whitespace-nowrap",
+            },
+        };
+
+        function _uiToken(tokens, key, fallbackKey = "default") {
+            return tokens[key] || tokens[fallbackKey] || "";
+        }
+
+        function _renderBadge(className, label, extraClass = "") {
+            return `<span class="${className}${extraClass ? ` ${extraClass}` : ""}">${label}</span>`;
+        }
+
         function _renderViajeCard(v) {
             const expandido =
                 String(viajeDetalleActivoId) === String(v.viaje_id);
@@ -9330,13 +9521,7 @@
             const resumen = _resumenViaje(v);
             const tramosHtml = expandido ? _renderTramosDetalle(v) : "";
             const esLector = !canEditViajes();
-            const estadoColor =
-                {
-                    planificado: "bg-blue-100 text-blue-800",
-                    en_curso: "bg-yellow-100 text-yellow-800",
-                    completado: "bg-green-100 text-green-800",
-                    cancelado: "bg-gray-100 text-gray-500",
-                }[v.estado] || "bg-gray-100 text-gray-600";
+            const estadoColor = _uiToken(VIAJE_UI_TOKENS.estado, v.estado);
             const fechas = v.es_multi_dia
                 ? `${v.fecha_inicio} -> ${v.fecha_fin}`
                 : v.fecha_inicio || "-";
@@ -9364,19 +9549,30 @@
                 : "";
             const alertaBadge =
                 resumen.tieneRetraso && v.estado !== "cancelado"
-                    ? `<span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">${resumen.conRetraso.length > 1 ? resumen.conRetraso.length + " retrasos" : "Retraso"}</span>`
+                    ? _renderBadge(
+                          VIAJE_UI_TOKENS.badge.retraso,
+                          resumen.conRetraso.length > 1
+                              ? `${resumen.conRetraso.length} retrasos`
+                              : "Retraso",
+                      )
                     : "";
             const incidenciaBadge = resumen.tieneIncidencias
-                ? `<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-full">${resumen.incidencias} incidencia${resumen.incidencias !== 1 ? "s" : ""}</span>`
+                ? _renderBadge(
+                      VIAJE_UI_TOKENS.badge.incidencia,
+                      `${resumen.incidencias} incidencia${resumen.incidencias !== 1 ? "s" : ""}`,
+                  )
                 : "";
             const gpsBadge = resumen.gpsPendientes
-                ? `<span class="bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-0.5 rounded-full">${resumen.gpsPendientes} GPS pendiente${resumen.gpsPendientes !== 1 ? "s" : ""}</span>`
+                ? _renderBadge(
+                      VIAJE_UI_TOKENS.badge.gpsPendiente,
+                      `${resumen.gpsPendientes} GPS pendiente${resumen.gpsPendientes !== 1 ? "s" : ""}`,
+                  )
                 : "";
             const multiDiaBadge = v.es_multi_dia
-                ? `<span class="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded-full">Multi-día</span>`
+                ? _renderBadge(VIAJE_UI_TOKENS.badge.multiDia, "Multi-día")
                 : "";
             const nuevoBadge = esNuevo
-                ? `<span class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">Nuevo</span>`
+                ? _renderBadge(VIAJE_UI_TOKENS.badge.nuevo, "Nuevo")
                 : "";
             const btnEnCurso =
                 !esLector &&
@@ -9384,32 +9580,32 @@
                 v.estado !== "completado" &&
                 v.estado !== "cancelado"
                     ? `<button type="button" onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)"
-                                   class="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-2 rounded-full font-semibold transition-colors">
-                                En curso
-                            </button>`
+                                   class="${VIAJE_UI_TOKENS.actionButton.en_curso}">
+                                 En curso
+                             </button>`
                     : "";
             const btnCompletar =
                 !esLector &&
                 v.estado !== "completado" &&
                 v.estado !== "cancelado"
                     ? `<button type="button" onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)"
-                                   class="text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-2 rounded-full font-semibold transition-colors">
-                                Completar
-                            </button>`
+                                   class="${VIAJE_UI_TOKENS.actionButton.completado}">
+                                 Completar
+                             </button>`
                     : "";
             const btnCancelar =
                 !esLector && v.estado !== "cancelado"
                     ? `<button type="button" onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)"
-                                   class="text-xs bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-2 rounded-full font-semibold transition-colors sm:ml-auto">
-                                Cancelar viaje
-                            </button>`
+                                   class="${VIAJE_UI_TOKENS.actionButton.cancelado} sm:ml-auto">
+                                 Cancelar viaje
+                             </button>`
                     : "";
             const cardClase = esNuevo
-                ? "bg-green-50 rounded-lg shadow-sm border border-green-200 overflow-hidden mb-2"
-                : "bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-2";
+                ? VIAJE_UI_TOKENS.record.nuevo
+                : VIAJE_UI_TOKENS.record.base;
             const cardHover = esNuevo
-                ? "hover:bg-green-100"
-                : "hover:bg-gray-50";
+                ? VIAJE_UI_TOKENS.record.hoverNuevo
+                : VIAJE_UI_TOKENS.record.hover;
 
             return `
                     <div class="${cardClase}" data-viaje-id="${v.viaje_id}">
@@ -9462,7 +9658,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center justify-end gap-2 flex-shrink-0">
-                                <span class="hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-full border ${expandido ? "border-blue-200 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600"}">
+                                <span class="hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-full border ${expandido ? VIAJE_UI_TOKENS.toggle.open : VIAJE_UI_TOKENS.toggle.closed}">
                                     ${expandido ? "Ocultar tramos" : "Ver tramos"}
                                 </span>
                                 <svg class="w-4 h-4 text-gray-400 transition-transform ${expandido ? "rotate-180" : ""}"
@@ -9475,7 +9671,7 @@
                         ${
                             expandido
                                 ? `
-                        <div id="viaje-detalle-${v.viaje_id}" class="border-t border-gray-100 bg-gray-50 px-3 sm:px-4 pb-4 pt-3">
+                        <div id="viaje-detalle-${v.viaje_id}" class="border-t border-gray-200 bg-gray-50 px-3 sm:px-4 pb-4 pt-3">
                             ${
                                 !esLector
                                     ? `
@@ -9511,32 +9707,34 @@
                 v.estado === "completado" &&
                 (v.tramos || []).some((t) => _calcRetrasoTramo(t)?.tieneReal);
 
-            const estadoColor =
-                {
-                    planificado: "bg-blue-100 text-blue-800",
-                    en_curso: "bg-yellow-100 text-yellow-800",
-                    completado: "bg-green-100 text-green-800",
-                    cancelado: "bg-gray-100 text-gray-500",
-                }[v.estado] || "bg-gray-100 text-gray-600";
+            const estadoColor = _uiToken(VIAJE_UI_TOKENS.estado, v.estado);
 
             // Badge activo (parpadea) si hay eventos pendientes sin registrar
             // Badge estático si el viaje ya está completado pero con retrasos reales
             const alertaBadge = retrasoConfirmado
-                ? `<span class="ml-1 bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                               ⚠️ Completado con retraso
-                           </span>`
+                ? _renderBadge(
+                      VIAJE_UI_TOKENS.badge.retrasoConfirmado,
+                      "⚠️ Completado con retraso",
+                      "ml-1",
+                  )
                 : tieneRetraso
-                  ? `<span class="ml-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
-                               ⚠️ ${tramosConRetraso.length > 1 ? tramosConRetraso.length + " retrasos" : "Retraso"}
-                           </span>`
+                  ? _renderBadge(
+                        VIAJE_UI_TOKENS.badge.retrasoActivo,
+                        `⚠️ ${tramosConRetraso.length > 1 ? `${tramosConRetraso.length} retrasos` : "Retraso"}`,
+                        "ml-1",
+                    )
                   : "";
 
             const multiDiaBadge = v.es_multi_dia
-                ? `<span class="ml-1 bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-full">Multi-día</span>`
+                ? _renderBadge(
+                      VIAJE_UI_TOKENS.badge.multiDia,
+                      "Multi-día",
+                      "ml-1",
+                  )
                 : "";
 
             const nuevoBadge = esNuevo
-                ? `<span class="ml-1 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">🆕 Nuevo</span>`
+                ? _renderBadge(VIAJE_UI_TOKENS.badge.nuevo, "🆕 Nuevo", "ml-1")
                 : "";
 
             const fechas = v.es_multi_dia
@@ -9570,9 +9768,9 @@
                 v.estado !== "completado" &&
                 v.estado !== "cancelado"
                     ? `<button type="button" onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)"
-                                   class="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-2 rounded-full font-semibold transition-colors">
+                                   class="${VIAJE_UI_TOKENS.actionButton.en_curso}">
                                🚛 En curso
-                           </button>`
+                            </button>`
                     : "";
 
             const btnCompletar =
@@ -9580,25 +9778,25 @@
                 v.estado !== "completado" &&
                 v.estado !== "cancelado"
                     ? `<button type="button" onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)"
-                                   class="text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-2 rounded-full font-semibold transition-colors">
+                                   class="${VIAJE_UI_TOKENS.actionButton.completado}">
                                ✅ Completar
-                           </button>`
+                            </button>`
                     : "";
 
             const btnCancelar =
                 !esLector && v.estado !== "cancelado"
                     ? `<button type="button" onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)"
-                                   class="text-xs bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-3 py-2 rounded-full font-semibold transition-colors sm:ml-auto">
+                                   class="${VIAJE_UI_TOKENS.actionButton.cancelado} sm:ml-auto">
                                ✕ Cancelar viaje
-                           </button>`
+                            </button>`
                     : "";
 
             const cardClase = esNuevo
-                ? "bg-green-50 rounded-xl shadow border border-green-200 border-l-4 border-l-green-500 overflow-hidden mb-3"
-                : "bg-white rounded-xl shadow border border-gray-100 overflow-hidden mb-3";
+                ? VIAJE_UI_TOKENS.record.nuevo
+                : VIAJE_UI_TOKENS.record.base;
             const cardHover = esNuevo
-                ? "hover:bg-green-100"
-                : "hover:bg-gray-50";
+                ? VIAJE_UI_TOKENS.record.hoverNuevo
+                : VIAJE_UI_TOKENS.record.hover;
 
             return `
                     <div class="${cardClase}" data-viaje-id="${v.viaje_id}">
@@ -9688,10 +9886,10 @@
             const alguno = GPS_ITEMS.some((g) => estado[g.key] !== undefined);
 
             const headerColor = !alguno
-                ? "bg-gray-50 border-gray-200 text-gray-500"
+                ? TRAMO_UI_TOKENS.headerState.empty
                 : todoOk
-                  ? "bg-green-50 border-green-200 text-green-700"
-                  : "bg-amber-50 border-amber-200 text-amber-700";
+                  ? TRAMO_UI_TOKENS.headerState.ok
+                  : TRAMO_UI_TOKENS.headerState.warning;
 
             const badgeGps = !alguno
                 ? `<span class="text-xs text-gray-400 italic">Sin validar</span>`
@@ -9730,18 +9928,15 @@
             }).join("");
 
             return `
-                    <div class="mt-2 border rounded-lg overflow-hidden ${headerColor
-                        .split(" ")
-                        .filter((c) => c.startsWith("border"))
-                        .join(" ")}">
-                        <div class="flex items-center justify-between px-2.5 py-1.5 ${headerColor}">
+                    <div class="mt-2 border-t border-gray-200 pt-2">
+                        <div class="flex items-center justify-between py-1.5 ${headerColor}">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-xs font-semibold">📡 GPS & Accesorios</span>
                                 ${ts}
                             </div>
                             ${badgeGps}
                         </div>
-                        <div class="px-3 py-2 bg-white grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
+                        <div class="py-2 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
                             ${items}
                         </div>
                     </div>`;
@@ -9795,7 +9990,10 @@
                     }
                 }
                 renderViajes();
-            } catch (e) {}
+            } catch (e) {
+                alert(`Error guardando validacion GPS: ${e.message}`);
+                renderViajes();
+            }
         }
 
         // ── Incidencias por tramo ────────────────────────────────────────────
@@ -9825,16 +10023,16 @@
                                     ${inc.direccion ? `<div class="text-xs text-gray-500 mt-0.5">📍 ${escapeHtml(inc.direccion)}</div>` : ""}
                                     ${inc.notas ? `<div class="text-xs text-gray-500 mt-0.5 italic">${escapeHtml(inc.notas)}</div>` : ""}
                                 </div>
-                                ${
-                                    puedeAgregar
-                                        ? `
-                                <button type="button" onclick="eliminarIncidencia(${viajeId},${t.id},${inc.id})"
-                                        title="Eliminar"
-                                        aria-label="Eliminar incidencia"
-                                        class="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors text-sm">✕</button>`
-                                        : ""
-                                }
-                            </div>`;
+                                 ${
+                                     puedeAgregar
+                                         ? `
+                                 <button type="button" onclick="eliminarIncidencia(${viajeId},${t.id},${inc.id})"
+                                         title="Eliminar"
+                                         aria-label="Eliminar incidencia"
+                                         class="tramo-touch-button flex-shrink-0 text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors">✕</button>`
+                                         : ""
+                                 }
+                             </div>`;
                           })
                           .join("");
 
@@ -9845,50 +10043,50 @@
 
             const formHtml = puedeAgregar
                 ? `
-                        <div id="${formId}" class="hidden mt-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                        <div id="${formId}" class="hidden mt-2 border-t border-gray-200 pt-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                                 <div>
-                                    <label class="block text-xs text-gray-500 mb-0.5">Tipo *</label>
+                                    <label for="${formId}-tipo" class="block text-sm font-semibold text-gray-700 mb-1">Tipo *</label>
                                     <select id="${formId}-tipo"
                                             onchange="_autoSeveridad('${formId}')"
-                                            class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400">
+                                            class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400">
                                         <option value="">— Seleccionar —</option>
                                         ${tiposOpts}
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-gray-500 mb-0.5">Severidad</label>
+                                    <label for="${formId}-sev" class="block text-sm font-semibold text-gray-700 mb-1">Severidad</label>
                                     <select id="${formId}-sev"
-                                            class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400">
+                                            class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400">
                                         <option value="alta">🔴 Alta</option>
                                         <option value="media" selected>🟡 Media</option>
                                         <option value="baja">🟢 Baja</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-gray-500 mb-0.5">Fecha y hora *</label>
+                                    <label for="${formId}-fecha" class="block text-sm font-semibold text-gray-700 mb-1">Fecha y hora *</label>
                                     <input type="datetime-local" id="${formId}-fecha"
                                            value="${new Date().toISOString().slice(0, 16)}"
-                                           class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400"/>
+                                           class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-gray-500 mb-0.5">Dirección / Ubicación</label>
+                                    <label for="${formId}-dir" class="block text-sm font-semibold text-gray-700 mb-1">Dirección / Ubicación</label>
                                     <input type="text" id="${formId}-dir" placeholder="Km 145 MEX-150D"
-                                           class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400"/>
+                                           class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
                                 </div>
                                 <div class="sm:col-span-2">
-                                    <label class="block text-xs text-gray-500 mb-0.5">Notas</label>
+                                    <label for="${formId}-notas" class="block text-sm font-semibold text-gray-700 mb-1">Notas</label>
                                     <textarea id="${formId}-notas" rows="2" placeholder="Descripción adicional..."
-                                              class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-400 resize-none"></textarea>
+                                              class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"></textarea>
                                 </div>
                             </div>
-                            <div class="flex gap-2 justify-end">
-                                <button type="button" onclick="document.getElementById('${formId}').classList.add('hidden')"
-                                        class="text-xs px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100">
+                            <div class="flex flex-wrap gap-2 justify-end">
+                                <button type="button" onclick="cerrarIncidenciaForm('${formId}')"
+                                        class="tramo-action-button border border-gray-300 text-gray-700 hover:bg-gray-100">
                                     Cancelar
                                 </button>
                                 <button type="button" onclick="guardarIncidencia(${viajeId},${t.id},'${formId}')"
-                                        class="text-xs px-3 py-1 rounded bg-red-600 text-white font-semibold hover:bg-red-700">
+                                        class="tramo-action-button bg-red-600 text-white font-semibold hover:bg-red-700">
                                     Guardar incidencia
                                 </button>
                             </div>
@@ -9897,20 +10095,22 @@
 
             const btnAgregar = puedeAgregar
                 ? `
-                        <button type="button" onclick="document.getElementById('${formId}').classList.toggle('hidden')"
-                                class="mt-1.5 text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1">
+                        <button type="button" id="btn-${formId}" onclick="toggleIncidenciaForm('${formId}', this)"
+                                aria-controls="${formId}"
+                                aria-expanded="false"
+                                class="tramo-action-button mt-2 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 font-semibold">
                             ＋ Agregar incidencia
                         </button>`
                 : "";
 
             const headerColor =
                 incidencias.length === 0
-                    ? "bg-gray-50 border-gray-200 text-gray-500"
+                    ? TRAMO_UI_TOKENS.headerState.empty
                     : incidencias.some((i) => i.severidad === "alta")
-                      ? "bg-red-50 border-red-200 text-red-700"
+                      ? TRAMO_UI_TOKENS.headerState.danger
                       : incidencias.some((i) => i.severidad === "media")
-                        ? "bg-amber-50 border-amber-200 text-amber-700"
-                        : "bg-gray-50 border-gray-200 text-gray-600";
+                        ? TRAMO_UI_TOKENS.headerState.warning
+                        : TRAMO_UI_TOKENS.headerState.neutral;
 
             const badge =
                 incidencias.length === 0
@@ -9918,20 +10118,40 @@
                     : `<span class="text-xs font-semibold">${incidencias.length} incidencia${incidencias.length > 1 ? "s" : ""}</span>`;
 
             return `
-                    <div class="mt-2 border rounded-lg overflow-hidden ${headerColor
-                        .split(" ")
-                        .filter((c) => c.startsWith("border"))
-                        .join(" ")}">
-                        <div class="flex items-center justify-between px-2.5 py-1.5 ${headerColor}">
+                    <div class="mt-2 border-t border-gray-200 pt-2">
+                        <div class="flex items-center justify-between py-1.5 ${headerColor}">
                             <span class="text-xs font-semibold">⚠️ Incidencias</span>
                             ${badge}
                         </div>
-                        <div class="px-3 py-2 bg-white">
+                        <div class="py-2">
                             ${listaHtml}
                             ${btnAgregar}
                             ${formHtml}
                         </div>
                     </div>`;
+        }
+
+        function toggleIncidenciaForm(formId, button) {
+            const form = document.getElementById(formId);
+            if (!form) return;
+            const isHidden = form.classList.toggle("hidden");
+            const expanded = !isHidden;
+            button?.setAttribute("aria-expanded", expanded ? "true" : "false");
+            if (expanded) {
+                const firstField = form.querySelector(
+                    "select, input, textarea",
+                );
+                firstField?.focus();
+            }
+        }
+
+        function cerrarIncidenciaForm(formId) {
+            const form = document.getElementById(formId);
+            if (!form) return;
+            form.classList.add("hidden");
+            const button = document.getElementById(`btn-${formId}`);
+            button?.setAttribute("aria-expanded", "false");
+            button?.focus();
         }
 
         function _autoSeveridad(formId) {
@@ -10064,21 +10284,6 @@
                 return `<p class="text-xs text-gray-400 text-center py-3">Sin tramos registrados</p>`;
             }
 
-            const iconos = {
-                pendiente: "⏳",
-                en_curso: "🚛",
-                completado: "✅",
-                cancelado: "❌",
-            };
-
-            // Colores de badge por estado de tramo
-            const badgeClases = {
-                pendiente: "bg-gray-100 text-gray-600",
-                en_curso: "bg-blue-100 text-blue-700",
-                completado: "bg-green-100 text-green-700",
-                cancelado: "bg-red-100 text-red-600",
-            };
-
             // Genera botones de acción para cada tramo (ocultos para lector)
             const esLectorTramo = !canEditViajes();
             function _botonesTramo(t) {
@@ -10088,13 +10293,13 @@
                 const vid = viajeId;
                 if (t.estado === "pendiente") {
                     return `<button type="button" onclick="cambiarEstadoTramo(${vid},${tid},'en_curso',this)"
-                                        class="text-xs bg-blue-600 text-white px-3 py-2 rounded font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap">
+                                        class="${TRAMO_UI_TOKENS.actionButton.en_curso}">
                                         🚛 En curso
                                     </button>`;
                 }
                 if (t.estado === "en_curso") {
                     return `<button type="button" onclick="cambiarEstadoTramo(${vid},${tid},'completado',this)"
-                                        class="text-xs bg-green-600 text-white px-3 py-2 rounded font-semibold hover:bg-green-700 transition-colors whitespace-nowrap">
+                                        class="${TRAMO_UI_TOKENS.actionButton.completado}">
                                         ✅ Completar
                                     </button>`;
                 }
@@ -10119,17 +10324,19 @@
 
                     // Estilos condicionales por estado
                     const cardClase = apagado
-                        ? "flex gap-3 rounded-lg p-3 border shadow-sm bg-gray-50 border-gray-200 opacity-60"
-                        : "flex gap-3 bg-white rounded-lg p-3 border border-gray-100 shadow-sm";
+                        ? TRAMO_UI_TOKENS.row.muted
+                        : TRAMO_UI_TOKENS.row.active;
                     const numeroBg = esCompletado
-                        ? "bg-green-100 border-green-300 text-green-700"
+                        ? TRAMO_UI_TOKENS.stepNumber.completado
                         : esCancelado
-                          ? "bg-red-50 border-red-200 text-red-500"
-                          : "bg-blue-50 border-blue-200 text-blue-700";
-                    const lineaColor = apagado ? "bg-gray-200" : "bg-blue-200";
+                          ? TRAMO_UI_TOKENS.stepNumber.cancelado
+                          : TRAMO_UI_TOKENS.stepNumber.active;
+                    const lineaColor = apagado
+                        ? TRAMO_UI_TOKENS.connector.muted
+                        : TRAMO_UI_TOKENS.connector.active;
                     const tituloClase = apagado
-                        ? "font-semibold text-sm text-gray-400 line-through"
-                        : "font-semibold text-sm text-gray-800";
+                        ? TRAMO_UI_TOKENS.title.muted
+                        : TRAMO_UI_TOKENS.title.active;
                     const retrasoActual = _calcRetrasoTramo(t);
                     const incidenciasCount = Array.isArray(t.incidencias)
                         ? t.incidencias.length
@@ -10140,9 +10347,14 @@
                         t.id === firstPendienteId;
                     if (!mostrarDetalle) {
                         const compactoClase = apagado
-                            ? "flex items-center gap-3 rounded-lg px-3 py-2 border bg-gray-50 border-gray-200 opacity-70"
-                            : "flex items-center gap-3 rounded-lg px-3 py-2 border bg-white border-gray-200";
+                            ? TRAMO_UI_TOKENS.row.mutedCompact
+                            : TRAMO_UI_TOKENS.row.activeCompact;
                         const botonCompacto = _botonesTramo(t);
+                        const estadoIcono = _uiToken(
+                            TRAMO_UI_TOKENS.icon,
+                            t.estado,
+                            "",
+                        );
                         return `
                         <div class="${compactoClase}">
                             <div class="w-7 h-7 rounded-full border flex items-center justify-center text-xs font-bold ${numeroBg}">
@@ -10153,12 +10365,16 @@
                                     <span class="${tituloClase} truncate">
                                         ${escapeHtml(t.origen || "Origen")} -> ${escapeHtml(t.destino || "Destino")}
                                     </span>
-                                    <span class="text-xs font-medium px-2 py-0.5 rounded-full ${badgeClases[t.estado] || "bg-gray-100 text-gray-500"}">
-                                        ${iconos[t.estado] || ""} ${String(t.estado || "").replace("_", " ")}
+                                    <span class="${UI_BADGE_BASE} ${_uiToken(TRAMO_UI_TOKENS.badge, t.estado)}">
+                                        ${estadoIcono} ${String(t.estado || "").replace("_", " ")}
                                     </span>
                                     ${
                                         incidenciasCount
-                                            ? `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">${incidenciasCount} incidencia${incidenciasCount !== 1 ? "s" : ""}</span>`
+                                            ? _renderBadge(
+                                                  TRAMO_UI_TOKENS.badge
+                                                      .incidencia,
+                                                  `${incidenciasCount} incidencia${incidenciasCount !== 1 ? "s" : ""}`,
+                                              )
                                             : ""
                                     }
                                 </div>
@@ -10195,8 +10411,8 @@
                                                 : "—"
                                         }
                                     </span>
-                                    <span class="text-xs font-medium px-2 py-0.5 rounded-full ${badgeClases[t.estado] || "bg-gray-100 text-gray-500"}">
-                                        ${iconos[t.estado] || ""} ${t.estado.replace("_", " ")}
+                                    <span class="${UI_BADGE_BASE} ${_uiToken(TRAMO_UI_TOKENS.badge, t.estado)}">
+                                        ${_uiToken(TRAMO_UI_TOKENS.icon, t.estado, "")} ${t.estado.replace("_", " ")}
                                     </span>
                                 </div>
                                 ${!apagado && t.ruta ? `<div class="text-xs text-blue-600 mt-0.5">📍 ${escapeHtml(t.ruta)}</div>` : ""}
@@ -10272,79 +10488,86 @@
                                                       etiquetaInput: "Vacio:",
                                                   },
                                               ];
-                                              const renderFilas = (grupo) => campos
-                                                  .filter((c) => c.campoReal && c.grupo === grupo)
-                                                  .map(
-                                                      ({
-                                                          campoReal,
-                                                          icon,
-                                                          label,
-                                                          etiquetaInput = "Registro:",
-                                                          prog,
-                                                          real,
-                                                      }) => {
-                                                          const tarde =
-                                                              esRetraso(
-                                                                  prog,
-                                                                  real,
-                                                              );
-                                                          const cardBg = tarde
-                                                              ? "bg-red-50 border-red-200"
-                                                              : "bg-gray-50 border-gray-100";
-                                                          const labelClr = tarde
-                                                              ? "text-red-700 font-bold"
-                                                              : "text-gray-600";
-                                                          const inputClr = tarde
-                                                              ? "border-red-400 bg-red-50 text-red-700 focus:ring-red-400"
-                                                              : "border-gray-200 bg-white focus:ring-blue-400";
-                                                          const btnClr = tarde
-                                                              ? "text-red-600 border-red-200 bg-red-50 hover:bg-red-100"
-                                                              : "text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100";
-                                                          const realTexto = real
-                                                              ? `<span class="font-mono ${tarde ? "text-red-700 font-bold" : "text-gray-700"}">${_fmtDt(real)}${tarde ? " ⚠️" : ""}</span>`
-                                                              : `<span class="text-gray-300 italic">Sin registrar</span>`;
-                                                          return `
-                                        <div class="col-span-1 flex flex-col gap-0.5 border rounded p-1.5 ${cardBg}">
-                                            <div class="flex items-center gap-1 text-xs">
+                                              const renderFilas = (grupo) =>
+                                                  campos
+                                                      .filter(
+                                                          (c) =>
+                                                              c.campoReal &&
+                                                              c.grupo === grupo,
+                                                      )
+                                                      .map(
+                                                          ({
+                                                              campoReal,
+                                                              icon,
+                                                              label,
+                                                              etiquetaInput = "Registro:",
+                                                              prog,
+                                                              real,
+                                                          }) => {
+                                                              const tarde =
+                                                                  esRetraso(
+                                                                      prog,
+                                                                      real,
+                                                                  );
+                                                              const fieldToken =
+                                                                  tarde
+                                                                      ? TRAMO_UI_TOKENS
+                                                                            .fieldState
+                                                                            .late
+                                                                      : TRAMO_UI_TOKENS
+                                                                            .fieldState
+                                                                            .normal;
+                                                              const realTexto =
+                                                                  real
+                                                                      ? `<span class="font-mono ${fieldToken.value}">${_fmtDt(real)}${tarde ? " ⚠️" : ""}</span>`
+                                                                      : `<span class="text-gray-300 italic">Sin registrar</span>`;
+                                                              return `
+                                        <div class="col-span-1 flex flex-col gap-2 border-t pt-3 ${fieldToken.shell}">
+                                            <div class="flex items-center gap-2 text-sm">
                                                 <span>${icon}</span>
-                                                <span class="font-semibold ${labelClr}">${label}${tarde ? " ⚠️" : ""}</span>
+                                                <span class="font-semibold ${fieldToken.label}">${label}${tarde ? " ⚠️" : ""}</span>
                                             </div>
-                                            ${prog ? `<div class="flex items-center gap-1 pl-1 text-xs text-gray-400">
-                                                <span class="w-20 flex-shrink-0">Programada:</span>
+                                            ${
+                                                prog
+                                                    ? `<div class="flex items-center gap-2 text-sm text-gray-500">
+                                                <span class="w-24 flex-shrink-0 font-medium">Programada:</span>
                                                 <span class="font-mono">${fmtProg(prog)}</span>
-                                            </div>` : ""}
-                                            <div class="flex items-center gap-1 pl-1">
-                                                <span class="text-xs text-gray-500 w-20 flex-shrink-0">${etiquetaInput}</span>
+                                            </div>`
+                                                    : ""
+                                            }
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                                <span class="text-sm font-medium text-gray-600 sm:w-24 sm:flex-shrink-0">${etiquetaInput}</span>
                                                 ${
                                                     esLectorTramo
-                                                        ? `<span class="text-xs">${realTexto}</span>`
+                                                        ? `<span class="text-sm">${realTexto}</span>`
                                                         : `<input type="datetime-local"
                                                        id="ft-${t.id}-${campoReal}"
                                                        value="${toInputVal(real)}"
+                                                       aria-label="${label}: registrar fecha y hora real"
                                                        onchange="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',this)"
-                                                       class="flex-1 min-w-0 text-xs border rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 ${inputClr}"/>
+                                                       class="tramo-control flex-1 min-w-0 border focus:outline-none focus:ring-2 ${fieldToken.input}"/>
                                                 <button type="button" onclick="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',null,true)"
-                                                        title="Registrar hora actual"
-                                                        aria-label="Registrar hora actual para ${label}"
-                                                        class="flex-shrink-0 text-xs border rounded px-2 py-1 font-bold transition-colors ${btnClr}">
-                                                    ↺
-                                                </button>`
+                                                          title="Registrar hora actual"
+                                                          aria-label="Registrar hora actual para ${label}"
+                                                          class="tramo-touch-button flex-shrink-0 border font-bold transition-colors ${fieldToken.action}">
+                                                      ↺
+                                                  </button>`
                                                 }
                                             </div>
                                         </div>`;
-                                                      },
-                                                  )
-                                                  .join("");
+                                                          },
+                                                      )
+                                                      .join("");
                                               return `<div class="mt-2 space-y-2">
                                                 ${salidaPatioInfo}
-                                                <details open class="border rounded bg-white border-gray-200 overflow-hidden">
-                                                  <summary class="cursor-pointer select-none px-3 py-2 bg-gray-50 text-xs font-semibold text-gray-700">
+                                                <details open class="tramo-panel border-t border-gray-200">
+                                                  <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
                                                     Carga programada: llegada ${fmtProg(t.cita_carga)} · salida ${fmtProg(t.salida_carga)}
                                                   </summary>
                                                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">${renderFilas("carga")}</div>
                                                 </details>
-                                                <details open class="border rounded bg-white border-gray-200 overflow-hidden">
-                                                  <summary class="cursor-pointer select-none px-3 py-2 bg-gray-50 text-xs font-semibold text-gray-700">
+                                                <details open class="tramo-panel border-t border-gray-200">
+                                                  <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
                                                     Descarga programada: ${fmtProg(t.descarga_programada)}
                                                   </summary>
                                                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">${renderFilas("descarga")}</div>
@@ -10373,7 +10596,7 @@
             // (bitacora_tracker). El admin en la bitácora solo captura datos
             // operativos (fechas reales, GPS, incidencias, estado) sobre los
             // tramos ya planificados — no agrega tramos nuevos.
-            return `<div class="space-y-2">${tramosHtml}</div>`;
+            return `<div class="tramo-panel">${tramosHtml}</div>`;
         }
 
         function _fmtDt(dt) {
