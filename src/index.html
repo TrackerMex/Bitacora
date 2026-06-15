@@ -2510,10 +2510,12 @@
                 return String(window.TRACKER_API_SRC).replace(/\/+$/, "");
             }
             if (
-                ["localhost", "127.0.0.1"].includes(window.location.hostname) ||
-                window.location.protocol === "file:"
+                ["localhost", "127.0.0.1"].includes(window.location.hostname)
             ) {
-                return TRACKER_LOCAL_SRC;
+                return getLocalSrcBasePath();
+            }
+            if (window.location.protocol === "file:") {
+                return BITACORA_PRODUCTION_SRC;
             }
             return `${window.location.origin}/src`;
         }
