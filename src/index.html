@@ -173,6 +173,30 @@
             .tramo-panel {
                 background: var(--color-card);
             }
+            .tramo-scroll-shell {
+                border: 1px solid var(--color-line);
+                border-radius: 0.75rem;
+                background: var(--color-card);
+                overflow: hidden;
+            }
+            .tramo-scroll-header {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                background: var(--color-card);
+                border-bottom: 1px solid var(--color-line);
+            }
+            .tramo-scroll-body {
+                max-height: min(62vh, 760px);
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                scrollbar-gutter: stable;
+            }
+            @media (max-width: 640px) {
+                .tramo-scroll-body {
+                    max-height: 58vh;
+                }
+            }
             .tab-btn {
                 flex: 0 0 auto;
                 min-height: 2.75rem;
@@ -10317,6 +10341,37 @@
 
             const firstPendienteId =
                 tramos.find((t) => t.estado === "pendiente")?.id ?? null;
+            const tramosActivos = tramos.filter((t) =>
+                ["pendiente", "en_curso"].includes(t.estado),
+            ).length;
+            const tramosConIncidencias = tramos.filter(
+                (t) => Array.isArray(t.incidencias) && t.incidencias.length,
+            ).length;
+            const tramosConRetraso = tramos.filter(
+                (t) => _calcRetrasoTramo(t) !== null,
+            ).length;
+            const panelBadges = [
+                tramosActivos
+                    ? _renderBadge(
+                          `${UI_BADGE_BASE} bg-blue-100 text-blue-700`,
+                          `${tramosActivos} activo${tramosActivos !== 1 ? "s" : ""}`,
+                      )
+                    : "",
+                tramosConRetraso
+                    ? _renderBadge(
+                          VIAJE_UI_TOKENS.badge.retraso,
+                          `${tramosConRetraso} con retraso`,
+                      )
+                    : "",
+                tramosConIncidencias
+                    ? _renderBadge(
+                          VIAJE_UI_TOKENS.badge.incidencia,
+                          `${tramosConIncidencias} con incidencia${tramosConIncidencias !== 1 ? "s" : ""}`,
+                      )
+                    : "",
+            ]
+                .filter(Boolean)
+                .join("");
 
             const tramosHtml = tramos
                 .map((t) => {
@@ -10606,7 +10661,27 @@
             // (bitacora_tracker). El admin en la bitácora solo captura datos
             // operativos (fechas reales, GPS, incidencias, estado) sobre los
             // tramos ya planificados — no agrega tramos nuevos.
-            return `<div class="tramo-panel">${tramosHtml}</div>`;
+            return `
+                <section class="tramo-scroll-shell" aria-label="Tramos del viaje">
+                    <div class="tramo-scroll-header px-3 py-2">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="text-xs font-bold uppercase tracking-wide text-gray-500">
+                                    Bitacora de tramos
+                                </div>
+                                <div class="text-[11px] text-gray-400">
+                                    ${tramos.length} tramo${tramos.length !== 1 ? "s" : ""} registrados
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                ${panelBadges}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tramo-scroll-body" tabindex="0">
+                        ${tramosHtml}
+                    </div>
+                </section>`;
         }
 
         function _fmtDt(dt) {
