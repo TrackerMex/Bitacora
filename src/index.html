@@ -2254,16 +2254,19 @@
             if (errorMessage) errorMessage.classList.add("hidden");
 
             try {
-                const response = await fetch("/src/usuarios/login.php", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
+                const response = await fetch(
+                    "/src/usuarios/login.php",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            username: usernameInput,
+                            password: password,
+                        }),
                     },
-                    body: JSON.stringify({
-                        username: usernameInput,
-                        password: password,
-                    }),
-                });
+                );
 
                 const data = await response.json();
 
@@ -2931,6 +2934,31 @@
             renderAllTabs();
         }
 
+        function getDespachosForExecutiveReport() {
+            const source = Array.isArray(allDespachosData)
+                ? allDespachosData
+                : [];
+            const scoped = filterDataByCliente(source);
+            try {
+                applySeguimientosDbToArray(scoped);
+            } catch (e) {
+                console.warn("Error aplicando seguimientos al informe:", e);
+            }
+            return scoped;
+        }
+
+        function filterDespachosByDateWindow(data, window) {
+            const from = String(window?.from || "").trim();
+            const to = String(window?.to || "").trim();
+            return (Array.isArray(data) ? data : []).filter((d) => {
+                const date = dayjs(d?.fechaProgramada);
+                if (!date.isValid()) return false;
+                if (from && date.isBefore(dayjs(from), "day")) return false;
+                if (to && date.isAfter(dayjs(to), "day")) return false;
+                return true;
+            });
+        }
+
         function renderAllTabs() {
             renderDatosGenerales();
             renderOrigenDestino();
@@ -3244,7 +3272,7 @@
 
                     try {
                         const response = await fetch(
-                            "/src/origen_destino/actualizar_origen_destino.php",
+                            "/bitacora_/src/origen_destino/actualizar_origen_destino.php",
                             {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
@@ -3374,7 +3402,7 @@
                 try {
                     // 1. Actualizar MySQL
                     const response = await fetch(
-                        "/src/seguimiento/actualizar_fecha_programada.php",
+                        "/bitacora_/src/seguimiento/actualizar_fecha_programada.php",
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -3399,7 +3427,7 @@
 
                     // 2. Actualizar Google Sheets (en paralelo, no bloquea el flujo)
                     const sheetsPromise = fetch(
-                        "/src/api/actualizar_fecha_sheets.php",
+                        "/bitacora_/src/api/actualizar_fecha_sheets.php",
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -4831,9 +4859,9 @@
         }
 
         const SEGUIMIENTO_SAVE_ENDPOINT =
-            "/src/seguimiento/guardar_seguimiento.php";
+            "/bitacora_/src/seguimiento/guardar_seguimiento.php";
         const SEGUIMIENTO_LOAD_ENDPOINT =
-            "/src/seguimiento/obtener_seguimiento.php";
+            "/bitacora_/src/seguimiento/obtener_seguimiento.php";
 
         let seguimientosDbCache = {
             loaded: false,
@@ -4858,7 +4886,7 @@
 
         async function loadOrigenDestinoFromDb() {
             const res = await fetch(
-                `/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
+                `/bitacora_/src/origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
                 { cache: "no-store" },
             );
             let json = null;
@@ -5604,23 +5632,11 @@
             const btn = document.getElementById("download-excel-report-btn");
 
             const window = getIncExecutiveDateWindow();
-            const from = window.from || "";
-            const to = window.to || "";
-
-            let filteredData = data.slice();
-            if (from && to) {
-                filteredData = filteredData.filter(
-                    (d) => d.fechaProgramada >= from && d.fechaProgramada <= to,
-                );
-            } else if (from && !to) {
-                filteredData = filteredData.filter(
-                    (d) => d.fechaProgramada >= from,
-                );
-            } else if (!from && to) {
-                filteredData = filteredData.filter(
-                    (d) => d.fechaProgramada <= to,
-                );
-            }
+            const sourceData = getDespachosForExecutiveReport();
+            const filteredData = filterDespachosByDateWindow(
+                sourceData,
+                window,
+            );
 
             if (!filteredData.length) {
                 c.innerHTML = `<p class="text-center p-6 bg-gray-100 rounded-lg">No hay datos para generar informe con el filtro seleccionado.</p>`;
@@ -5851,7 +5867,7 @@
         };
 
         const EMERGENCY_911_ENDPOINT =
-            "/src/contactos/obtener_numeros_emergencia.php";
+            "/bitacora_/src/contactos/obtener_numeros_emergencia.php";
 
         function normalizeEmergency911Row(r) {
             const estado = (r?.estado ?? "").toString().trim().toUpperCase();
@@ -6218,24 +6234,24 @@
             return { from: selected, to: selected };
         }
 
+        function getExecutiveReportDateLabel() {
+            const window = getIncExecutiveDateWindow();
+            const from = String(window.from || "").trim();
+            const to = String(window.to || "").trim();
+            if (!from && !to) return "Todo";
+            if (from && to && from !== to) return `${from} a ${to}`;
+            return from || to || dayjs().format("YYYY-MM-DD");
+        }
+
         function renderIncidenciasExecutiveReport() {
             const tbody = document.getElementById("incidencias-exec-tbody");
             if (!tbody) return;
 
             const window = getIncExecutiveDateWindow();
-            const from = window.from || "";
-            const to = window.to || "";
-
-            let base = filteredDespachosData.slice();
-            if (from && to) {
-                base = base.filter(
-                    (d) => d.fechaProgramada >= from && d.fechaProgramada <= to,
-                );
-            } else if (from && !to) {
-                base = base.filter((d) => d.fechaProgramada >= from);
-            } else if (!from && to) {
-                base = base.filter((d) => d.fechaProgramada <= to);
-            }
+            const base = filterDespachosByDateWindow(
+                getDespachosForExecutiveReport(),
+                window,
+            );
 
             const rows = [];
             base.forEach((d) => {
@@ -6334,9 +6350,7 @@
 
             const operadorMonitoreo =
                 lastInformeData[0]?.operadorMonitoreoId || "Desconocido";
-            const fechaDespacho =
-                document.getElementById("date-filter")?.value ||
-                new Date().toISOString().split("T")[0];
+            const fechaDespacho = getExecutiveReportDateLabel();
 
             const titulo = prompt(
                 "Ingrese un título para el informe:",
@@ -6367,13 +6381,16 @@
                     datos_informe: lastInformeData,
                 };
 
-                const res = await fetch("/src/informe/guardar_informe.php", {
-                    method: "POST",
-                    headers: getAuthHeaders({
-                        "Content-Type": "application/json",
-                    }),
-                    body: JSON.stringify(payload),
-                });
+                const res = await fetch(
+                    "/bitacora_/src/informe/guardar_informe.php",
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify(payload),
+                    },
+                );
 
                 const text = await res.text();
 
@@ -6591,7 +6608,7 @@
                 }
                 const query = params.toString();
                 const res = await fetch(
-                    `/src/informe/obtener_informes.php${query ? `?${query}` : ""}`,
+                    `/bitacora_/src/informe/obtener_informes.php${query ? `?${query}` : ""}`,
                     {
                         cache: "no-store",
                         headers: getAuthHeaders(),
@@ -6984,13 +7001,16 @@
             if (!confirm(`¿Eliminar el informe ID ${numericId}?`)) return;
 
             try {
-                const res = await fetch("/src/informe/eliminar_informe.php", {
-                    method: "POST",
-                    headers: getAuthHeaders({
-                        "Content-Type": "application/json",
-                    }),
-                    body: JSON.stringify({ id: numericId }),
-                });
+                const res = await fetch(
+                    "/bitacora_/src/informe/eliminar_informe.php",
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({ id: numericId }),
+                    },
+                );
                 const text = await res.text();
                 let payload;
                 try {
