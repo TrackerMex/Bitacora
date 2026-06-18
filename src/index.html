@@ -156,6 +156,44 @@
                 border-color: #bbf7d0;
                 background: #f0fdf4;
             }
+            .monitor-record--viaje {
+                overflow: hidden;
+                border: 1px solid #e5e7eb;
+                border-radius: 1rem;
+                background: #ffffff;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+                transition:
+                    transform 180ms ease,
+                    box-shadow 180ms ease,
+                    border-color 180ms ease,
+                    background-color 180ms ease;
+            }
+            .monitor-record--viaje:hover {
+                transform: translateY(-1px);
+            }
+            .monitor-record--planned {
+                border-color: #bfdbfe;
+                box-shadow: 0 12px 28px rgba(37, 99, 235, 0.14);
+            }
+            .monitor-record--active {
+                border-color: #fde68a;
+                box-shadow: 0 12px 28px rgba(202, 138, 4, 0.16);
+            }
+            .monitor-record--complete {
+                border-color: #bbf7d0;
+                box-shadow: 0 12px 28px rgba(22, 163, 74, 0.15);
+            }
+            .monitor-record--late {
+                border-color: #fecaca;
+                box-shadow: 0 12px 28px rgba(220, 38, 38, 0.16);
+            }
+            .monitor-record--cancelled {
+                border-color: #d1d5db;
+                box-shadow: 0 12px 28px rgba(75, 85, 99, 0.12);
+            }
+            .monitor-record--viaje.monitor-record--new {
+                background: #ffffff;
+            }
             .tramo-row {
                 display: flex;
                 gap: 0.75rem;
@@ -352,32 +390,255 @@
                 background: #eef2f7;
                 color: #111827;
             }
+            .registro-board-shell {
+                max-height: min(68vh, 820px);
+                overflow: auto;
+                overscroll-behavior: contain;
+                border: 1px solid var(--color-line-strong);
+                border-radius: 0.75rem;
+                background: var(--color-card);
+                scrollbar-gutter: stable;
+            }
             .registro-board {
-                display: grid;
-                grid-template-columns: 1fr repeat(5, minmax(180px, 1fr));
-                gap: 1px;
-                border: 1px solid #e5e7eb;
-                border-radius: 0.5rem;
-                overflow: hidden;
+                width: 100%;
+                min-width: 1180px;
+                border-collapse: separate;
+                border-spacing: 0;
+                table-layout: fixed;
+                color: var(--color-text);
             }
-            .board-row {
-                display: contents;
-            }
-            .board-cell {
-                padding: 1rem;
-                background: #fff;
-                border-right: 1px solid #e5e7eb;
-                border-bottom: 1px solid #e5e7eb;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
+            .registro-board th {
+                position: sticky;
+                top: 0;
+                z-index: 3;
+                padding: 0.8rem 0.75rem;
+                border-right: 1px solid var(--color-line-strong);
+                border-bottom: 1px solid var(--color-line-strong);
+                background: oklch(0.925 0.011 255);
+                color: oklch(0.26 0.025 255);
+                font-size: 0.75rem;
+                font-weight: 800;
+                letter-spacing: 0.035em;
+                line-height: 1.25;
                 text-align: center;
-                font-size: 0.875rem;
+                text-transform: uppercase;
             }
-            .board-row:first-child .board-cell {
-                background: #e5e7eb;
-                font-weight: 700;
+            .registro-board th:first-child {
+                width: 19%;
+                text-align: left;
+            }
+            .registro-board th:last-child {
+                width: 13%;
+                border-right: 0;
+            }
+            .registro-board-cell {
+                padding: 0.8rem 0.75rem;
+                border-right: 1px solid var(--color-line);
+                border-bottom: 1px solid var(--color-line);
+                background: var(--color-card);
+                vertical-align: middle;
+            }
+            .registro-board-cell:last-child {
+                border-right: 0;
+            }
+            .registro-board-row:hover > .registro-board-cell:not(.registro-status-cell) {
+                background: oklch(0.982 0.008 255);
+            }
+            .registro-unit-button {
+                width: 100%;
+                min-height: 3.25rem;
+                display: flex;
+                align-items: center;
+                gap: 0.65rem;
+                border-radius: 0.5rem;
+                padding: 0.25rem;
+                text-align: left;
+            }
+            .registro-unit-button:hover {
+                background: oklch(0.96 0.012 255);
+            }
+            .registro-unit-button:focus-visible,
+            .registro-retry-button:focus-visible {
+                outline: 3px solid oklch(0.7 0.13 278 / 0.45);
+                outline-offset: 2px;
+            }
+            .registro-gps-dot,
+            .registro-stage-dot {
+                width: 0.65rem;
+                height: 0.65rem;
+                flex: 0 0 auto;
+                border: 2px solid var(--color-card);
+                border-radius: 9999px;
+                box-shadow: 0 0 0 1px var(--color-line-strong);
+            }
+            .registro-gps-dot--ok,
+            .registro-stage-dot--complete {
+                background: oklch(0.67 0.18 149);
+            }
+            .registro-gps-dot--pending,
+            .registro-stage-dot--none {
+                background: oklch(0.72 0.018 255);
+            }
+            .registro-stage-dot--pending {
+                background: oklch(0.62 0.16 251);
+            }
+            .registro-stage-dot--late {
+                background: oklch(0.61 0.22 27);
+            }
+            .registro-stage {
+                display: grid;
+                grid-template-columns: auto minmax(0, 1fr);
+                align-items: start;
+                gap: 0.5rem;
+                font-size: 0.75rem;
+                line-height: 1.35;
+            }
+            .registro-stage-state {
+                display: block;
+                margin-bottom: 0.2rem;
+                color: var(--color-muted);
+                font-size: 0.6875rem;
+                font-weight: 800;
+                letter-spacing: 0.035em;
+                text-transform: uppercase;
+            }
+            .registro-stage-state--complete {
+                color: oklch(0.4 0.13 149);
+            }
+            .registro-stage-state--pending {
+                color: oklch(0.43 0.14 251);
+            }
+            .registro-stage-state--late {
+                color: oklch(0.45 0.18 27);
+            }
+            .registro-stage-time {
+                display: grid;
+                grid-template-columns: 2.2rem minmax(0, 1fr);
+                gap: 0.25rem;
+                color: var(--color-muted);
+            }
+            .registro-stage-time strong {
+                color: var(--color-text);
+                font-variant-numeric: tabular-nums;
+            }
+            .registro-stage-time--real strong {
+                font-weight: 800;
+            }
+            .registro-status-cell {
+                text-align: center;
+            }
+            .registro-status-cell--planned {
+                background: oklch(0.947 0.035 251);
+                color: oklch(0.39 0.14 251);
+            }
+            .registro-status-cell--active {
+                background: oklch(0.955 0.06 85);
+                color: oklch(0.4 0.105 72);
+            }
+            .registro-status-cell--complete {
+                background: oklch(0.953 0.05 149);
+                color: oklch(0.37 0.12 149);
+            }
+            .registro-status-cell--late {
+                background: oklch(0.955 0.045 27);
+                color: oklch(0.42 0.17 27);
+            }
+            .registro-status-cell--cancelled {
+                background: oklch(0.95 0.008 255);
+                color: oklch(0.48 0.025 255);
+            }
+            .registro-status-label {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.35rem;
+                font-size: 0.75rem;
+                font-weight: 800;
+            }
+            .registro-detail-row td {
+                padding: 0;
+                border-bottom: 1px solid var(--color-line-strong);
+                background: var(--color-panel);
+            }
+            .registro-detail {
+                padding: 1rem 1.25rem 1.25rem;
+            }
+            .registro-detail-grid {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 0.75rem;
+            }
+            .registro-detail-block {
+                min-width: 0;
+                padding: 0.75rem;
+                border: 1px solid var(--color-line);
+                border-radius: 0.5rem;
+                background: var(--color-card);
+            }
+            .registro-detail-label {
+                display: block;
+                margin-bottom: 0.25rem;
+                color: var(--color-muted);
+                font-size: 0.6875rem;
+                font-weight: 800;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+            .registro-detail-timeline {
+                display: grid;
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                gap: 1px;
+                margin-top: 0.75rem;
+                overflow: hidden;
+                border: 1px solid var(--color-line);
+                border-radius: 0.5rem;
+                background: var(--color-line);
+            }
+            .registro-detail-timeline > div {
+                min-width: 0;
+                padding: 0.65rem;
+                background: var(--color-card);
+                font-size: 0.75rem;
+            }
+            .registro-board-state {
+                padding: 2.5rem 1rem;
+                border: 1px solid var(--color-line);
+                border-radius: 0.75rem;
+                background: var(--color-panel);
+                color: var(--color-muted);
+                text-align: center;
+            }
+            .registro-board-state--error {
+                border-color: oklch(0.85 0.075 27);
+                background: oklch(0.97 0.025 27);
+                color: oklch(0.42 0.17 27);
+            }
+            .registro-retry-button {
+                margin-top: 0.75rem;
+                border: 1px solid oklch(0.72 0.12 27);
+                border-radius: 0.5rem;
+                background: var(--color-card);
+                padding: 0.5rem 0.85rem;
+                color: oklch(0.42 0.17 27);
+                font-size: 0.75rem;
+                font-weight: 800;
+            }
+            .registro-skeleton {
+                height: 0.8rem;
+                border-radius: 0.25rem;
+                background: oklch(0.91 0.01 255);
+                animation: registro-skeleton-pulse 1.2s ease-in-out infinite alternate;
+            }
+            @keyframes registro-skeleton-pulse {
+                to {
+                    opacity: 0.45;
+                }
+            }
+            .reader-matrix-mode .section-shell {
+                padding: 0.75rem;
+            }
+            .reader-matrix-mode .viajes-legend {
+                display: none;
             }
             .estatus-verde {
                 background: #d1fae5;
@@ -412,41 +673,104 @@
                 color: #4b5563;
             }
             @media (max-width: 1024px) {
+                .registro-board-shell {
+                    max-height: none;
+                    overflow: visible;
+                    border: 0;
+                    background: transparent;
+                }
                 .registro-board {
-                    grid-template-columns: 1fr;
-                }
-                .board-row {
+                    min-width: 0;
                     display: block;
-                    margin-bottom: 1rem;
-                    border: 1px solid #e5e7eb;
-                    border-radius: 0.5rem;
-                    overflow: hidden;
                 }
-                .board-row:first-child {
+                .registro-board thead {
                     display: none;
                 }
-                .board-cell {
-                    border-right: none;
-                    border-bottom: 1px solid #e5e7eb;
-                    align-items: flex-start;
+                .registro-board tbody {
+                    display: grid;
+                    gap: 0.85rem;
+                }
+                .registro-board-row {
+                    display: grid;
+                    overflow: hidden;
+                    border: 1px solid var(--color-line-strong);
+                    border-radius: 0.75rem;
+                    background: var(--color-card);
+                    box-shadow: var(--shadow-resting);
+                }
+                .registro-board-cell {
+                    display: grid;
+                    grid-template-columns: minmax(8rem, 0.38fr) minmax(0, 1fr);
+                    align-items: center;
+                    min-height: 3.5rem;
+                    border-right: 0;
+                    padding: 0.7rem 0.85rem;
                     text-align: left;
                 }
-                .board-cell::before {
+                .registro-board-cell::before {
                     content: attr(data-label);
-                    display: block;
+                    color: var(--color-muted);
+                    font-size: 0.6875rem;
                     font-weight: 800;
-                    color: #4b5563;
-                    font-size: 0.75rem;
-                    margin-bottom: 0.25rem;
+                    letter-spacing: 0.035em;
+                    text-transform: uppercase;
                 }
-                .unit-cell {
-                    background: #e5e7eb !important;
+                .registro-board-cell:first-child {
+                    display: block;
+                    background: oklch(0.955 0.012 255);
                 }
-                .board-cell-alerta-wrap {
+                .registro-status-cell {
+                    grid-template-columns: minmax(8rem, 0.38fr) minmax(0, 1fr);
+                    text-align: left;
+                }
+                .registro-status-label {
                     justify-content: flex-start;
                 }
-                .board-cell-alerta-body {
-                    align-items: flex-start;
+                .registro-detail-row {
+                    display: block;
+                    margin-top: -0.85rem;
+                }
+                .registro-detail-row td {
+                    display: block;
+                    overflow: hidden;
+                    border: 1px solid var(--color-line-strong);
+                    border-top: 0;
+                    border-radius: 0 0 0.75rem 0.75rem;
+                }
+                .registro-detail-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+                .registro-detail-timeline {
+                    grid-template-columns: 1fr;
+                }
+            }
+            @media (max-width: 640px) {
+                .registro-board-cell {
+                    display: block;
+                }
+                .registro-board-cell::before {
+                    display: block;
+                    margin-bottom: 0.4rem;
+                }
+                .registro-detail {
+                    padding: 0.85rem;
+                }
+                .registro-detail-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .registro-skeleton {
+                    animation: none;
+                }
+                .monitor-record--viaje {
+                    transition: none !important;
+                }
+                .monitor-record--viaje:hover {
+                    transform: none;
+                }
+                .registro-unit-button svg {
+                    transition: none !important;
                 }
             }
 
@@ -1603,10 +1927,16 @@
                         class="flex flex-wrap items-center justify-between gap-3 mb-5"
                     >
                         <div>
-                            <h2 class="text-2xl font-semibold text-gray-800">
+                            <h2
+                                id="viajes-view-title"
+                                class="text-2xl font-semibold text-gray-800"
+                            >
                                 Viajes Planificados
                             </h2>
-                            <p class="text-xs text-gray-500 mt-0.5">
+                            <p
+                                id="viajes-view-description"
+                                class="text-xs text-gray-500 mt-0.5"
+                            >
                                 Despachos multi-tramo y multi-día registrados
                                 desde el Planificador de Flotas
                             </p>
@@ -1751,7 +2081,7 @@
 
                     <!-- Leyenda -->
                     <div
-                        class="flex flex-wrap gap-3 mb-4 text-xs text-gray-500"
+                        class="viajes-legend flex flex-wrap gap-3 mb-4 text-xs text-gray-500"
                     >
                         <span class="flex items-center gap-1"
                             ><span
@@ -2610,6 +2940,7 @@
 
             filteredDespachosData = [];
             allViajesData = [];
+            lectorTramoDetalleActivoKey = null;
             try {
                 renderAllTabs();
             } catch (e) {}
@@ -2626,6 +2957,7 @@
         let allViajesData = [];
         let activeClienteId = "";
         let viajeDetalleActivoId = null;
+        let lectorTramoDetalleActivoKey = null;
         let gruposColapsados = {};
         let unidadesColapsadas = {};
         let historialAbierto = {};
@@ -8716,11 +9048,25 @@
         async function loadViajesFromDb() {
             if (!userRole || !bitacoraAuthToken) return;
 
+            const viajesContainer = document.getElementById("viajes-container");
+            const esLector = String(userRole || "").toLowerCase() === "lector";
+            if (esLector && viajesContainer) {
+                viajesContainer.innerHTML = _renderLectorBoardLoading();
+            }
+
             const activeId = activeClienteId
                 ? parseInt(activeClienteId, 10)
                 : 0;
             const clienteIds = activeId ? [activeId] : getUserClienteIds();
-            if (!clienteIds.length) return;
+            if (!clienteIds.length) {
+                if (viajesContainer) {
+                    viajesContainer.innerHTML = renderStateCard(
+                        "No hay clientes asignados a este usuario.",
+                        { compact: true, framed: false, tone: "plain" },
+                    );
+                }
+                return;
+            }
 
             const desde = dayjs().subtract(30, "day").format("YYYY-MM-DD");
             const hasta = dayjs().add(15, "day").format("YYYY-MM-DD");
@@ -8755,7 +9101,21 @@
                 allViajesData = json.data || [];
                 renderViajes();
                 buildDespachosDesdeViajes(allViajesData);
-            } catch (e) {}
+            } catch (e) {
+                console.error("No se pudieron cargar los viajes:", e);
+                if (viajesContainer) {
+                    viajesContainer.innerHTML = esLector
+                        ? _renderLectorBoardError(e?.message)
+                        : renderStateCard(
+                              "No se pudieron cargar los viajes. Intenta de nuevo.",
+                              {
+                                  compact: true,
+                                  framed: false,
+                                  tone: "warning",
+                              },
+                          );
+                }
+            }
         }
 
         // ── Adapter: convierte allViajesData → formato filteredDespachosData ──
@@ -8870,9 +9230,371 @@
             } catch (e) {}
         }
 
+        function _fmtLectorBoardDate(value) {
+            if (!value) return "-";
+            const parsed = dayjs(value);
+            return parsed.isValid()
+                ? parsed.format("DD/MM/YY HH:mm")
+                : escapeHtml(String(value).slice(0, 16));
+        }
+
+        function _getLectorStageInfo(programada, real) {
+            if (real) {
+                const programadaDate = programada
+                    ? dayjs(programada)
+                    : null;
+                const realDate = dayjs(real);
+                const tarde =
+                    programadaDate?.isValid() &&
+                    realDate.isValid() &&
+                    realDate.isAfter(programadaDate);
+                return {
+                    key: tarde ? "late" : "complete",
+                    label: tarde ? "Completado con retraso" : "Completado",
+                };
+            }
+            if (!programada) {
+                return { key: "none", label: "Sin programar" };
+            }
+            const programadaDate = dayjs(programada);
+            if (programadaDate.isValid() && dayjs().isAfter(programadaDate)) {
+                return { key: "late", label: "Retraso" };
+            }
+            return { key: "pending", label: "Pendiente" };
+        }
+
+        function _renderLectorStage(programada, real, extra = null) {
+            const info = _getLectorStageInfo(programada, real);
+            const extraHtml = extra?.value
+                ? `<div class="registro-stage-time registro-stage-time--real">
+                       <span>${escapeHtml(extra.label || "Real")}:</span>
+                       <strong>${_fmtLectorBoardDate(extra.value)}</strong>
+                   </div>`
+                : "";
+            return `
+                <div class="registro-stage">
+                    <span class="registro-stage-dot registro-stage-dot--${info.key}" aria-hidden="true"></span>
+                    <div>
+                        <span class="registro-stage-state registro-stage-state--${info.key}">${info.label}</span>
+                        <div class="registro-stage-time">
+                            <span>Prog:</span>
+                            <strong>${_fmtLectorBoardDate(programada)}</strong>
+                        </div>
+                        <div class="registro-stage-time registro-stage-time--real">
+                            <span>Real:</span>
+                            <strong>${_fmtLectorBoardDate(real)}</strong>
+                        </div>
+                        ${extraHtml}
+                    </div>
+                </div>`;
+        }
+
+        function _getLectorTramoStatus(viaje, tramo) {
+            if (viaje.estado === "cancelado" || tramo.estado === "cancelado") {
+                return {
+                    key: "cancelled",
+                    label: "Cancelado",
+                    icon: "×",
+                    priority: 4,
+                };
+            }
+
+            const stages = [
+                _getLectorStageInfo(
+                    tramo.salida_patio,
+                    tramo.salida_patio_real,
+                ),
+                _getLectorStageInfo(tramo.cita_carga, tramo.cita_carga_real),
+                _getLectorStageInfo(
+                    tramo.salida_carga,
+                    tramo.salida_carga_real,
+                ),
+                _getLectorStageInfo(
+                    tramo.descarga_programada,
+                    tramo.descarga_real,
+                ),
+            ];
+            if (stages.some((stage) => stage.key === "late")) {
+                return {
+                    key: "late",
+                    label: "Con retraso",
+                    icon: "!",
+                    priority: 0,
+                };
+            }
+            if (
+                tramo.estado === "completado" ||
+                viaje.estado === "completado" ||
+                tramo.vacio_real
+            ) {
+                return {
+                    key: "complete",
+                    label: "Completado",
+                    icon: "✓",
+                    priority: 3,
+                };
+            }
+            if (
+                tramo.estado === "en_curso" ||
+                tramo.salida_patio_real ||
+                tramo.cita_carga_real ||
+                tramo.salida_carga_real ||
+                tramo.descarga_real
+            ) {
+                return {
+                    key: "active",
+                    label: "En proceso",
+                    icon: "•",
+                    priority: 1,
+                };
+            }
+            return {
+                key: "planned",
+                label: "Programado",
+                icon: "○",
+                priority: 2,
+            };
+        }
+
+        function _getLectorNextMilestone(tramo) {
+            const fields = [
+                [tramo.salida_patio, tramo.salida_patio_real],
+                [tramo.cita_carga, tramo.cita_carga_real],
+                [tramo.salida_carga, tramo.salida_carga_real],
+                [tramo.descarga_programada, tramo.descarga_real],
+            ];
+            const pending = fields
+                .filter(([programada, real]) => programada && !real)
+                .map(([programada]) => dayjs(programada))
+                .filter((date) => date.isValid())
+                .map((date) => date.valueOf());
+            return pending.length ? Math.min(...pending) : Number.MAX_SAFE_INTEGER;
+        }
+
+        function _renderLectorIncidencias(tramo) {
+            const incidencias = Array.isArray(tramo.incidencias)
+                ? tramo.incidencias
+                : [];
+            if (!incidencias.length) {
+                return '<span class="text-sm text-gray-500">Sin incidencias</span>';
+            }
+            return `<ul class="space-y-1 text-sm">
+                ${incidencias
+                    .map(
+                        (incidencia) => `<li>
+                            <strong>${escapeHtml(incidencia.tipo || "Incidencia")}</strong>
+                            <span class="text-gray-500"> · ${escapeHtml(incidencia.severidad || "sin severidad")}${incidencia.fecha ? ` · ${_fmtLectorBoardDate(incidencia.fecha)}` : ""}</span>
+                        </li>`,
+                    )
+                    .join("")}
+            </ul>`;
+        }
+
+        function _renderLectorTramoDetail(viaje, tramo, detailId) {
+            const gpsOk = isGpsOperativo(tramo.gps_estado);
+            const ruta =
+                tramo.ruta ||
+                [tramo.origen, tramo.destino].filter(Boolean).join(" → ") ||
+                "Sin ruta registrada";
+            const timeline = [
+                ["Salida inicial", tramo.salida_patio, tramo.salida_patio_real],
+                ["Llegada a carga", tramo.cita_carga, tramo.cita_carga_real],
+                ["Salida de carga", tramo.salida_carga, tramo.salida_carga_real],
+                ["Arribo a descarga", tramo.descarga_programada, tramo.descarga_real],
+                ["Vacío", null, tramo.vacio_real],
+            ];
+            return `
+                <tr class="registro-detail-row">
+                    <td colspan="6">
+                        <section id="${detailId}" class="registro-detail" aria-label="Detalle del tramo ${escapeHtml(tramo.tramo_numero || "")}">
+                            <div class="registro-detail-grid">
+                                <div class="registro-detail-block">
+                                    <span class="registro-detail-label">Ruta</span>
+                                    <strong class="text-sm">${escapeHtml(ruta)}</strong>
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        ${escapeHtml(tramo.origen || "Origen sin dato")} → ${escapeHtml(tramo.destino || "Destino sin dato")}
+                                    </p>
+                                    ${tramo.lugar_carga ? `<p class="mt-1 text-xs text-gray-500">Carga: ${escapeHtml(tramo.lugar_carga)}</p>` : ""}
+                                </div>
+                                <div class="registro-detail-block">
+                                    <span class="registro-detail-label">Operación</span>
+                                    <p class="text-sm"><strong>Operador:</strong> ${escapeHtml(viaje.operador || "Sin dato")}</p>
+                                    <p class="mt-1 text-xs text-gray-500"><strong>Cliente:</strong> ${escapeHtml(viaje.cliente || "Sin dato")}</p>
+                                </div>
+                                <div class="registro-detail-block">
+                                    <span class="registro-detail-label">Validación GPS</span>
+                                    <div class="flex items-center gap-2 text-sm font-semibold">
+                                        <span class="registro-gps-dot registro-gps-dot--${gpsOk ? "ok" : "pending"}" aria-hidden="true"></span>
+                                        ${gpsOk ? "GPS validado" : "GPS pendiente"}
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">${tramo.gps_timestamp ? _fmtLectorBoardDate(tramo.gps_timestamp) : "Sin fecha de validación"}</p>
+                                </div>
+                                <div class="registro-detail-block">
+                                    <span class="registro-detail-label">Incidencias</span>
+                                    ${_renderLectorIncidencias(tramo)}
+                                </div>
+                            </div>
+                            ${tramo.instrucciones ? `<div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><strong>Instrucciones:</strong> ${escapeHtml(tramo.instrucciones)}</div>` : ""}
+                            <div class="registro-detail-timeline" aria-label="Cronología del tramo">
+                                ${timeline
+                                    .map(
+                                        ([label, programada, real]) => `<div>
+                                            <span class="registro-detail-label">${label}</span>
+                                            <p class="text-gray-500">Prog: <strong class="text-gray-800">${_fmtLectorBoardDate(programada)}</strong></p>
+                                            <p class="mt-1 text-gray-500">Real: <strong class="text-gray-800">${_fmtLectorBoardDate(real)}</strong></p>
+                                        </div>`,
+                                    )
+                                    .join("")}
+                            </div>
+                        </section>
+                    </td>
+                </tr>`;
+        }
+
+        function _renderLectorBoardRow(item) {
+            const { viaje, tramo, status } = item;
+            const viajeId = Number(viaje.viaje_id ?? viaje.id ?? 0);
+            const tramoId = Number(tramo.id ?? 0);
+            const key = `${viajeId}:${tramoId}`;
+            const expanded = lectorTramoDetalleActivoKey === key;
+            const detailId = `lector-tramo-detail-${viajeId}-${tramoId}`;
+            const gpsOk = isGpsOperativo(tramo.gps_estado);
+            const tramoNumero = tramo.tramo_numero || "-";
+            return `
+                <tr class="registro-board-row">
+                    <td class="registro-board-cell" data-label="Unidad">
+                        <button type="button"
+                                class="registro-unit-button"
+                                data-lector-tramo-key="${key}"
+                                aria-expanded="${expanded ? "true" : "false"}"
+                                aria-controls="${detailId}"
+                                onclick="toggleLectorTramoDetalle('${key}')">
+                            <span class="registro-gps-dot registro-gps-dot--${gpsOk ? "ok" : "pending"}" aria-hidden="true"></span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-sm font-extrabold text-gray-900">${escapeHtml(viaje.unidad || "Sin unidad")}</span>
+                                <span class="block text-xs font-semibold text-gray-700">Tramo ${escapeHtml(tramoNumero)}</span>
+                                <span class="block truncate text-xs text-gray-500">${escapeHtml(viaje.placas || "Sin placas")} · Folio ${escapeHtml(viaje.folio || "-")}</span>
+                                <span class="block mt-1 text-[11px] font-semibold ${gpsOk ? "text-green-700" : "text-gray-500"}">${gpsOk ? "GPS validado" : "GPS pendiente"}</span>
+                            </span>
+                            <svg class="h-4 w-4 flex-none text-gray-500 transition-transform ${expanded ? "rotate-180" : ""}" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                    </td>
+                    <td class="registro-board-cell" data-label="Salida inicial">${_renderLectorStage(tramo.salida_patio, tramo.salida_patio_real)}</td>
+                    <td class="registro-board-cell" data-label="Proceso de carga">${_renderLectorStage(tramo.cita_carga, tramo.cita_carga_real)}</td>
+                    <td class="registro-board-cell" data-label="Salida de carga">${_renderLectorStage(tramo.salida_carga, tramo.salida_carga_real)}</td>
+                    <td class="registro-board-cell" data-label="Proceso de descarga">${_renderLectorStage(tramo.descarga_programada, tramo.descarga_real, { label: "Vacío", value: tramo.vacio_real })}</td>
+                    <td class="registro-board-cell registro-status-cell registro-status-cell--${status.key}" data-label="Estatus">
+                        <span class="registro-status-label"><span aria-hidden="true">${status.icon}</span>${status.label}</span>
+                    </td>
+                </tr>
+                ${expanded ? _renderLectorTramoDetail(viaje, tramo, detailId) : ""}`;
+        }
+
+        function _renderLectorBoard(viajes) {
+            const rows = (viajes || []).flatMap((viaje) =>
+                (Array.isArray(viaje.tramos) ? viaje.tramos : []).map(
+                    (tramo) => ({
+                        viaje,
+                        tramo,
+                        status: _getLectorTramoStatus(viaje, tramo),
+                        nextMilestone: _getLectorNextMilestone(tramo),
+                    }),
+                ),
+            );
+
+            rows.sort((a, b) => {
+                if (a.status.priority !== b.status.priority) {
+                    return a.status.priority - b.status.priority;
+                }
+                if (a.status.priority <= 2) {
+                    return a.nextMilestone - b.nextMilestone;
+                }
+                return _fechaOrdenViaje(b.viaje) - _fechaOrdenViaje(a.viaje);
+            });
+
+            if (!rows.length) {
+                return `<div class="registro-board-state">
+                    <strong class="block text-gray-800">No hay tramos para mostrar</strong>
+                    <span class="mt-1 block text-sm">Ajusta el rango o los filtros de búsqueda.</span>
+                </div>`;
+            }
+
+            return `<div class="registro-board-shell">
+                <table class="registro-board">
+                    <caption class="sr-only">Matriz de seguimiento operativo por tramo</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Unidad</th>
+                            <th scope="col">Salida inicial</th>
+                            <th scope="col">Proceso de carga</th>
+                            <th scope="col">Salida de carga</th>
+                            <th scope="col">Proceso de descarga</th>
+                            <th scope="col">Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows.map(_renderLectorBoardRow).join("")}</tbody>
+                </table>
+            </div>`;
+        }
+
+        function _renderLectorBoardLoading() {
+            const row = `<tr class="registro-board-row">
+                ${Array.from(
+                    { length: 6 },
+                    () => '<td class="registro-board-cell"><div class="registro-skeleton"></div></td>',
+                ).join("")}
+            </tr>`;
+            return `<div class="registro-board-shell" aria-busy="true" aria-label="Cargando matriz de viajes">
+                <table class="registro-board"><tbody>${row.repeat(4)}</tbody></table>
+            </div>`;
+        }
+
+        function _renderLectorBoardError() {
+            return `<div class="registro-board-state registro-board-state--error" role="alert">
+                <strong class="block">No se pudieron cargar los viajes</strong>
+                <span class="mt-1 block text-sm">Verifica la conexión e intenta nuevamente.</span>
+                <button type="button" class="registro-retry-button" onclick="loadViajesFromDb()">Reintentar</button>
+            </div>`;
+        }
+
+        function toggleLectorTramoDetalle(key) {
+            lectorTramoDetalleActivoKey =
+                lectorTramoDetalleActivoKey === key ? null : key;
+            renderViajes();
+            requestAnimationFrame(() => {
+                const button = Array.from(
+                    document.querySelectorAll("[data-lector-tramo-key]"),
+                ).find(
+                    (candidate) =>
+                        candidate.dataset.lectorTramoKey === String(key),
+                );
+                button?.focus({ preventScroll: true });
+            });
+        }
+
         function renderViajes() {
             const container = document.getElementById("viajes-container");
             if (!container) return;
+
+            const esLector = String(userRole || "").toLowerCase() === "lector";
+            const tabViajes = document.getElementById("tab-0");
+            const title = document.getElementById("viajes-view-title");
+            const description = document.getElementById(
+                "viajes-view-description",
+            );
+            tabViajes?.classList.toggle("reader-matrix-mode", esLector);
+            if (title) {
+                title.textContent = esLector
+                    ? "Matriz de seguimiento"
+                    : "Viajes Planificados";
+            }
+            if (description) {
+                description.textContent = esLector
+                    ? "Estado operativo de cada unidad y tramo en una sola vista"
+                    : "Despachos multi-tramo y multi-día registrados desde el Planificador de Flotas";
+            }
 
             const filtroUnidad =
                 document.getElementById("viajes-filtro-unidad")?.value || "";
@@ -8912,7 +9634,17 @@
                 datos = datos.filter((v) =>
                     _textoBusquedaViaje(v).includes(busqueda),
                 );
-            if (soloRetraso) datos = datos.filter(_viajeTieneRetraso);
+            if (soloRetraso) {
+                datos = datos.filter((viaje) =>
+                    esLector
+                        ? (viaje.tramos || []).some(
+                              (tramo) =>
+                                  _getLectorTramoStatus(viaje, tramo).key ===
+                                  "late",
+                          )
+                        : _viajeTieneRetraso(viaje),
+                );
+            }
             if (soloActivos)
                 datos = datos.filter(
                     (v) =>
@@ -8923,18 +9655,40 @@
             _actualizarFiltrosViajes(datosBaseFiltros);
 
             const counter = document.getElementById("viajes-counter");
-            if (counter)
-                counter.textContent = `${datos.length} viaje${datos.length !== 1 ? "s" : ""}`;
+            if (counter) {
+                const total = esLector
+                    ? datos.reduce(
+                          (sum, viaje) =>
+                              sum +
+                              (Array.isArray(viaje.tramos)
+                                  ? viaje.tramos.length
+                                  : 0),
+                          0,
+                      )
+                    : datos.length;
+                const label = esLector ? "tramo" : "viaje";
+                counter.textContent = `${total} ${label}${total !== 1 ? "s" : ""}`;
+            }
 
             if (datos.length === 0) {
-                container.innerHTML = renderStateCard(
-                    "No hay viajes para el rango seleccionado.",
-                    {
-                        compact: true,
-                        framed: false,
-                        tone: "plain",
-                    },
-                );
+                container.innerHTML = esLector
+                    ? `<div class="registro-board-state">
+                           <strong class="block text-gray-800">No hay tramos para mostrar</strong>
+                           <span class="mt-1 block text-sm">Ajusta el rango o los filtros de búsqueda.</span>
+                       </div>`
+                    : renderStateCard(
+                          "No hay viajes para el rango seleccionado.",
+                          {
+                              compact: true,
+                              framed: false,
+                              tone: "plain",
+                          },
+                      );
+                return;
+            }
+
+            if (esLector) {
+                container.innerHTML = _renderLectorBoard(datos);
                 return;
             }
 
@@ -9457,10 +10211,54 @@
                 nuevo: `${UI_BADGE_STRONG} bg-green-500 text-white shadow-sm`,
             },
             record: {
-                base: "monitor-record",
-                nuevo: "monitor-record monitor-record--new",
-                hover: "hover:bg-gray-50",
-                hoverNuevo: "hover:bg-green-100",
+                base: "monitor-record monitor-record--viaje",
+                nuevo: "monitor-record monitor-record--viaje monitor-record--new",
+                planned: "monitor-record--planned",
+                active: "monitor-record--active",
+                complete: "monitor-record--complete",
+                late: "monitor-record--late",
+                cancelled: "monitor-record--cancelled",
+                empty: "monitor-record--cancelled",
+                hover: "hover:bg-slate-50",
+                hoverNuevo: "hover:bg-green-50",
+            },
+            cardVisual: {
+                planned: {
+                    block: "bg-blue-50 border-blue-200 text-blue-900",
+                    badge: "bg-blue-100 text-blue-800 border-blue-200",
+                    progress: "bg-blue-500",
+                    label: "Programado sin salir",
+                },
+                active: {
+                    block: "bg-amber-50 border-amber-200 text-amber-900",
+                    badge: "bg-amber-100 text-amber-800 border-amber-200",
+                    progress: "bg-amber-500",
+                    label: "En curso",
+                },
+                complete: {
+                    block: "bg-green-50 border-green-200 text-green-900",
+                    badge: "bg-green-100 text-green-800 border-green-200",
+                    progress: "bg-green-500",
+                    label: "Completado",
+                },
+                late: {
+                    block: "bg-red-50 border-red-200 text-red-900",
+                    badge: "bg-red-100 text-red-700 border-red-200",
+                    progress: "bg-red-500",
+                    label: "Con retraso",
+                },
+                cancelled: {
+                    block: "bg-gray-100 border-gray-200 text-gray-600",
+                    badge: "bg-gray-100 text-gray-600 border-gray-200",
+                    progress: "bg-gray-400",
+                    label: "Cancelado",
+                },
+                empty: {
+                    block: "bg-blue-50 border-blue-200 text-blue-900",
+                    badge: "bg-blue-100 text-blue-800 border-blue-200",
+                    progress: "bg-blue-500",
+                    label: "Sin viaje programado",
+                },
             },
             toggle: {
                 open: "border-blue-200 bg-blue-50 text-blue-700",
@@ -9549,6 +10347,30 @@
             return `<span class="${className}${extraClass ? ` ${extraClass}` : ""}">${label}</span>`;
         }
 
+        function _getViajeCardVisualState(v, resumen) {
+            const estado = String(v?.estado || "").toLowerCase();
+            let key = "planned";
+
+            if (!resumen.total) key = "empty";
+            else if (estado === "cancelado") key = "cancelled";
+            else if (resumen.tieneRetraso) key = "late";
+            else if (estado === "completado") key = "complete";
+            else if (estado === "en_curso") key = "active";
+
+            const visual =
+                VIAJE_UI_TOKENS.cardVisual[key] ||
+                VIAJE_UI_TOKENS.cardVisual.planned;
+
+            return {
+                key,
+                container: `${VIAJE_UI_TOKENS.record.base} ${VIAJE_UI_TOKENS.record[key] || VIAJE_UI_TOKENS.record.planned}`,
+                block: visual.block,
+                badge: visual.badge,
+                progress: visual.progress,
+                label: visual.label,
+            };
+        }
+
         function _renderViajeCard(v) {
             const expandido =
                 String(viajeDetalleActivoId) === String(v.viaje_id);
@@ -9556,7 +10378,7 @@
             const resumen = _resumenViaje(v);
             const tramosHtml = expandido ? _renderTramosDetalle(v) : "";
             const esLector = !canEditViajes();
-            const estadoColor = _uiToken(VIAJE_UI_TOKENS.estado, v.estado);
+            const visual = _getViajeCardVisualState(v, resumen);
             const fechas = v.es_multi_dia
                 ? `${v.fecha_inicio} -> ${v.fecha_fin}`
                 : v.fecha_inicio || "-";
@@ -9602,6 +10424,11 @@
                       VIAJE_UI_TOKENS.badge.gpsPendiente,
                       `${resumen.gpsPendientes} GPS pendiente${resumen.gpsPendientes !== 1 ? "s" : ""}`,
                   )
+                : resumen.total
+                  ? _renderBadge(
+                        `${UI_BADGE_BASE} bg-green-100 text-green-700`,
+                        "GPS validado",
+                    )
                 : "";
             const multiDiaBadge = v.es_multi_dia
                 ? _renderBadge(VIAJE_UI_TOKENS.badge.multiDia, "Multi-día")
@@ -9636,8 +10463,8 @@
                              </button>`
                     : "";
             const cardClase = esNuevo
-                ? VIAJE_UI_TOKENS.record.nuevo
-                : VIAJE_UI_TOKENS.record.base;
+                ? `${visual.container} monitor-record--new`
+                : visual.container;
             const cardHover = esNuevo
                 ? VIAJE_UI_TOKENS.record.hoverNuevo
                 : VIAJE_UI_TOKENS.record.hover;
@@ -9645,32 +10472,33 @@
             return `
                     <div class="${cardClase}" data-viaje-id="${v.viaje_id}">
                         <button type="button"
-                                class="w-full grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.9fr)_auto] gap-3 p-3 text-left cursor-pointer ${cardHover} transition-colors"
+                                class="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.9fr)_auto] gap-4 p-4 text-left cursor-pointer ${cardHover} transition-colors"
                                 aria-expanded="${expandido ? "true" : "false"}"
                                 aria-controls="viaje-detalle-${v.viaje_id}"
                                 onclick="toggleViaje(${v.viaje_id})">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-900 text-white flex flex-col items-center justify-center font-bold leading-none">
-                                    <span class="text-sm">${resumen.completados}/${resumen.total}</span>
-                                    <span class="text-[10px] font-medium opacity-80">tramos</span>
+                            <div class="flex items-start gap-4 min-w-0">
+                                <div class="flex-shrink-0 w-24 min-h-[92px] rounded-xl border ${visual.block} flex flex-col items-center justify-center font-bold leading-none shadow-sm">
+                                    <span class="text-3xl tracking-tight">${resumen.completados}/${resumen.total}</span>
+                                    <span class="mt-1 text-xs font-extrabold uppercase tracking-wide">tramos</span>
+                                    <span class="mt-2 max-w-[5.75rem] text-center text-[10px] font-semibold leading-tight opacity-80">${visual.label}</span>
                                 </div>
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="font-bold text-blue-900 text-sm">${escapeHtml(v.unidad || "-")}</span>
+                                        <span class="text-xs font-bold uppercase tracking-wide text-gray-500">Folio ${escapeHtml(v.folio || "-")}</span>
+                                        <span class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${visual.badge}">${escapeHtml(visual.label)}</span>
+                                    </div>
+                                    <div class="mt-1 flex items-center gap-2 flex-wrap">
+                                        <span class="font-extrabold text-gray-900 text-base">🚚 ${escapeHtml(v.unidad || "-")}</span>
                                         <span class="text-gray-400 text-xs">${escapeHtml(v.placas || "")}</span>
-                                        <span class="${estadoColor} text-xs font-semibold px-2 py-0.5 rounded-full capitalize">${escapeHtml(String(v.estado || "").replace("_", " "))}</span>
                                         ${multiDiaBadge}
                                         ${nuevoBadge}
                                         ${alertaBadge}
                                         ${incidenciaBadge}
                                         ${gpsBadge}
                                     </div>
-                                    <div class="text-xs text-gray-500 mt-1">
-                                        <span class="font-semibold text-gray-700">Folio:</span> ${escapeHtml(v.folio || "-")}
-                                        &nbsp;·&nbsp;
-                                        <span class="font-semibold text-gray-700">Fechas:</span> ${escapeHtml(fechas)}
-                                        &nbsp;·&nbsp;
-                                        <span class="font-semibold text-gray-700">Operador:</span> ${escapeHtml(v.operador || "-")}
+                                    <div class="text-xs text-gray-500 mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                                        <span><span class="font-semibold text-gray-700">Fechas:</span> ${escapeHtml(fechas)}</span>
+                                        <span><span class="font-semibold text-gray-700">Operador:</span> ${escapeHtml(v.operador || "-")}</span>
                                     </div>
                                     ${
                                         creadoTexto
@@ -9681,13 +10509,13 @@
                                     }
                                 </div>
                             </div>
-                            <div class="min-w-0 xl:border-l xl:border-gray-100 xl:pl-3">
+                            <div class="min-w-0 lg:border-l lg:border-gray-100 lg:pl-4">
                                 <div class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Próximo tramo</div>
                                 <div class="truncate text-sm font-semibold text-gray-800">${escapeHtml(siguienteRuta)}</div>
                                 <div class="truncate text-xs text-gray-500">${escapeHtml(siguienteMeta || "Sin fechas programadas")}</div>
                                 <div class="mt-2 flex items-center gap-2">
                                     <div class="h-1.5 flex-1 rounded-full bg-gray-200 overflow-hidden">
-                                        <div class="h-full rounded-full bg-green-500 transition-all" style="width:${resumen.progreso}%"></div>
+                                        <div class="h-full rounded-full ${visual.progress} transition-all" style="width:${resumen.progreso}%"></div>
                                     </div>
                                     <span class="text-xs text-gray-400">${resumen.progreso}%</span>
                                 </div>
