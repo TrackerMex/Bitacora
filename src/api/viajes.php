@@ -189,6 +189,11 @@ try {
     $tramo_id = intval($data['tramo_id'] ?? 0);
     $tramo = get_tramo_with_access_or_fail($conn, $tramo_id, $user);
 
+    $estado_tramo = (string)($tramo['estado'] ?? '');
+    if ($estado_tramo === 'completado' || $estado_tramo === 'cancelado') {
+      resp_err('El tramo ya está cerrado. Las incidencias quedan solo para consulta.', 409);
+    }
+
     $tipo = str_or_null($data['tipo'] ?? '');
     $severidad = trim((string)($data['severidad'] ?? 'media'));
     $fecha = to_mysql_datetime_or_null($data['fecha'] ?? '');

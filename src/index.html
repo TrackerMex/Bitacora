@@ -2238,6 +2238,45 @@
         </div>
 
         <div
+            id="tramo-completado-modal"
+            class="modal hidden fixed inset-0 flex items-center justify-center z-50 p-4"
+        >
+            <div
+                class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+            >
+                <div
+                    class="flex justify-between items-start gap-4 p-6 border-b bg-green-50"
+                >
+                    <div>
+                        <p
+                            class="text-xs font-bold uppercase tracking-wide text-green-700"
+                        >
+                            Tramo completado
+                        </p>
+                        <h3
+                            id="tramo-completado-modal-title"
+                            class="text-xl font-bold text-gray-800"
+                        >
+                            Resumen del tramo
+                        </h3>
+                    </div>
+                    <button
+                        type="button"
+                        onclick="closeModal('tramo-completado-modal')"
+                        aria-label="Cerrar resumen de tramo completado"
+                        class="text-gray-400 hover:text-gray-600"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div
+                    id="tramo-completado-modal-body"
+                    class="p-6 overflow-y-auto max-h-[calc(90vh-96px)]"
+                ></div>
+            </div>
+        </div>
+
+        <div
             id="login-modal"
             class="hidden modal fixed inset-0 flex items-center justify-center z-50 p-4"
         >
@@ -10944,7 +10983,13 @@
         function _seccionIncidencias(t, viajeId, estadoViaje) {
             const incidencias = t.incidencias || [];
             const esLectorInc = !canEditViajes();
-            const puedeAgregar = !esLectorInc && estadoViaje !== "cancelado";
+            const incidenciaSoloLectura = ["completado", "cancelado"].includes(
+                String(t.estado || ""),
+            );
+            const puedeAgregar =
+                !esLectorInc &&
+                estadoViaje !== "cancelado" &&
+                !incidenciaSoloLectura;
             const formId = `form-inc-${t.id}`;
 
             const listaHtml =
@@ -11042,9 +11087,15 @@
                                 aria-controls="${formId}"
                                 aria-expanded="false"
                                 class="tramo-action-button mt-2 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 font-semibold">
-                            ＋ Agregar incidencia
-                        </button>`
+                             ＋ Agregar incidencia
+                         </button>`
                 : "";
+            const lecturaMsg =
+                !esLectorInc && incidenciaSoloLectura
+                    ? `<p class="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500">
+                        Tramo ${t.estado === "completado" ? "completado" : "cancelado"}: las incidencias quedan en modo consulta.
+                    </p>`
+                    : "";
 
             const headerColor =
                 incidencias.length === 0
@@ -11068,6 +11119,7 @@
                         </div>
                         <div class="py-2">
                             ${listaHtml}
+                            ${lecturaMsg}
                             ${btnAgregar}
                             ${formHtml}
                         </div>
@@ -11107,6 +11159,18 @@
 
         async function guardarIncidencia(viajeId, tramoId, formId) {
             if (!canEditViajes()) return denyReadOnlyViajes();
+            const viaje = allViajesData.find(
+                (v) => String(v.viaje_id) === String(viajeId),
+            );
+            const tramo = viaje?.tramos?.find(
+                (t) => String(t.id) === String(tramoId),
+            );
+            if (["completado", "cancelado"].includes(String(tramo?.estado || ""))) {
+                alert(
+                    "Este tramo ya está cerrado. Las incidencias quedan solo para consulta.",
+                );
+                return;
+            }
 
             const tipo = document.getElementById(`${formId}-tipo`)?.value;
             const sev = document.getElementById(`${formId}-sev`)?.value;
@@ -11217,6 +11281,167 @@
 
         // ─────────────────────────────────────────────────────────────────────
 
+        function _getTramoResumenCampos(t) {
+            return [
+                {
+                    label: "Salida patio",
+                    programada: t.salida_patio,
+                    real: t.salida_patio_real,
+                },
+                {
+                    label: "Llegada carga",
+                    programada: t.cita_carga,
+                    real: t.cita_carga_real,
+                },
+                {
+                    label: "Salida carga",
+                    programada: t.salida_carga,
+                    real: t.salida_carga_real,
+                },
+                {
+                    label: "Arribo descarga",
+                    programada: t.descarga_programada,
+                    real: t.descarga_real,
+                },
+                {
+                    label: "Vacío",
+                    programada: null,
+                    real: t.vacio_real,
+                },
+            ];
+        }
+
+        function _renderTramoCompletadoModalBody(viaje, tramo) {
+            if (!viaje || !tramo) {
+                return `<p class="text-sm text-gray-500">No se encontró información del tramo.</p>`;
+            }
+            const incidencias = Array.isArray(tramo.incidencias)
+                ? tramo.incidencias
+                : [];
+            const camposHtml = _getTramoResumenCampos(tramo)
+                .map((campo) => {
+                    const tarde =
+                        campo.programada &&
+                        campo.real &&
+                        new Date(campo.real) > new Date(campo.programada);
+                    return `
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-bold uppercase tracking-wide text-gray-500">${escapeHtml(campo.label)}</span>
+                                ${
+                                    tarde
+                                        ? `<span class="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700">Con retraso</span>`
+                                        : `<span class="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">Registrado</span>`
+                                }
+                            </div>
+                            ${
+                                campo.programada
+                                    ? `<div class="mt-2 text-xs text-gray-500">Programada: <span class="font-mono text-gray-700">${_fmtDt(campo.programada)}</span></div>`
+                                    : ""
+                            }
+                            <div class="mt-1 text-sm text-gray-700">
+                                Real: ${
+                                    campo.real
+                                        ? `<span class="font-mono font-semibold">${_fmtDt(campo.real)}</span>`
+                                        : `<span class="text-gray-400 italic">Sin registrar</span>`
+                                }
+                            </div>
+                        </div>`;
+                })
+                .join("");
+            const incidenciasHtml = incidencias.length
+                ? incidencias
+                      .map((inc) => {
+                          const sev =
+                              SEV_CONFIG[inc.severidad] || SEV_CONFIG.baja;
+                          return `
+                            <div class="rounded-lg border border-gray-200 bg-white p-3">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span>${sev.icon}</span>
+                                    <span class="text-sm font-semibold text-gray-800">${escapeHtml(inc.tipo)}</span>
+                                    <span class="text-xs border rounded-full px-2 py-0.5 ${sev.cls}">${escapeHtml(inc.severidad)}</span>
+                                    <span class="text-xs text-gray-400">${_fmtDt(inc.fecha)}</span>
+                                </div>
+                                ${inc.direccion ? `<div class="mt-1 text-xs text-gray-500">Ubicación: ${escapeHtml(inc.direccion)}</div>` : ""}
+                                ${inc.notas ? `<div class="mt-1 text-xs italic text-gray-500">${escapeHtml(inc.notas)}</div>` : ""}
+                            </div>`;
+                      })
+                      .join("")
+                : `<p class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">Sin incidencias registradas.</p>`;
+
+            return `
+                <div class="space-y-5">
+                    <div class="rounded-xl border border-green-200 bg-green-50 p-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wide text-green-700">Folio ${escapeHtml(viaje.folio || "-")}</div>
+                                <div class="mt-1 text-lg font-bold text-gray-900">
+                                    Tramo ${escapeHtml(tramo.tramo_numero || "-")}: ${escapeHtml(tramo.origen || "Origen")} → ${escapeHtml(tramo.destino || "Destino")}
+                                </div>
+                                <div class="mt-1 text-sm text-gray-600">
+                                    ${escapeHtml(viaje.unidad || "-")}${viaje.placas ? ` / ${escapeHtml(viaje.placas)}` : ""}${viaje.operador ? ` · ${escapeHtml(viaje.operador)}` : ""}
+                                </div>
+                            </div>
+                            <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
+                                ✓ Completado
+                            </span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="rounded-lg border border-gray-200 p-3">
+                            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Ruta</div>
+                            <div class="mt-1 text-sm font-semibold text-gray-800">${escapeHtml(tramo.ruta || "Sin ruta registrada")}</div>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 p-3">
+                            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Carga</div>
+                            <div class="mt-1 text-sm font-semibold text-gray-800">${escapeHtml(tramo.lugar_carga || "Sin lugar de carga")}</div>
+                        </div>
+                    </div>
+                    ${
+                        tramo.instrucciones
+                            ? `<div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                                <span class="font-bold">Instrucciones:</span> ${escapeHtml(tramo.instrucciones)}
+                            </div>`
+                            : ""
+                    }
+                    <div>
+                        <div class="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Cronología del tramo</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${camposHtml}</div>
+                    </div>
+                    <div>
+                        <div class="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Incidencias</div>
+                        <div class="space-y-2">${incidenciasHtml}</div>
+                    </div>
+                </div>`;
+        }
+
+        function abrirTramoCompletadoModal(viajeId, tramoId) {
+            const viaje = allViajesData.find(
+                (v) => String(v.viaje_id) === String(viajeId),
+            );
+            const tramo = viaje?.tramos?.find(
+                (t) => String(t.id) === String(tramoId),
+            );
+            const titleEl = document.getElementById(
+                "tramo-completado-modal-title",
+            );
+            const bodyEl = document.getElementById(
+                "tramo-completado-modal-body",
+            );
+            if (titleEl) {
+                titleEl.textContent = tramo
+                    ? `Tramo ${tramo.tramo_numero || ""} completado`
+                    : "Resumen del tramo";
+            }
+            if (bodyEl) {
+                bodyEl.innerHTML = _renderTramoCompletadoModalBody(
+                    viaje,
+                    tramo,
+                );
+            }
+            openModal("tramo-completado-modal");
+        }
+
         function _renderTramosDetalle(viaje) {
             const tramos = viaje.tramos || [];
             const viajeId = viaje.viaje_id;
@@ -11324,6 +11549,12 @@
                             ? TRAMO_UI_TOKENS.row.mutedCompact
                             : TRAMO_UI_TOKENS.row.activeCompact;
                         const botonCompacto = _botonesTramo(t);
+                        const botonInfoCompletado = esCompletado
+                            ? `<button type="button" onclick="abrirTramoCompletadoModal(${viajeId},${t.id})"
+                                        class="tramo-action-button border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 font-semibold">
+                                    Ver información
+                                </button>`
+                            : "";
                         const estadoIcono = _uiToken(
                             TRAMO_UI_TOKENS.icon,
                             t.estado,
@@ -11356,7 +11587,7 @@
                                     ${escapeHtml(t.ruta || "")}${t.lugar_carga ? ` · Carga: ${escapeHtml(t.lugar_carga)}` : ""}
                                 </div>
                             </div>
-                            ${botonCompacto ? `<div class="flex-shrink-0">${botonCompacto}</div>` : ""}
+                            ${botonCompacto || botonInfoCompletado ? `<div class="flex-shrink-0 flex flex-wrap gap-2">${botonCompacto}${botonInfoCompletado}</div>` : ""}
                         </div>`;
                     }
 
@@ -11678,6 +11909,7 @@
             if (!canEditViajes()) return denyReadOnlyViajes();
 
             if (!viajeId || !nuevoEstado) return;
+            let tramoCompletadoModalId = null;
 
             const confirmaciones = {
                 cancelado:
@@ -11731,6 +11963,14 @@
                         nuevoEstado === "completado" &&
                         allViajesData[idx].tramos
                     ) {
+                        tramoCompletadoModalId =
+                            allViajesData[idx].tramos.find((t) =>
+                                ["en_curso", "pendiente"].includes(t.estado),
+                            )?.id ||
+                            allViajesData[idx].tramos[
+                                allViajesData[idx].tramos.length - 1
+                            ]?.id ||
+                            null;
                         allViajesData[idx].tramos = allViajesData[
                             idx
                         ].tramos.map((t) =>
@@ -11758,6 +11998,16 @@
                     }
                 }
                 renderViajes();
+                if (nuevoEstado === "completado" && tramoCompletadoModalId) {
+                    setTimeout(
+                        () =>
+                            abrirTramoCompletadoModal(
+                                viajeId,
+                                tramoCompletadoModalId,
+                            ),
+                        80,
+                    );
+                }
             } catch (e) {
                 alert("Error de red al cambiar el estado.");
                 if (btn) {
@@ -11771,6 +12021,7 @@
             if (!canEditViajes()) return denyReadOnlyViajes();
 
             if (!viajeId || !tramoId || !nuevoEstado) return;
+            let tramoCompletadoModalId = null;
 
             const textoOrig = btn ? btn.innerHTML : "";
             if (btn) {
@@ -11828,6 +12079,7 @@
                         );
                         if (idxActual !== -1) {
                             tramos[idxActual].estado = "completado";
+                            tramoCompletadoModalId = tramos[idxActual].id;
                         }
                         if (activado) {
                             const idxSig = tramos.findIndex(
@@ -11853,6 +12105,16 @@
                     ).length;
                 }
                 renderViajes();
+                if (usarCompletarTramo && tramoCompletadoModalId) {
+                    setTimeout(
+                        () =>
+                            abrirTramoCompletadoModal(
+                                viajeId,
+                                tramoCompletadoModalId,
+                            ),
+                        80,
+                    );
+                }
             } catch (e) {
                 alert("Error de red al cambiar el estado del tramo.");
                 if (btn) {
