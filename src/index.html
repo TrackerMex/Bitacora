@@ -444,6 +444,66 @@
             .registro-board-row:hover > .registro-board-cell:not(.registro-status-cell) {
                 background: oklch(0.982 0.008 255);
             }
+            .registro-board-row--planned > .registro-board-cell {
+                border-top-color: oklch(0.84 0.09 251);
+                border-bottom-color: oklch(0.84 0.09 251);
+                box-shadow: inset 0 1px 0 oklch(0.84 0.09 251 / 0.55),
+                    inset 0 -1px 0 oklch(0.84 0.09 251 / 0.55);
+            }
+            .registro-board-row--active > .registro-board-cell {
+                border-top-color: oklch(0.86 0.12 85);
+                border-bottom-color: oklch(0.86 0.12 85);
+                box-shadow: inset 0 1px 0 oklch(0.86 0.12 85 / 0.55),
+                    inset 0 -1px 0 oklch(0.86 0.12 85 / 0.55);
+            }
+            .registro-board-row--complete > .registro-board-cell {
+                border-top-color: oklch(0.84 0.12 149);
+                border-bottom-color: oklch(0.84 0.12 149);
+                box-shadow: inset 0 1px 0 oklch(0.84 0.12 149 / 0.55),
+                    inset 0 -1px 0 oklch(0.84 0.12 149 / 0.55);
+            }
+            .registro-board-row--late > .registro-board-cell {
+                border-top-color: oklch(0.84 0.12 27);
+                border-bottom-color: oklch(0.84 0.12 27);
+                box-shadow: inset 0 1px 0 oklch(0.84 0.12 27 / 0.62),
+                    inset 0 -1px 0 oklch(0.84 0.12 27 / 0.62);
+            }
+            .registro-board-row--cancelled > .registro-board-cell {
+                border-top-color: oklch(0.82 0.015 255);
+                border-bottom-color: oklch(0.82 0.015 255);
+                box-shadow: inset 0 1px 0 oklch(0.82 0.015 255 / 0.65),
+                    inset 0 -1px 0 oklch(0.82 0.015 255 / 0.65);
+            }
+            .registro-board-row--planned > .registro-board-cell:first-child,
+            .registro-board-row--planned > .registro-board-cell:last-child {
+                box-shadow: inset 0 1px 0 oklch(0.84 0.09 251 / 0.55),
+                    inset 0 -1px 0 oklch(0.84 0.09 251 / 0.55),
+                    0 10px 22px oklch(0.58 0.18 251 / 0.08);
+            }
+            .registro-board-row--active > .registro-board-cell:first-child,
+            .registro-board-row--active > .registro-board-cell:last-child {
+                box-shadow: inset 0 1px 0 oklch(0.86 0.12 85 / 0.55),
+                    inset 0 -1px 0 oklch(0.86 0.12 85 / 0.55),
+                    0 10px 22px oklch(0.62 0.14 85 / 0.1);
+            }
+            .registro-board-row--complete > .registro-board-cell:first-child,
+            .registro-board-row--complete > .registro-board-cell:last-child {
+                box-shadow: inset 0 1px 0 oklch(0.84 0.12 149 / 0.55),
+                    inset 0 -1px 0 oklch(0.84 0.12 149 / 0.55),
+                    0 10px 22px oklch(0.58 0.16 149 / 0.09);
+            }
+            .registro-board-row--late > .registro-board-cell:first-child,
+            .registro-board-row--late > .registro-board-cell:last-child {
+                box-shadow: inset 0 1px 0 oklch(0.84 0.12 27 / 0.62),
+                    inset 0 -1px 0 oklch(0.84 0.12 27 / 0.62),
+                    0 10px 24px oklch(0.58 0.22 27 / 0.12);
+            }
+            .registro-board-row--cancelled > .registro-board-cell:first-child,
+            .registro-board-row--cancelled > .registro-board-cell:last-child {
+                box-shadow: inset 0 1px 0 oklch(0.82 0.015 255 / 0.65),
+                    inset 0 -1px 0 oklch(0.82 0.015 255 / 0.65),
+                    0 10px 22px oklch(0.45 0.02 255 / 0.08);
+            }
             .registro-unit-button {
                 width: 100%;
                 min-height: 3.25rem;
@@ -697,6 +757,26 @@
                     border-radius: 0.75rem;
                     background: var(--color-card);
                     box-shadow: var(--shadow-resting);
+                }
+                .registro-board-row--planned {
+                    border-color: oklch(0.84 0.09 251);
+                    box-shadow: 0 12px 26px oklch(0.58 0.18 251 / 0.13);
+                }
+                .registro-board-row--active {
+                    border-color: oklch(0.86 0.12 85);
+                    box-shadow: 0 12px 26px oklch(0.62 0.14 85 / 0.14);
+                }
+                .registro-board-row--complete {
+                    border-color: oklch(0.84 0.12 149);
+                    box-shadow: 0 12px 26px oklch(0.58 0.16 149 / 0.13);
+                }
+                .registro-board-row--late {
+                    border-color: oklch(0.84 0.12 27);
+                    box-shadow: 0 12px 28px oklch(0.58 0.22 27 / 0.16);
+                }
+                .registro-board-row--cancelled {
+                    border-color: oklch(0.82 0.015 255);
+                    box-shadow: 0 12px 24px oklch(0.45 0.02 255 / 0.11);
                 }
                 .registro-board-cell {
                     display: grid;
@@ -9461,7 +9541,7 @@
             const gpsOk = isGpsOperativo(tramo.gps_estado);
             const tramoNumero = tramo.tramo_numero || "-";
             return `
-                <tr class="registro-board-row">
+                <tr class="registro-board-row registro-board-row--${status.key}">
                     <td class="registro-board-cell" data-label="Unidad">
                         <button type="button"
                                 class="registro-unit-button"
