@@ -11851,6 +11851,19 @@
                 };
             }
 
+            if (
+                tramo.estado === "completado" ||
+                viaje.estado === "completado" ||
+                tramo.vacio_real
+            ) {
+                return {
+                    key: "complete",
+                    label: "Completado",
+                    icon: "✓",
+                    priority: 3,
+                };
+            }
+
             const stages = [
                 _getLectorStageInfo(
                     tramo.salida_patio,
@@ -11872,18 +11885,6 @@
                     label: "Con retraso",
                     icon: "!",
                     priority: 0,
-                };
-            }
-            if (
-                tramo.estado === "completado" ||
-                viaje.estado === "completado" ||
-                tramo.vacio_real
-            ) {
-                return {
-                    key: "complete",
-                    label: "Completado",
-                    icon: "✓",
-                    priority: 3,
                 };
             }
             if (
@@ -12732,15 +12733,11 @@
             const target = document.getElementById("viajes-context-counters");
             if (!target) return;
             const viajes = Array.isArray(datos) ? datos : [];
-            const activos = viajes.filter(
-                (v) =>
-                    !["completado", "cancelado"].includes(
-                        String(v.estado || "").toLowerCase(),
-                    ),
-            ).length;
-            const retrasados = viajes.filter(_viajeTieneRetraso).length;
-            const incidencias = viajes.filter(_viajeTieneIncidencias).length;
-            const gpsPendientes = viajes.reduce(
+            const viajesActivos = viajes.filter(_viajeEstaActivo);
+            const activos = viajesActivos.length;
+            const retrasados = viajesActivos.filter(_viajeTieneRetraso).length;
+            const incidencias = viajesActivos.filter(_viajeTieneIncidencias).length;
+            const gpsPendientes = viajesActivos.reduce(
                 (sum, viaje) => sum + (_resumenViaje(viaje).gpsPendientes || 0),
                 0,
             );
@@ -12753,21 +12750,21 @@
                     color: "oklch(0.39 0.14 251)",
                 },
                 {
-                    label: "Retrasados",
+                    label: "Retrasos activos",
                     value: retrasados,
                     bg: "oklch(0.955 0.045 27)",
                     border: "oklch(0.84 0.12 27)",
                     color: "oklch(0.42 0.17 27)",
                 },
                 {
-                    label: "Incidencias",
+                    label: "Incidencias activas",
                     value: incidencias,
                     bg: "oklch(0.955 0.06 85)",
                     border: "oklch(0.86 0.12 85)",
                     color: "oklch(0.4 0.105 72)",
                 },
                 {
-                    label: "GPS pendientes",
+                    label: "GPS activos pendientes",
                     value: gpsPendientes,
                     bg: "oklch(0.95 0.035 278)",
                     border: "oklch(0.82 0.08 278)",
@@ -13128,6 +13125,12 @@
         function _viajeTieneIncidencias(v) {
             return (v.tramos || []).some(
                 (t) => Array.isArray(t.incidencias) && t.incidencias.length > 0,
+            );
+        }
+
+        function _viajeEstaActivo(v) {
+            return !["completado", "cancelado"].includes(
+                String(v?.estado || "").toLowerCase(),
             );
         }
 
@@ -13807,35 +13810,40 @@
             const target = document.getElementById("viajes-kpis");
             if (!target) return;
             const viajes = Array.isArray(datos) ? datos : [];
-            const activos = viajes.filter(
-                (v) =>
-                    !["completado", "cancelado"].includes(
-                        String(v.estado || ""),
-                    ),
-            ).length;
+            const total = viajes.length;
+            const viajesActivos = viajes.filter(_viajeEstaActivo);
             const planificados = viajes.filter(
                 (v) => v.estado === "planificado",
             ).length;
             const enCurso = viajes.filter(
                 (v) => v.estado === "en_curso",
             ).length;
-            const conRetraso = viajes.filter(_viajeTieneRetraso).length;
-            const conIncidencias = viajes.filter(_viajeTieneIncidencias).length;
+            const retrasosActivos =
+                viajesActivos.filter(_viajeTieneRetraso).length;
+            const incidenciasActivas = viajesActivos.filter(
+                _viajeTieneIncidencias,
+            ).length;
             const completados = viajes.filter(
                 (v) => v.estado === "completado",
             ).length;
+            const cancelados = viajes.filter(
+                (v) => v.estado === "cancelado",
+            ).length;
+            const completadosConRetraso = viajes.filter(
+                (v) => v.estado === "completado" && _viajeTieneRetraso(v),
+            ).length;
             const kpis = [
-                ["active", "Viajes activos", activos, "En seguimiento"],
+                ["active", "Total viajes", total, "Universo filtrado"],
+                ["route", "En curso", enCurso, "Operación activa"],
                 ["planned", "Planificados", planificados, "Sin iniciar"],
-                ["route", "En curso", enCurso, "En operacion"],
-                ["clock", "Con retraso", conRetraso, "Fuera de ventana"],
+                ["check", "Completados", completados, cancelados ? `${cancelados} cancelado${cancelados !== 1 ? "s" : ""}` : `${completadosConRetraso} con retraso histórico`],
+                ["clock", "Retrasos activos", retrasosActivos, "Solo viajes en curso o planificados"],
                 [
                     "alert",
-                    "Con incidencias",
-                    conIncidencias,
-                    "Requieren atencion",
+                    "Incidencias activas",
+                    incidenciasActivas,
+                    "Solo viajes abiertos",
                 ],
-                ["check", "Completados", completados, "Cerrados"],
             ];
             target.innerHTML = kpis
                 .map(([icon, label, value, hint]) => {
