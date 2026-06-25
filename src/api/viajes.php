@@ -314,10 +314,17 @@ try {
     }
     $stmt->close();
 
+    $gps_timestamp = date('Y-m-d H:i:s');
+
     resp_ok([
       'tramo_id' => $tramo_id,
       'gps_estado' => $gps_estado,
-      'gps_timestamp' => date('Y-m-d H:i:s'),
+      'gps_timestamp' => $gps_timestamp,
+      'tramo' => [
+        'id' => $tramo_id,
+        'gps_estado' => $gps_estado,
+        'gps_timestamp' => $gps_timestamp,
+      ],
     ]);
   }
 
