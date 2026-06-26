@@ -153,8 +153,8 @@
                 margin-top: 0;
             }
             .monitor-record--new {
-                border-color: #bbf7d0;
-                background: #f0fdf4;
+                border-color: oklch(0.86 0.04 255);
+                background: oklch(0.985 0.004 255);
             }
             .monitor-record--viaje {
                 overflow: hidden;
@@ -193,6 +193,51 @@
             }
             .monitor-record--viaje.monitor-record--new {
                 background: #ffffff;
+                border-color: oklch(0.78 0.08 255);
+                box-shadow:
+                    inset 0 3px 0 oklch(0.57 0.15 255),
+                    0 10px 24px rgba(15, 23, 42, 0.06);
+            }
+            .viajes-today-entry-marker {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                border: 1px solid oklch(0.82 0.045 255);
+                border-radius: 9999px;
+                background: oklch(0.972 0.012 255);
+                color: oklch(0.36 0.08 255);
+                padding: 0.16rem 0.5rem;
+                font-size: 0.68rem;
+                font-weight: 800;
+                line-height: 1.2;
+                text-transform: none;
+                white-space: nowrap;
+            }
+            .viajes-today-entry-marker::before {
+                content: "";
+                width: 0.42rem;
+                height: 0.42rem;
+                border-radius: 9999px;
+                background: oklch(0.57 0.15 255);
+            }
+            .viajes-recent-entry {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                border-radius: 9999px;
+                background: oklch(0.965 0.018 255);
+                color: oklch(0.42 0.07 255);
+                padding: 0.12rem 0.45rem;
+                font-size: 0.68rem;
+                font-weight: 750;
+                line-height: 1.2;
+            }
+            .viajes-recent-entry::before {
+                content: "";
+                width: 0.38rem;
+                height: 0.38rem;
+                border-radius: 9999px;
+                background: oklch(0.57 0.15 255);
             }
             #tab-0 {
                 position: relative;
@@ -290,7 +335,7 @@
             }
             .viajes-kpi-grid {
                 display: grid;
-                grid-template-columns: repeat(6, minmax(0, 1fr));
+                grid-template-columns: repeat(12, minmax(0, 1fr));
                 gap: 0.75rem;
             }
             .viajes-kpi-card {
@@ -304,6 +349,15 @@
                 background: var(--color-card);
                 padding: 0.95rem;
                 box-shadow: var(--shadow-resting);
+            }
+            .viajes-kpi-card {
+                grid-column: span 2;
+            }
+            .viajes-kpi-card--wide {
+                grid-column: span 3;
+            }
+            .viajes-kpi-card--wide > div {
+                min-width: 0;
             }
             .viajes-kpi-symbol {
                 width: 2.35rem;
@@ -337,6 +391,38 @@
                 color: var(--color-muted);
                 font-size: 0.72rem;
                 line-height: 1.35;
+            }
+            .viajes-kpi-breakdown {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.35rem;
+                margin-top: 0.55rem;
+            }
+            .viajes-kpi-substat {
+                min-width: 0;
+                border: 1px solid var(--substat-border, var(--color-line));
+                border-radius: 0.5rem;
+                background: var(--substat-bg, var(--color-panel));
+                color: var(--substat-color, var(--color-muted));
+                padding: 0.42rem 0.5rem;
+            }
+            .viajes-kpi-substat strong {
+                display: block;
+                color: var(--substat-color, var(--color-text));
+                font-size: 0.98rem;
+                font-weight: 900;
+                line-height: 1;
+                font-variant-numeric: tabular-nums;
+            }
+            .viajes-kpi-substat span {
+                display: block;
+                margin-top: 0.18rem;
+                overflow: hidden;
+                font-size: 0.66rem;
+                font-weight: 800;
+                line-height: 1.15;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
             .viajes-filter-shell {
                 border: 1px solid var(--color-line);
@@ -647,6 +733,12 @@
                     0 18px 38px
                         var(--state-shadow-strong, oklch(0.37 0.13 180 / 0.16));
             }
+            .viajes-card.is-entry-today {
+                border-color: oklch(0.78 0.08 255);
+                box-shadow:
+                    inset 0 3px 0 oklch(0.57 0.15 255),
+                    0 14px 32px oklch(0.35 0.02 255 / 0.1);
+            }
             .viajes-card-main {
                 position: relative;
                 width: 100%;
@@ -858,27 +950,81 @@
                 line-height: 1.2;
             }
             .viajes-route-block {
+                position: relative;
                 display: grid;
-                gap: 0.75rem;
+                gap: 0;
                 min-width: 0;
+                padding-block: 0.15rem;
+                padding-left: 0.12rem;
+            }
+            .viajes-route-block::before {
+                content: none;
             }
             .viajes-route-step {
+                position: relative;
                 display: grid;
-                grid-template-columns: auto minmax(0, 1fr);
-                gap: 0.55rem;
+                grid-template-columns: 1rem minmax(0, 1fr);
+                gap: 0.78rem;
                 align-items: start;
+                min-height: 3.45rem;
+            }
+            .viajes-route-step:not(:last-child)::after {
+                content: "";
+                position: absolute;
+                z-index: 0;
+                top: 1.1rem;
+                bottom: 0.1rem;
+                left: 0.47rem;
+                width: 1px;
+                background-image: linear-gradient(
+                    to bottom,
+                    oklch(0.78 0.025 255) 45%,
+                    transparent 45%
+                );
+                background-size: 1px 0.38rem;
+                background-repeat: repeat-y;
             }
             .viajes-route-dot {
-                width: 0.72rem;
-                height: 0.72rem;
-                margin-top: 0.25rem;
-                border: 2px solid var(--color-card);
+                --route-color: oklch(0.58 0.17 149);
+                position: relative;
+                z-index: 1;
+                width: 0.5rem;
+                height: 0.5rem;
+                margin-top: 0.4rem;
+                margin-left: 0.1rem;
+                border: 2px solid oklch(0.99 0.004 255);
                 border-radius: 9999px;
-                background: var(--route-color, oklch(0.62 0.16 149));
-                box-shadow: 0 0 0 1px var(--color-line-strong);
+                background: var(--route-color);
+                box-shadow: 0 0 0 1px oklch(0.76 0.12 149);
                 transition:
                     box-shadow 180ms var(--ease-out),
                     transform 180ms var(--ease-out);
+            }
+            .viajes-route-step.is-destination .viajes-route-dot {
+                --route-color: oklch(0.58 0.22 27);
+                width: 0.92rem;
+                height: 0.92rem;
+                margin-top: 0.2rem;
+                margin-left: -0.1rem;
+                border-width: 2px;
+                background: var(--route-color);
+                box-shadow: 0 0 0 1px oklch(0.84 0.12 27);
+            }
+            .viajes-route-step.is-destination .viajes-route-dot::after {
+                content: "";
+                position: absolute;
+                inset: 0.2rem;
+                border-radius: 9999px;
+                background: oklch(0.99 0.004 255);
+            }
+            .viajes-route-step.is-waypoint .viajes-route-dot {
+                --route-color: oklch(0.54 0.14 251);
+                width: 0.64rem;
+                height: 0.64rem;
+                margin-top: 0.34rem;
+                margin-left: 0.03rem;
+                background: var(--route-color);
+                box-shadow: 0 0 0 1px oklch(0.8 0.08 251);
             }
             .viajes-card:hover .viajes-route-dot {
                 box-shadow:
@@ -895,19 +1041,24 @@
             .viajes-time-label {
                 display: block;
                 color: var(--color-muted);
-                font-size: 0.68rem;
+                font-size: 0.64rem;
                 font-weight: 800;
-                letter-spacing: 0.035em;
-                text-transform: uppercase;
+                letter-spacing: 0;
+                line-height: 1.2;
+                text-transform: none;
             }
             .viajes-route-value,
             .viajes-time-value {
                 display: block;
-                margin-top: 0.12rem;
+                margin-top: 0.1rem;
                 color: var(--color-text);
-                font-size: 0.86rem;
-                font-weight: 800;
+                font-size: 0.88rem;
+                font-weight: 850;
                 line-height: 1.25;
+            }
+            .viajes-route-meta {
+                display: block;
+                margin-top: 0.08rem;
             }
             .viajes-time-grid {
                 display: grid;
@@ -1043,10 +1194,9 @@
                 margin-bottom: 0.28rem;
             }
             #tab-0.viajes-density-compact .viajes-card-main {
-                grid-template-columns: minmax(260px, 1.05fr) minmax(
-                        240px,
-                        0.85fr
-                    ) minmax(190px, 0.5fr);
+                grid-template-columns:
+                    minmax(260px, 1.05fr) minmax(240px, 0.85fr)
+                    minmax(190px, 0.5fr);
                 gap: 0.65rem;
                 padding: 1.35rem 0.85rem 0.72rem;
             }
@@ -1146,10 +1296,9 @@
                         );
             }
             #tab-0.viajes-monitor-mode .viajes-card-main {
-                grid-template-columns: minmax(235px, 1fr) minmax(
-                        240px,
-                        0.9fr
-                    ) minmax(190px, 0.55fr);
+                grid-template-columns:
+                    minmax(235px, 1fr) minmax(240px, 0.9fr)
+                    minmax(190px, 0.55fr);
                 gap: 0.65rem;
                 padding: 1.18rem 0.85rem 0.62rem;
             }
@@ -1470,6 +1619,11 @@
                 gap: 1rem;
                 margin-top: 0.75rem;
             }
+            .viajes-panel-route-line.has-waypoint {
+                grid-template-columns:
+                    minmax(0, 1fr) minmax(0, 0.85fr)
+                    minmax(0, 1fr);
+            }
             .viajes-panel-route-line::before,
             .viajes-panel-route-line::after {
                 content: "";
@@ -1499,6 +1653,12 @@
             .viajes-panel-route-stop:last-child {
                 text-align: right;
             }
+            .viajes-panel-route-stop.is-waypoint {
+                text-align: center;
+            }
+            .viajes-panel-route-stop.is-waypoint .viajes-panel-route-dot-large {
+                justify-self: center;
+            }
             .viajes-panel-route-dot-large {
                 width: 2rem;
                 height: 2rem;
@@ -1513,6 +1673,9 @@
             }
             .viajes-panel-route-stop:last-child .viajes-panel-route-dot-large {
                 justify-self: end;
+            }
+            .viajes-panel-route-stop.is-waypoint .viajes-panel-route-dot-large {
+                --route-dot: oklch(0.54 0.14 251);
             }
             .viajes-panel-route-dot-large svg {
                 width: 1rem;
@@ -1562,6 +1725,57 @@
                 font-size: 0.84rem;
                 font-weight: 850;
                 line-height: 1.25;
+            }
+            .viajes-panel-gps-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                align-items: stretch;
+            }
+            .viajes-panel-gps-summary-grid .viajes-panel-summary-stat {
+                display: grid;
+                grid-template-rows: auto auto auto 1fr;
+                align-content: start;
+                min-height: 10.75rem;
+            }
+            .viajes-panel-gps-validations {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                align-content: start;
+                gap: 0.28rem;
+                margin-top: 0.5rem;
+                min-height: 4.9rem;
+            }
+            .viajes-panel-summary-stat .viajes-panel-gps-chip {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 0;
+                max-width: 100%;
+                border: 1px solid var(--gps-chip-border, var(--color-line));
+                border-radius: 9999px;
+                background: var(--gps-chip-bg, var(--color-panel));
+                color: var(--gps-chip-color, var(--color-muted));
+                padding: 0.18rem 0.42rem;
+                font-size: 0.62rem;
+                font-weight: 850;
+                line-height: 1.2;
+                min-height: 1.55rem;
+                text-align: center;
+                text-transform: none;
+            }
+            .viajes-panel-summary-stat .viajes-panel-gps-chip.is-ok {
+                --gps-chip-bg: oklch(0.953 0.05 149);
+                --gps-chip-border: oklch(0.84 0.12 149);
+                --gps-chip-color: oklch(0.37 0.12 149);
+            }
+            .viajes-panel-summary-stat .viajes-panel-gps-chip.is-pending {
+                --gps-chip-bg: oklch(0.955 0.045 27);
+                --gps-chip-border: oklch(0.84 0.12 27);
+                --gps-chip-color: oklch(0.42 0.17 27);
+            }
+            .viajes-panel-summary-stat .viajes-panel-gps-chip.is-na {
+                --gps-chip-bg: oklch(0.97 0.01 255);
+                --gps-chip-border: oklch(0.88 0.012 255);
+                --gps-chip-color: oklch(0.5 0.025 255);
             }
             .viajes-panel-actions {
                 display: flex;
@@ -1872,7 +2086,13 @@
             }
             @media (max-width: 1280px) {
                 .viajes-kpi-grid {
-                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                    grid-template-columns: repeat(6, minmax(0, 1fr));
+                }
+                .viajes-kpi-card {
+                    grid-column: span 2;
+                }
+                .viajes-kpi-card--wide {
+                    grid-column: span 4;
                 }
                 .viajes-card-main {
                     grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
@@ -1891,6 +2111,10 @@
                 }
                 .viajes-kpi-grid {
                     grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+                .viajes-kpi-card,
+                .viajes-kpi-card--wide {
+                    grid-column: span 1;
                 }
                 .viajes-list {
                     grid-template-columns: 1fr;
@@ -1933,8 +2157,16 @@
                 .viajes-panel-grid,
                 .viajes-panel-summary-hero,
                 .viajes-panel-route-line,
+                .viajes-panel-route-line.has-waypoint,
                 .viajes-panel-summary-stats {
                     grid-template-columns: 1fr;
+                }
+                .viajes-panel-gps-validations {
+                    grid-template-columns: 1fr;
+                    min-height: 0;
+                }
+                .viajes-panel-gps-summary-grid .viajes-panel-summary-stat {
+                    min-height: 0;
                 }
                 .viajes-panel-route-line::before,
                 .viajes-panel-route-line::after {
@@ -1951,7 +2183,12 @@
                 .viajes-panel-route-stop:last-child {
                     text-align: left;
                 }
+                .viajes-panel-route-stop.is-waypoint {
+                    text-align: left;
+                }
                 .viajes-panel-route-stop:last-child
+                    .viajes-panel-route-dot-large,
+                .viajes-panel-route-stop.is-waypoint
                     .viajes-panel-route-dot-large {
                     justify-self: start;
                 }
@@ -2599,7 +2836,10 @@
                 text-align: left;
             }
             .lector-state-card:hover {
-                background: var(--state-hover, var(--state-bg, var(--color-card)));
+                background: var(
+                    --state-hover,
+                    var(--state-bg, var(--color-card))
+                );
             }
             .lector-state-card:focus-visible {
                 outline: 3px solid oklch(0.7 0.13 278 / 0.35);
@@ -2713,7 +2953,9 @@
                 height: 1rem;
                 transition: transform 180ms var(--ease-out);
             }
-            .lector-status-section.is-collapsed .lector-status-section-count svg {
+            .lector-status-section.is-collapsed
+                .lector-status-section-count
+                svg {
                 transform: rotate(-90deg);
             }
             .lector-status-section--late {
@@ -2751,7 +2993,8 @@
                 border-radius: 0.75rem;
                 background: var(--color-card);
                 overflow: hidden;
-                box-shadow: 0 8px 20px var(--lector-shadow, oklch(0.35 0.02 255 / 0.06));
+                box-shadow: 0 8px 20px
+                    var(--lector-shadow, oklch(0.35 0.02 255 / 0.06));
             }
             .lector-viaje-card--late {
                 --lector-border: oklch(0.84 0.12 27);
@@ -2767,7 +3010,9 @@
             }
             .lector-viaje-head {
                 display: grid;
-                grid-template-columns: minmax(14rem, 1.25fr) minmax(12rem, 0.7fr) minmax(10rem, 0.65fr);
+                grid-template-columns:
+                    minmax(14rem, 1.25fr) minmax(12rem, 0.7fr)
+                    minmax(10rem, 0.65fr);
                 gap: 0.85rem;
                 align-items: center;
                 padding: 0.85rem 0.95rem;
@@ -2886,7 +3131,9 @@
             }
             .lector-tramo-row {
                 display: grid;
-                grid-template-columns: minmax(13rem, 1fr) minmax(9rem, 0.42fr) minmax(13rem, 0.78fr) minmax(9rem, 0.4fr);
+                grid-template-columns:
+                    minmax(13rem, 1fr) minmax(9rem, 0.42fr)
+                    minmax(13rem, 0.78fr) minmax(9rem, 0.4fr);
                 gap: 0.75rem;
                 align-items: center;
                 width: 100%;
@@ -8313,23 +8560,7 @@
                               <label class="block text-sm font-semibold text-gray-700 mb-2">ID del Operador de Monitoreo</label>
                               <select name="operadorMonitoreoId" class="w-full p-2 border rounded-md" ${disabled}>
                                 <option value="">-- Seleccione --</option>
-                                ${[
-                                    "GEO-01",
-                                    "GEO-02",
-                                    "GEO-03",
-                                    "GEO-04",
-                                    "GEO-05",
-                                    "GEO-06",
-                                ]
-                                    .map(
-                                        (v) =>
-                                            `<option value="${v}" ${
-                                                d.operadorMonitoreoId === v
-                                                    ? "selected"
-                                                    : ""
-                                            }>${v}</option>`,
-                                    )
-                                    .join("")}
+                                ${getOperadorMonitoreoOptions(d.operadorMonitoreoId)}
                               </select>
                             </div>
 
@@ -8524,90 +8755,91 @@
             btn.title = "Guardar seguimiento";
         }
 
+        function getOperadorMonitoreoOptions(selected = "") {
+            return [
+                "GEO-01",
+                "GEO-02",
+                "GEO-03",
+                "GEO-04",
+                "GEO-05",
+                "GEO-06",
+            ]
+                .map(
+                    (v) =>
+                        `<option value="${v}" ${selected === v ? "selected" : ""}>${v}</option>`,
+                )
+                .join("");
+        }
+
         function renderGpsCheckboxes(currentValue, disabled) {
-            const opciones = [
-                { id: "boton_panico", label: "Botón de pánico" },
-                { id: "paro_motor_puerta", label: "Paro de motor de puerta" },
-                { id: "paro_motor", label: "Paro de motor" },
-                { id: "camaras", label: "Cámaras" },
-                { id: "desactivar_puertas", label: "Desactivar puertas" },
-                { id: "ubicacion", label: "Ubicación Correcta" },
-            ];
+            const estado =
+                typeof _parseGpsEstado === "function"
+                    ? _parseGpsEstado(currentValue)
+                    : {};
 
-            let selected = [];
-            if (currentValue) {
-                try {
-                    selected = JSON.parse(currentValue);
-                    if (!Array.isArray(selected)) selected = [];
-                } catch (e) {
-                    selected = [];
-                }
-            }
-
-            return opciones
-                .map((opcion) => {
-                    const checked = selected.includes(opcion.id)
-                        ? "checked"
-                        : "";
-                    return `
-                          <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded">
+            return GPS_ITEMS.map((opcion) => {
+                const currentStatus = estado[opcion.key] || GPS_STATUS.pending;
+                const checked =
+                    currentStatus === GPS_STATUS.ok ? "checked" : "";
+                const statusText =
+                    currentStatus === GPS_STATUS.ok
+                        ? "Validado"
+                        : currentStatus === GPS_STATUS.na
+                          ? "No aplica"
+                          : "Pendiente";
+                const statusClass =
+                    currentStatus === GPS_STATUS.ok
+                        ? "text-green-700"
+                        : currentStatus === GPS_STATUS.na
+                          ? "text-gray-500"
+                          : "text-amber-700";
+                return `
+                          <label class="flex min-h-11 items-center gap-2 rounded-md border border-gray-200 bg-white p-2 cursor-pointer hover:bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1">
                             <input
                               type="checkbox"
                               name="gpsValidacion"
-                              value="${opcion.id}"
+                              value="${opcion.key}"
+                              data-gps-key="${opcion.key}"
+                              data-original-status="${currentStatus}"
                               ${checked}
                               ${disabled}
                               class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                             />
-                            <span class="text-sm text-gray-700">${opcion.label}</span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-sm font-semibold text-gray-700">${opcion.label}</span>
+                                <span class="block text-xs ${statusClass}">${statusText}</span>
+                            </span>
                           </label>
                         `;
-                })
-                .join("");
+            }).join("");
         }
 
         function getGpsValidacionValues() {
-            const checkboxes = document.querySelectorAll(
-                'input[name="gpsValidacion"]:checked',
-            );
-            const values = Array.from(checkboxes).map((cb) => cb.value);
+            const values = GPS_ITEMS.map((g) => {
+                const checkbox = document.querySelector(
+                    `input[name="gpsValidacion"][data-gps-key="${g.key}"]`,
+                );
+                const status = checkbox?.checked
+                    ? GPS_STATUS.ok
+                    : checkbox?.dataset?.originalStatus === GPS_STATUS.na
+                      ? GPS_STATUS.na
+                      : GPS_STATUS.pending;
+                return { key: g.key, status, ok: status === GPS_STATUS.ok };
+            });
             return JSON.stringify(values);
         }
 
         function formatGpsEstado(gpsValidacionEstado) {
-            if (!gpsValidacionEstado) return "Sin fecha registrada";
-
-            try {
-                const items = JSON.parse(gpsValidacionEstado);
-                if (!Array.isArray(items) || items.length === 0)
-                    return "GPS no validado";
-
-                const labels = {
-                    boton_panico: "Botón de pánico",
-                    paro_motor_puerta: "Paro de motor de puerta",
-                    paro_motor: "Paro de motor",
-                    camaras: "Cámaras",
-                    desactivar_puertas: "Desactivar puertas",
-                    ubicacion: "Ubicación Correcta",
-                };
-
-                return items.map((item) => labels[item] || item).join(", ");
-            } catch (e) {
-                return String(gpsValidacionEstado);
+            const resumen = _getGpsResumen(gpsValidacionEstado);
+            if (resumen.sinDatos) return "GPS no validado";
+            if (resumen.completo) {
+                return `${resumen.validados}/${resumen.aplicables} aplicables validados`;
             }
+            return `${resumen.pendientes} pendiente${resumen.pendientes !== 1 ? "s" : ""}, ${resumen.noAplica} no aplica`;
         }
 
         function isGpsOperativo(gpsValidacionEstado) {
-            if (!gpsValidacionEstado) return false;
-
-            try {
-                const items = JSON.parse(gpsValidacionEstado);
-                return Array.isArray(items) && items.length > 0;
-            } catch (e) {
-                return (
-                    String(gpsValidacionEstado).toLowerCase() === "operativo"
-                );
-            }
+            return _getGpsResumen(gpsValidacionEstado).completo;
         }
         function updateTimeFieldStatus(fieldName) {
             const container = document.getElementById(`container-${fieldName}`);
@@ -8685,15 +8917,10 @@
 
             if (gpsOk) {
                 try {
-                    const items = JSON.parse(d.gpsValidacionEstado);
-                    const labels = {
-                        boton_panico: "Botón de pánico",
-                        paro_motor_puerta: "Paro de motor de puerta",
-                        paro_motor: "Paro de motor",
-                        camaras: "Cámaras",
-                        desactivar_puertas: "Desactivar puertas",
-                        ubicacion: "Ubicación Correcta",
-                    };
+                    const estado = _parseGpsEstado(d.gpsValidacionEstado);
+                    const items = GPS_ITEMS.filter(
+                        (item) => estado[item.key] === GPS_STATUS.ok,
+                    );
 
                     validacionesHtml = '<ul class="space-y-2">';
                     items.forEach((item) => {
@@ -8702,7 +8929,7 @@
                                 <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700">${escapeHtml(labels[item] || item)}</span>
+                                <span class="text-gray-700">${escapeHtml(item.label)}</span>
                               </li>
                             `;
                     });
@@ -11281,6 +11508,22 @@
             { key: "camara", label: "Cámaras" },
             { key: "ubicacion_correcta", label: "Ubicación Correcta" },
         ];
+        const GPS_STATUS = {
+            ok: "ok",
+            pending: "pending",
+            na: "na",
+        };
+
+        function _normalizeGpsKey(key) {
+            const aliases = {
+                desactivar_puertas: "desactivar_puerta",
+                paro_motor_puerta: "motor_puerta",
+                camaras: "camara",
+                ubicacion: "ubicacion_correcta",
+            };
+            const cleanKey = String(key || "");
+            return aliases[cleanKey] || cleanKey;
+        }
 
         function _parseGpsEstado(raw) {
             if (!raw) return {};
@@ -11289,12 +11532,77 @@
                 if (Array.isArray(arr)) {
                     const map = {};
                     arr.forEach((item) => {
-                        map[item.key] = !!item.ok;
+                        if (typeof item === "string") {
+                            map.__legacySelectedOnly = true;
+                            map[_normalizeGpsKey(item)] = GPS_STATUS.ok;
+                            return;
+                        }
+                        if (!item?.key) return;
+                        const key = _normalizeGpsKey(item.key);
+                        if (
+                            item.status === GPS_STATUS.ok ||
+                            item.status === GPS_STATUS.na ||
+                            item.status === GPS_STATUS.pending
+                        ) {
+                            map[key] = item.status;
+                            return;
+                        }
+                        map[key] = item.ok ? GPS_STATUS.ok : GPS_STATUS.pending;
                     });
                     return map;
                 }
             } catch (e) {}
             return {};
+        }
+
+        function _getGpsResumen(rawOrMap) {
+            const estado =
+                rawOrMap &&
+                typeof rawOrMap === "object" &&
+                !Array.isArray(rawOrMap)
+                    ? rawOrMap
+                    : _parseGpsEstado(rawOrMap);
+            const statuses = GPS_ITEMS.map((g) => estado[g.key]).filter(
+                Boolean,
+            );
+            const sinDatos = statuses.length === 0;
+            const legacySelectedOnly = estado.__legacySelectedOnly === true;
+            const noAplica = legacySelectedOnly
+                ? 0
+                : GPS_ITEMS.filter((g) => estado[g.key] === GPS_STATUS.na)
+                      .length;
+            const aplicables = GPS_ITEMS.filter((g) =>
+                legacySelectedOnly
+                    ? estado[g.key] === GPS_STATUS.ok
+                    : estado[g.key] !== GPS_STATUS.na,
+            );
+            const validados = aplicables.filter(
+                (g) => estado[g.key] === GPS_STATUS.ok,
+            ).length;
+            const pendientes = aplicables.filter(
+                (g) => estado[g.key] !== GPS_STATUS.ok,
+            ).length;
+            return {
+                sinDatos,
+                noAplica,
+                aplicables: aplicables.length,
+                validados,
+                pendientes,
+                completo:
+                    !sinDatos && aplicables.length > 0 && pendientes === 0,
+            };
+        }
+
+        function _gpsStatusIcon(status) {
+            if (status === GPS_STATUS.ok) return "✅";
+            if (status === GPS_STATUS.na) return "—";
+            return "○";
+        }
+
+        function _gpsStatusLabel(status) {
+            if (status === GPS_STATUS.ok) return "Validado";
+            if (status === GPS_STATUS.na) return "No aplica";
+            return "Pendiente";
         }
 
         function renderValidacionesGPS() {
@@ -11366,13 +11674,11 @@
                 )
                     return false;
                 const estadoMap = _parseGpsEstado(f.gps_estado);
-                const todoOk = GPS_ITEMS.every(
-                    (g) => estadoMap[g.key] === true,
-                );
-                const sinDatos = !f.gps_estado;
-                if (filtroEstado === "validado" && (sinDatos || !todoOk))
+                const resumenGps = _getGpsResumen(estadoMap);
+                if (filtroEstado === "validado" && !resumenGps.completo)
                     return false;
-                if (filtroEstado === "sin_validar" && !sinDatos) return false;
+                if (filtroEstado === "sin_validar" && resumenGps.completo)
+                    return false;
                 return true;
             });
 
@@ -11392,31 +11698,25 @@
             grid.innerHTML = filtradas
                 .map((f) => {
                     const estadoMap = _parseGpsEstado(f.gps_estado);
-                    const todoOk = GPS_ITEMS.every(
-                        (g) => estadoMap[g.key] === true,
-                    );
-                    const alguno = GPS_ITEMS.some(
-                        (g) => estadoMap[g.key] !== undefined,
-                    );
-                    const sinDatos = !f.gps_estado;
+                    const resumenGps = _getGpsResumen(estadoMap);
 
                     // Estados visuales del registro GPS.
-                    const topBar = sinDatos
+                    const topBar = resumenGps.sinDatos
                         ? "border-gray-200"
-                        : todoOk
+                        : resumenGps.completo
                           ? "border-green-200 bg-green-50"
                           : "border-amber-200 bg-amber-50";
 
-                    const badgeCls = sinDatos
+                    const badgeCls = resumenGps.sinDatos
                         ? "bg-gray-100 text-gray-500"
-                        : todoOk
+                        : resumenGps.completo
                           ? "bg-green-100 text-green-800"
                           : "bg-amber-100 text-amber-800";
-                    const badgeTxt = sinDatos
+                    const badgeTxt = resumenGps.sinDatos
                         ? "Sin validar"
-                        : todoOk
-                          ? "✅ Operativo"
-                          : "⚠️ Con fallas";
+                        : resumenGps.completo
+                          ? `✅ ${resumenGps.validados}/${resumenGps.aplicables} validados`
+                          : `⚠️ ${resumenGps.pendientes} pendiente${resumenGps.pendientes !== 1 ? "s" : ""}`;
 
                     const tramoBadgeCls =
                         {
@@ -11427,19 +11727,18 @@
 
                     // Items GPS — icono + label con color según estado
                     const itemsHtml = GPS_ITEMS.map((g) => {
-                        const val = estadoMap[g.key];
-                        const icon =
-                            val === true ? "✅" : val === false ? "❌" : "—";
+                        const val = estadoMap[g.key] || GPS_STATUS.pending;
+                        const icon = _gpsStatusIcon(val);
                         const txtCls =
-                            val === true
+                            val === GPS_STATUS.ok
                                 ? "text-green-700"
-                                : val === false
-                                  ? "text-red-600"
+                                : val === GPS_STATUS.na
+                                  ? "text-gray-400"
                                   : "text-gray-400";
                         return `
                                 <div class="flex items-center gap-1.5">
                                     <span class="text-xs">${icon}</span>
-                                    <span class="text-xs ${txtCls}">${escapeHtml(g.label)}</span>
+                                    <span class="text-xs ${txtCls}">${escapeHtml(g.label)} · ${_gpsStatusLabel(val)}</span>
                                 </div>`;
                     }).join("");
 
@@ -12059,7 +12358,11 @@
             const stages = [
                 ["Salida inicial", tramo.salida_patio, tramo.salida_patio_real],
                 ["Proceso de carga", tramo.cita_carga, tramo.cita_carga_real],
-                ["Salida de carga", tramo.salida_carga, tramo.salida_carga_real],
+                [
+                    "Salida de carga",
+                    tramo.salida_carga,
+                    tramo.salida_carga_real,
+                ],
                 [
                     "Proceso de descarga",
                     tramo.descarga_programada,
@@ -12088,9 +12391,15 @@
 
         function _renderLectorStageDots(tramo) {
             const stages = [
-                _getLectorStageInfo(tramo.salida_patio, tramo.salida_patio_real),
+                _getLectorStageInfo(
+                    tramo.salida_patio,
+                    tramo.salida_patio_real,
+                ),
                 _getLectorStageInfo(tramo.cita_carga, tramo.cita_carga_real),
-                _getLectorStageInfo(tramo.salida_carga, tramo.salida_carga_real),
+                _getLectorStageInfo(
+                    tramo.salida_carga,
+                    tramo.salida_carga_real,
+                ),
                 _getLectorStageInfo(
                     tramo.descarga_programada,
                     tramo.descarga_real,
@@ -12139,10 +12448,26 @@
                     ${tramo.instrucciones ? `<div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><strong>Instrucciones:</strong> ${escapeHtml(tramo.instrucciones)}</div>` : ""}
                     <div class="registro-detail-timeline" aria-label="Cronología del tramo">
                         ${[
-                            ["Salida inicial", tramo.salida_patio, tramo.salida_patio_real],
-                            ["Llegada a carga", tramo.cita_carga, tramo.cita_carga_real],
-                            ["Salida de carga", tramo.salida_carga, tramo.salida_carga_real],
-                            ["Arribo a descarga", tramo.descarga_programada, tramo.descarga_real],
+                            [
+                                "Salida inicial",
+                                tramo.salida_patio,
+                                tramo.salida_patio_real,
+                            ],
+                            [
+                                "Llegada a carga",
+                                tramo.cita_carga,
+                                tramo.cita_carga_real,
+                            ],
+                            [
+                                "Salida de carga",
+                                tramo.salida_carga,
+                                tramo.salida_carga_real,
+                            ],
+                            [
+                                "Arribo a descarga",
+                                tramo.descarga_programada,
+                                tramo.descarga_real,
+                            ],
                             ["Vacío", null, tramo.vacio_real],
                         ]
                             .map(
@@ -12214,7 +12539,9 @@
             const complete = items.filter(
                 (item) => item.status.key === "complete",
             ).length;
-            const late = items.filter((item) => item.status.key === "late").length;
+            const late = items.filter(
+                (item) => item.status.key === "late",
+            ).length;
             const active = items.filter(
                 (item) => item.status.key === "active",
             ).length;
@@ -12227,17 +12554,16 @@
                 0,
             );
             const gpsPendientes = tramos.filter(
-                (tramo) => !isGpsOperativo(tramo.gps_estado),
+                (tramo) => !_getGpsResumen(tramo.gps_estado).completo,
             ).length;
-            const primaryStatus =
-                items
-                    .map((item) => item.status)
-                    .sort((a, b) => a.priority - b.priority)[0] || {
-                    key: "planned",
-                    label: "Programado",
-                    icon: "○",
-                    priority: 2,
-                };
+            const primaryStatus = items
+                .map((item) => item.status)
+                .sort((a, b) => a.priority - b.priority)[0] || {
+                key: "planned",
+                label: "Programado",
+                icon: "○",
+                priority: 2,
+            };
             const nextMilestone = Math.min(
                 ...items.map((item) => item.nextMilestone),
                 Number.MAX_SAFE_INTEGER,
@@ -12274,7 +12600,10 @@
                 expandedGroup || sortedItems.length <= visibleLimit
                     ? sortedItems
                     : sortedItems.slice(0, visibleLimit);
-            const hiddenCount = Math.max(sortedItems.length - visibleItems.length, 0);
+            const hiddenCount = Math.max(
+                sortedItems.length - visibleItems.length,
+                0,
+            );
             const progressColor =
                 summary.late > 0
                     ? "oklch(0.61 0.22 27)"
@@ -12399,7 +12728,9 @@
                 .slice(0, 8)
                 .join(", ");
             const remaining =
-                section.groups.length > 8 ? ` y ${section.groups.length - 8} más` : "";
+                section.groups.length > 8
+                    ? ` y ${section.groups.length - 8} más`
+                    : "";
             const meta = section.groups.length
                 ? `${escapeHtml(unidades)}${remaining}`
                 : section.empty;
@@ -12458,9 +12789,13 @@
                         );
                     }
                     if (a.summary.nextMilestone !== b.summary.nextMilestone) {
-                        return a.summary.nextMilestone - b.summary.nextMilestone;
+                        return (
+                            a.summary.nextMilestone - b.summary.nextMilestone
+                        );
                     }
-                    return _fechaOrdenViaje(b.viaje) - _fechaOrdenViaje(a.viaje);
+                    return (
+                        _fechaOrdenViaje(b.viaje) - _fechaOrdenViaje(a.viaje)
+                    );
                 });
 
             if (!grupos.length) {
@@ -12570,7 +12905,9 @@
                 (item) => item.key === key,
             );
             const current =
-                gruposColapsados[storeKey] ?? section?.defaultCollapsed ?? false;
+                gruposColapsados[storeKey] ??
+                section?.defaultCollapsed ??
+                false;
             gruposColapsados[storeKey] = !current;
             renderViajes();
         }
@@ -12734,9 +13071,12 @@
             if (!target) return;
             const viajes = Array.isArray(datos) ? datos : [];
             const viajesActivos = viajes.filter(_viajeEstaActivo);
+            const viajesEnCurso = viajes.filter((v) => v.estado === "en_curso");
             const activos = viajesActivos.length;
-            const retrasados = viajesActivos.filter(_viajeTieneRetraso).length;
-            const incidencias = viajesActivos.filter(_viajeTieneIncidencias).length;
+            const retrasados = viajesEnCurso.filter(_viajeTieneRetraso).length;
+            const incidencias = viajesActivos.filter(
+                _viajeTieneIncidencias,
+            ).length;
             const gpsPendientes = viajesActivos.reduce(
                 (sum, viaje) => sum + (_resumenViaje(viaje).gpsPendientes || 0),
                 0,
@@ -12750,7 +13090,7 @@
                     color: "oklch(0.39 0.14 251)",
                 },
                 {
-                    label: "Retrasos activos",
+                    label: "En curso con retraso",
                     value: retrasados,
                     bg: "oklch(0.955 0.045 27)",
                     border: "oklch(0.84 0.12 27)",
@@ -13170,7 +13510,9 @@
                     (Array.isArray(t.incidencias) ? t.incidencias.length : 0),
                 0,
             );
-            const gpsPendientes = tramos.filter((t) => !t.gps_estado).length;
+            const gpsPendientes = tramos.filter(
+                (t) => !_getGpsResumen(t.gps_estado).completo,
+            ).length;
             const activo =
                 tramos.find((t) => t.estado === "en_curso") ||
                 conRetraso[0]?.t ||
@@ -13478,11 +13820,8 @@
                               `${planificados} planificado${planificados !== 1 ? "s" : ""}`,
                           )
                         : "";
-                    const badgeNuevos = nuevos
-                        ? _renderBadge(
-                              VIAJE_UI_TOKENS.badge.nuevo,
-                              `${nuevos} nuevo${nuevos !== 1 ? "s" : ""}`,
-                          )
+                    const registroReciente = nuevos
+                        ? `<span class="text-xs text-gray-500 font-semibold">${nuevos} ingresado${nuevos !== 1 ? "s" : ""} hoy</span>`
                         : "";
 
                     const clienteKey = escapeHtml(cliente).replace(/'/g, "\\'");
@@ -13496,7 +13835,7 @@
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="text-sm font-bold text-blue-900 uppercase tracking-wide">🏢 ${escapeHtml(cliente)}</span>
                                         <span class="text-xs text-gray-400 font-medium">${totalViajes} viaje${totalViajes !== 1 ? "s" : ""}</span>
-                                        ${badgeNuevos}
+                                        ${registroReciente}
                                         ${badgeRetraso}
                                         ${badgeEnCurso}
                                         ${badgePlanif}
@@ -13512,12 +13851,38 @@
                 .join("");
         }
 
-        // Un viaje es "nuevo" si fue creado en las últimas 24h
+        function _viajeFechaRegistro(v) {
+            const raw =
+                v?.created_at ||
+                v?.fecha_creacion ||
+                v?.fecha_registro ||
+                v?.registrado_at ||
+                "";
+            const creado = raw ? dayjs.utc(raw) : null;
+            if (!creado || !creado.isValid()) return false;
+            return creado;
+        }
+
+        function _viajeRegistroTexto(v) {
+            const creado = _viajeFechaRegistro(v);
+            return creado ? creado.format("DD/MM/YYYY HH:mm") : "";
+        }
+
+        // Un viaje cuenta como ingreso reciente solo durante el día calendario en que se creó.
         function _esViajeNuevo(v) {
-            if (!v || !v.created_at) return false;
-            const creado = dayjs(v.created_at);
-            if (!creado.isValid()) return false;
-            return dayjs().diff(creado, "hour") < 24;
+            const creado = _viajeFechaRegistro(v);
+            if (!creado) return false;
+            return creado.format("YYYY-MM-DD") === dayjs().format("YYYY-MM-DD");
+        }
+
+        function _viajeRegistroRecienteTexto(v) {
+            if (!_esViajeNuevo(v)) return "";
+            const creado = _viajeFechaRegistro(v);
+            const minutos = Math.max(dayjs().diff(creado, "minute"), 0);
+            if (minutos < 1) return "Ingresado hoy";
+            if (minutos < 60) return `Ingresado hoy, hace ${minutos} min`;
+            // const horas = dayjs().diff(creado, "hour");
+            // return `Hace ${horas} h`;
         }
 
         const UI_BADGE_BASE = "text-xs font-semibold px-2 py-0.5 rounded-full";
@@ -13538,7 +13903,7 @@
                 incidencia: `${UI_BADGE_STRONG} bg-amber-100 text-amber-800`,
                 gpsPendiente: `${UI_BADGE_BASE} bg-gray-100 text-gray-600`,
                 multiDia: `${UI_BADGE_BASE} bg-indigo-100 text-indigo-700`,
-                nuevo: `${UI_BADGE_STRONG} bg-green-500 text-white shadow-sm`,
+                nuevo: `${UI_BADGE_STRONG} bg-slate-100 text-slate-600`,
             },
             record: {
                 base: "monitor-record monitor-record--viaje",
@@ -13550,7 +13915,7 @@
                 cancelled: "monitor-record--cancelled",
                 empty: "monitor-record--cancelled",
                 hover: "hover:bg-slate-50",
-                hoverNuevo: "hover:bg-green-50",
+                hoverNuevo: "hover:bg-slate-50",
             },
             cardVisual: {
                 planned: {
@@ -13812,14 +14177,14 @@
             const viajes = Array.isArray(datos) ? datos : [];
             const total = viajes.length;
             const viajesActivos = viajes.filter(_viajeEstaActivo);
+            const viajesEnCurso = viajes.filter((v) => v.estado === "en_curso");
             const planificados = viajes.filter(
                 (v) => v.estado === "planificado",
             ).length;
-            const enCurso = viajes.filter(
-                (v) => v.estado === "en_curso",
-            ).length;
-            const retrasosActivos =
-                viajesActivos.filter(_viajeTieneRetraso).length;
+            const enCurso = viajesEnCurso.length;
+            const enCursoConRetraso =
+                viajesEnCurso.filter(_viajeTieneRetraso).length;
+            const enCursoSinRetraso = Math.max(enCurso - enCursoConRetraso, 0);
             const incidenciasActivas = viajesActivos.filter(
                 _viajeTieneIncidencias,
             ).length;
@@ -13832,21 +14197,64 @@
             const completadosConRetraso = viajes.filter(
                 (v) => v.estado === "completado" && _viajeTieneRetraso(v),
             ).length;
+            const completadosSinRetraso = Math.max(
+                completados - completadosConRetraso,
+                0,
+            );
             const kpis = [
-                ["active", "Total viajes", total, "Universo filtrado"],
-                ["route", "En curso", enCurso, "Operación activa"],
-                ["planned", "Planificados", planificados, "Sin iniciar"],
-                ["check", "Completados", completados, cancelados ? `${cancelados} cancelado${cancelados !== 1 ? "s" : ""}` : `${completadosConRetraso} con retraso histórico`],
-                ["clock", "Retrasos activos", retrasosActivos, "Solo viajes en curso o planificados"],
-                [
-                    "alert",
-                    "Incidencias activas",
-                    incidenciasActivas,
-                    "Solo viajes abiertos",
-                ],
+                {
+                    icon: "active",
+                    label: "Total viajes",
+                    value: total,
+                    hint: "Universo filtrado",
+                },
+                {
+                    icon: "route",
+                    label: "En curso",
+                    value: enCurso,
+                    hint: `${enCursoConRetraso} con retraso, ${enCursoSinRetraso} sin retraso`,
+                    detailHtml: `<div class="viajes-kpi-breakdown">
+                        <span class="viajes-kpi-substat" style="--substat-bg:oklch(0.955 0.045 27);--substat-border:oklch(0.84 0.12 27);--substat-color:oklch(0.42 0.17 27)">
+                            <strong>${enCursoConRetraso}</strong>
+                            <span>Con retraso</span>
+                        </span>
+                        <span class="viajes-kpi-substat" style="--substat-bg:oklch(0.953 0.05 149);--substat-border:oklch(0.84 0.12 149);--substat-color:oklch(0.37 0.12 149)">
+                            <strong>${enCursoSinRetraso}</strong>
+                            <span>Sin retraso</span>
+                        </span>
+                    </div>`,
+                },
+                {
+                    icon: "planned",
+                    label: "Planificados",
+                    value: planificados,
+                    hint: "Sin iniciar",
+                },
+                {
+                    icon: "check",
+                    label: "Completados",
+                    value: completados,
+                    hint: `${completadosConRetraso} con retraso, ${completadosSinRetraso} sin retraso`,
+                    detailHtml: `<div class="viajes-kpi-breakdown">
+                        <span class="viajes-kpi-substat" style="--substat-bg:oklch(0.955 0.045 27);--substat-border:oklch(0.84 0.12 27);--substat-color:oklch(0.42 0.17 27)">
+                            <strong>${completadosConRetraso}</strong>
+                            <span>Con retraso</span>
+                        </span>
+                        <span class="viajes-kpi-substat" style="--substat-bg:oklch(0.953 0.05 149);--substat-border:oklch(0.84 0.12 149);--substat-color:oklch(0.37 0.12 149)">
+                            <strong>${completadosSinRetraso}</strong>
+                            <span>Sin retraso</span>
+                        </span>
+                    </div>${cancelados ? `<div class="viajes-kpi-hint">${cancelados} cancelado${cancelados !== 1 ? "s" : ""}</div>` : ""}`,
+                },
+                {
+                    icon: "alert",
+                    label: "Incidencias activas",
+                    value: incidenciasActivas,
+                    hint: "Solo viajes abiertos",
+                },
             ];
             target.innerHTML = kpis
-                .map(([icon, label, value, hint]) => {
+                .map(({ icon, label, value, hint, detailHtml = "" }) => {
                     const color =
                         icon === "clock" || icon === "alert"
                             ? "oklch(0.42 0.17 27)"
@@ -13855,12 +14263,16 @@
                               : icon === "route"
                                 ? "oklch(0.4 0.105 72)"
                                 : "oklch(0.39 0.14 251)";
-                    return `<article class="viajes-kpi-card" style="--kpi-color:${color};--kpi-bg:oklch(0.97 0.025 255)">
+                    const wideClass = detailHtml
+                        ? " viajes-kpi-card--wide"
+                        : "";
+                    return `<article class="viajes-kpi-card${wideClass}" style="--kpi-color:${color};--kpi-bg:oklch(0.97 0.025 255)">
                         <span class="viajes-kpi-symbol">${_viajesIcon(icon)}</span>
                         <div>
                             <div class="viajes-kpi-value">${value}</div>
                             <div class="viajes-kpi-label">${label}</div>
                             <div class="viajes-kpi-hint">${hint}</div>
+                            ${detailHtml}
                         </div>
                     </article>`;
                 })
@@ -13893,11 +14305,6 @@
                     `<span class="viajes-badge" style="--badge-bg:oklch(0.95 0.035 278);--badge-border:oklch(0.82 0.08 278);--badge-color:oklch(0.42 0.14 278)">Multi-dia</span>`,
                 );
             }
-            if (_esViajeNuevo(v)) {
-                chips.push(
-                    `<span class="viajes-badge" style="--badge-bg:oklch(0.93 0.06 149);--badge-border:oklch(0.78 0.13 149);--badge-color:oklch(0.37 0.12 149)">Nuevo</span>`,
-                );
-            }
             return chips.filter(Boolean).join("");
         }
 
@@ -13916,24 +14323,24 @@
                     color: "oklch(0.48 0.025 255)",
                 };
             }
-            if (resumen.tieneRetraso || resumen.tieneIncidencias) {
-                const razones = [];
-                if (resumen.tieneRetraso) razones.push("retraso");
-                if (resumen.tieneIncidencias) razones.push("incidencia");
+            if (resumen.gpsPendientes) {
                 return {
                     key: "high",
                     label: "Prioridad alta",
-                    detail: `Revisar ${razones.join(" y ")}`,
+                    detail: `${resumen.gpsPendientes} GPS pendiente${resumen.gpsPendientes !== 1 ? "s" : ""}`,
                     bg: "oklch(0.955 0.045 27)",
                     border: "oklch(0.84 0.12 27)",
                     color: "oklch(0.42 0.17 27)",
                 };
             }
-            if (resumen.gpsPendientes) {
+            if (resumen.tieneRetraso || resumen.tieneIncidencias) {
+                const razones = [];
+                if (resumen.tieneRetraso) razones.push("retraso");
+                if (resumen.tieneIncidencias) razones.push("incidencia");
                 return {
                     key: "medium",
-                    label: "Prioridad media",
-                    detail: `${resumen.gpsPendientes} GPS pendiente${resumen.gpsPendientes !== 1 ? "s" : ""}`,
+                    label: "Atención operativa",
+                    detail: `Revisar ${razones.join(" y ")}`,
                     bg: "oklch(0.955 0.06 85)",
                     border: "oklch(0.86 0.12 85)",
                     color: "oklch(0.4 0.105 72)",
@@ -13989,6 +14396,7 @@
                 creadoDt && creadoDt.isValid()
                     ? creadoDt.format("DD/MM/YYYY HH:mm")
                     : null;
+            const registroRecienteTexto = _viajeRegistroRecienteTexto(v);
             const siguiente = resumen.siguiente;
             const siguienteRuta = siguiente
                 ? `${siguiente.tramo_numero || ""}. ${siguiente.origen || "Origen"} -> ${siguiente.destino || "Destino"}`
@@ -14035,9 +14443,6 @@
             const multiDiaBadge = v.es_multi_dia
                 ? _renderBadge(VIAJE_UI_TOKENS.badge.multiDia, "Multi-día")
                 : "";
-            const nuevoBadge = esNuevo
-                ? _renderBadge(VIAJE_UI_TOKENS.badge.nuevo, "Nuevo")
-                : "";
             const btnEnCurso =
                 !esLector &&
                 v.estado !== "en_curso" &&
@@ -14070,6 +14475,9 @@
             const cardHover = esNuevo
                 ? VIAJE_UI_TOKENS.record.hoverNuevo
                 : VIAJE_UI_TOKENS.record.hover;
+            const ingresoHoyMarker = esNuevo
+                ? '<span class="viajes-today-entry-marker">Ingreso de hoy</span>'
+                : "";
 
             return `
                     <div class="${cardClase}" data-viaje-id="${v.viaje_id}">
@@ -14087,13 +14495,13 @@
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="text-xs font-bold uppercase tracking-wide text-gray-500">Folio ${escapeHtml(v.folio || "-")}</span>
+                                        ${ingresoHoyMarker}
                                         <span class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${visual.badge}">${escapeHtml(visual.label)}</span>
                                     </div>
                                     <div class="mt-1 flex items-center gap-2 flex-wrap">
                                         <span class="font-extrabold text-gray-900 text-base">🚚 ${escapeHtml(v.unidad || "-")}</span>
                                         <span class="text-gray-400 text-xs">${escapeHtml(v.placas || "")}</span>
                                         ${multiDiaBadge}
-                                        ${nuevoBadge}
                                         ${alertaBadge}
                                         ${incidenciaBadge}
                                         ${gpsBadge}
@@ -14104,8 +14512,9 @@
                                     </div>
                                     ${
                                         creadoTexto
-                                            ? `<div class="text-[11px] text-gray-400 mt-0.5">
+                                            ? `<div class="text-[11px] text-gray-400 mt-0.5 flex flex-wrap items-center gap-1.5">
                                                 <span class="font-semibold">Registrado:</span> ${creadoTexto}
+                                                ${registroRecienteTexto ? `<span class="viajes-recent-entry">${escapeHtml(registroRecienteTexto)}</span>` : ""}
                                             </div>`
                                             : ""
                                     }
@@ -14198,10 +14607,6 @@
                   )
                 : "";
 
-            const nuevoBadge = esNuevo
-                ? _renderBadge(VIAJE_UI_TOKENS.badge.nuevo, "🆕 Nuevo", "ml-1")
-                : "";
-
             const fechas = v.es_multi_dia
                 ? `${v.fecha_inicio} → ${v.fecha_fin}`
                 : v.fecha_inicio;
@@ -14216,6 +14621,7 @@
                 creadoDt && creadoDt.isValid()
                     ? creadoDt.format("DD/MM/YYYY HH:mm")
                     : null;
+            const registroRecienteTexto = _viajeRegistroRecienteTexto(v);
 
             const progreso =
                 v.total_tramos > 0
@@ -14262,6 +14668,9 @@
             const cardHover = esNuevo
                 ? VIAJE_UI_TOKENS.record.hoverNuevo
                 : VIAJE_UI_TOKENS.record.hover;
+            const ingresoHoyMarker = esNuevo
+                ? '<span class="viajes-today-entry-marker">Ingreso de hoy</span>'
+                : "";
 
             return `
                     <div class="${cardClase}" data-viaje-id="${v.viaje_id}">
@@ -14277,10 +14686,10 @@
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="font-bold text-blue-900 text-sm">${escapeHtml(v.unidad)}</span>
+                                        ${ingresoHoyMarker}
                                         <span class="text-gray-400 text-xs">${escapeHtml(v.placas)}</span>
                                         <span class="${estadoColor} text-xs font-semibold px-2 py-0.5 rounded-full capitalize">${v.estado.replace("_", " ")}</span>
                                         ${multiDiaBadge}
-                                        ${nuevoBadge}
                                         ${alertaBadge}
                                     </div>
                                     <div class="text-xs text-gray-500 mt-0.5">
@@ -14292,8 +14701,9 @@
                                     </div>
                                     ${
                                         creadoTexto
-                                            ? `<div class="text-[11px] text-gray-400 mt-0.5">
-                                        <span class="font-semibold">🕒 Registrado:</span> ${creadoTexto}
+                                            ? `<div class="text-[11px] text-gray-400 mt-0.5 flex flex-wrap items-center gap-1.5">
+                                        <span class="font-semibold">Registrado:</span> ${creadoTexto}
+                                        ${registroRecienteTexto ? `<span class="viajes-recent-entry">${escapeHtml(registroRecienteTexto)}</span>` : ""}
                                     </div>`
                                             : ""
                                     }
@@ -14345,12 +14755,18 @@
         function _renderViajeCard(v) {
             const seleccionado =
                 String(viajeDetalleActivoId) === String(v.viaje_id);
+            const esNuevo = _esViajeNuevo(v);
             const resumen = _resumenViaje(v);
             const visualState = _getViajeCardVisualState(v, resumen);
             const visual = _viajeCssState(visualState.key);
             const prioridad = _getViajePrioridadOperativa(v, resumen);
             const derived = _viajeDerived(v, resumen);
             const placas = v.placas ? ` · ${v.placas}` : "";
+            const registroTexto = _viajeRegistroTexto(v);
+            const registroRecienteTexto = _viajeRegistroRecienteTexto(v);
+            const ingresoHoyMarker = esNuevo
+                ? '<span class="viajes-today-entry-marker">Ingreso de hoy</span>'
+                : "";
             const styleVars = `--state-bg:${visual.bg};--state-border:${visual.border};--state-color:${visual.color};--progress-color:${visual.progress};--state-shadow:${visual.shadow};--state-shadow-strong:${visual.shadowStrong};--state-ring:${visual.ring};--priority-bg:${prioridad.bg};--priority-border:${prioridad.border};--priority-color:${prioridad.color}`;
             const stateLabel =
                 resumen.tieneRetraso && v.estado !== "cancelado"
@@ -14360,7 +14776,7 @@
                 `abrirAccionViajePanel(${v.viaje_id}, '${action}', event)`;
 
             return `
-                <article class="viajes-card is-state-${visualState.key} ${seleccionado ? "is-active" : ""}" data-viaje-id="${v.viaje_id}" style="${styleVars}">
+                <article class="viajes-card is-state-${visualState.key} ${esNuevo ? "is-entry-today" : ""} ${seleccionado ? "is-active" : ""}" data-viaje-id="${v.viaje_id}" style="${styleVars}">
                     <button type="button"
                             class="viajes-card-main"
                             data-state-label="${escapeHtml(stateLabel)}"
@@ -14375,7 +14791,7 @@
                             <div class="viajes-card-identity min-w-0">
                                 <div class="viajes-card-identity-row">
                                     <span class="viajes-card-identity-label">Folio</span>
-                                    <span class="viajes-card-identity-value is-folio">${escapeHtml(v.folio || `TR-${v.viaje_id}`)}</span>
+                                    <span class="viajes-card-identity-value is-folio flex items-center gap-2 flex-wrap">${escapeHtml(v.folio || `TR-${v.viaje_id}`)} ${ingresoHoyMarker}</span>
                                 </div>
                                 <div class="viajes-card-identity-row">
                                     <span class="viajes-card-identity-label">Unidad</span>
@@ -14387,6 +14803,7 @@
                                 </div>
                                 <div class="viajes-meta-line">Operador: <strong>${escapeHtml(v.operador || "Sin asignar")}</strong></div>
                                 <div class="viajes-meta-line">Cliente: <strong>${escapeHtml(v.cliente || "Sin definir")}</strong></div>
+                                <div class="viajes-meta-line">Registrado: <strong>${escapeHtml(registroTexto || "Sin fecha registrada")}</strong>${registroRecienteTexto ? ` <span class="viajes-recent-entry">${escapeHtml(registroRecienteTexto)}</span>` : ""}</div>
                                 <div class="viajes-badge-row">${_renderViajesBadges(v, resumen, visual)}</div>
                                 <div class="viajes-priority-pill" aria-label="${escapeHtml(prioridad.label)}">
                                     <span>${escapeHtml(prioridad.label)}</span>
@@ -14397,15 +14814,27 @@
 
                         <div class="viajes-route-block">
                             <div class="viajes-route-step">
-                                <span class="viajes-route-dot" style="--route-color:oklch(0.62 0.16 149)"></span>
+                                <span class="viajes-route-dot"></span>
                                 <div class="min-w-0">
                                     <span class="viajes-route-label">Origen</span>
                                     <span class="viajes-route-value">${escapeHtml(derived.origen)}</span>
                                     <span class="viajes-route-meta">${escapeHtml(derived.ruta || "Ruta sin clasificar")}</span>
                                 </div>
                             </div>
-                            <div class="viajes-route-step">
-                                <span class="viajes-route-dot" style="--route-color:oklch(0.61 0.22 27)"></span>
+                            ${
+                                v.es_multi_dia
+                                    ? `<div class="viajes-route-step is-waypoint">
+                                        <span class="viajes-route-dot"></span>
+                                        <div class="min-w-0">
+                                            <span class="viajes-route-label">Continuidad</span>
+                                            <span class="viajes-route-value">Tramo multi-día</span>
+                                            <span class="viajes-route-meta">${escapeHtml(_fmtViajeDt(derived.salida))} → ${escapeHtml(_fmtViajeDt(derived.eta))}</span>
+                                        </div>
+                                    </div>`
+                                    : ""
+                            }
+                            <div class="viajes-route-step is-destination">
+                                <span class="viajes-route-dot"></span>
                                 <div class="min-w-0">
                                     <span class="viajes-route-label">Destino</span>
                                     <span class="viajes-route-value">${escapeHtml(derived.destino)}</span>
@@ -14459,6 +14888,12 @@
             const visualState = _getViajeCardVisualState(v, resumen);
             const visual = _viajeCssState(visualState.key);
             const derived = _viajeDerived(v, resumen);
+            const esNuevo = _esViajeNuevo(v);
+            const registroTexto = _viajeRegistroTexto(v);
+            const registroRecienteTexto = _viajeRegistroRecienteTexto(v);
+            const ingresoHoyMarker = esNuevo
+                ? '<span class="viajes-today-entry-marker">Ingreso de hoy</span>'
+                : "";
             const tramos = Array.isArray(v.tramos) ? v.tramos : [];
             const incidencias = tramos.flatMap((t) =>
                 (Array.isArray(t.incidencias) ? t.incidencias : []).map(
@@ -14471,12 +14906,9 @@
                     ${v.estado !== "en_curso" && v.estado !== "completado" && v.estado !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)">En curso</button>` : ""}
                     ${v.estado !== "completado" && v.estado !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)">Completar</button>` : ""}
                     ${v.estado !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)" style="--action-color:oklch(0.42 0.17 27);--action-border:oklch(0.84 0.12 27);--action-bg:oklch(0.955 0.045 27)">Cancelar</button>` : ""}`;
-            const activeTab = [
-                "resumen",
-                "tramos",
-                "incidencias",
-                "gps",
-            ].includes(viajesPanelActiveTab)
+            const activeTab = ["resumen", "tramos", "incidencias"].includes(
+                viajesPanelActiveTab,
+            )
                 ? viajesPanelActiveTab
                 : "resumen";
             const styleVars = `--state-bg:${visual.bg};--state-border:${visual.border};--state-color:${visual.color};--progress-color:${visual.progress}`;
@@ -14488,6 +14920,7 @@
                     <div>
                         <div class="viajes-panel-title">${escapeHtml(v.folio || `TR-${v.viaje_id}`)}</div>
                         <div class="viajes-meta-line">${escapeHtml(v.unidad || "-")}${v.placas ? ` · ${escapeHtml(v.placas)}` : ""}</div>
+                        <div class="viajes-meta-line">Registrado: <strong>${escapeHtml(registroTexto || "Sin fecha registrada")}</strong>${registroRecienteTexto ? ` <span class="viajes-recent-entry">${escapeHtml(registroRecienteTexto)}</span>` : ""} ${ingresoHoyMarker}</div>
                         <div class="viajes-badge-row">${_renderViajesBadges(v, resumen, visual)}</div>
                     </div>
                     <button type="button" class="viajes-panel-close" onclick="cerrarViajePanel()" aria-label="Cerrar detalle del viaje">
@@ -14498,7 +14931,6 @@
                     ${tabButton("resumen", "Resumen")}
                     ${tabButton("tramos", "Tramos", String(tramos.length || 0))}
                     ${tabButton("incidencias", "Incidencias", incidencias.length ? String(incidencias.length) : "")}
-                    ${tabButton("gps", "GPS", String(resumen.gpsPendientes || 0))}
                 </div>
                 <div class="viajes-panel-body">
                     <div class="viajes-panel-pane ${activeTab === "resumen" ? "is-active" : ""}" id="viajes-panel-pane-resumen" role="tabpanel" tabindex="-1">
@@ -14512,6 +14944,7 @@
                                         <div class="viajes-panel-summary-subtitle">
                                             Placas: <strong>${escapeHtml(v.placas || "Sin placas")}</strong> · Operador: <strong>${escapeHtml(v.operador || "Sin asignar")}</strong>
                                         </div>
+                                        <div class="viajes-meta-line mt-1">Registrado: <strong>${escapeHtml(registroTexto || "Sin fecha registrada")}</strong>${registroRecienteTexto ? ` <span class="viajes-recent-entry">${escapeHtml(registroRecienteTexto)}</span>` : ""}</div>
                                         <div class="viajes-badge-row">${_renderViajesBadges(v, resumen, visual)}</div>
                                     </div>
                                     <div class="viajes-panel-summary-progress">
@@ -14528,13 +14961,23 @@
                                 </div>
                                 <div class="viajes-panel-route-map" style="--route-progress:${resumen.progreso}%">
                                     <div class="viajes-panel-summary-kicker">Ruta operativa</div>
-                                    <div class="viajes-panel-route-line">
+                                    <div class="viajes-panel-route-line ${v.es_multi_dia ? "has-waypoint" : ""}">
                                         <div class="viajes-panel-route-stop">
                                             <span class="viajes-panel-route-dot-large" style="--route-dot:oklch(0.62 0.16 149)">${_viajesIcon("route")}</span>
                                             <span class="viajes-panel-route-label">Origen</span>
                                             <strong class="viajes-panel-route-value">${escapeHtml(derived.origen)}</strong>
                                             <span class="viajes-panel-route-meta">Salida: ${_fmtViajeDt(derived.salida)}</span>
                                         </div>
+                                        ${
+                                            v.es_multi_dia
+                                                ? `<div class="viajes-panel-route-stop is-waypoint">
+                                                    <span class="viajes-panel-route-dot-large">${_viajesIcon("clock")}</span>
+                                                    <span class="viajes-panel-route-label">Continuidad</span>
+                                                    <strong class="viajes-panel-route-value">Tramo multi-día</strong>
+                                                    <span class="viajes-panel-route-meta">${_fmtViajeDt(derived.salida)} → ${_fmtViajeDt(derived.eta)}</span>
+                                                </div>`
+                                                : ""
+                                        }
                                         <div class="viajes-panel-route-stop">
                                             <span class="viajes-panel-route-dot-large" style="--route-dot:oklch(0.61 0.22 27)">${_viajesIcon("gps")}</span>
                                             <span class="viajes-panel-route-label">Destino</span>
@@ -14546,13 +14989,14 @@
                                 <div class="viajes-panel-summary-stats">
                                     <div class="viajes-panel-summary-stat"><span>Cliente</span><strong>${escapeHtml(v.cliente || "-")}</strong></div>
                                     <div class="viajes-panel-summary-stat"><span>Estado</span><strong>${escapeHtml(_viajeEstadoLabel(v.estado))}</strong></div>
-                                    <div class="viajes-panel-summary-stat"><span>GPS pendiente</span><strong>${resumen.gpsPendientes || 0}</strong></div>
+                                    <div class="viajes-panel-summary-stat"><span>GPS tramos</span><strong>${resumen.total - (resumen.gpsPendientes || 0)}/${resumen.total || 0}</strong></div>
                                     <div class="viajes-panel-summary-stat"><span>Incidencias</span><strong>${incidencias.length || 0}</strong></div>
                                     <div class="viajes-panel-summary-stat"><span>Salida</span><strong>${_fmtViajeDt(derived.salida)}</strong></div>
                                     <div class="viajes-panel-summary-stat"><span>ETA</span><strong>${_fmtViajeDt(derived.eta)}</strong></div>
                                     <div class="viajes-panel-summary-stat"><span>Origen</span><strong>${escapeHtml(derived.origen)}</strong></div>
                                     <div class="viajes-panel-summary-stat"><span>Destino</span><strong>${escapeHtml(derived.destino)}</strong></div>
                                 </div>
+                                ${_renderViajePanelGpsResumen(tramos)}
                             </div>
                         </section>
                         <section class="viajes-panel-section" id="viajes-panel-actions" tabindex="-1">
@@ -14581,15 +15025,64 @@
                             </div>
                         </section>
                     </div>
-                    <div class="viajes-panel-pane ${activeTab === "gps" ? "is-active" : ""}" id="viajes-panel-pane-gps" role="tabpanel" tabindex="-1">
-                        <section class="viajes-panel-section" id="viajes-panel-gps" tabindex="-1">
-                            <h3>Validacion GPS</h3>
-                            <div class="viajes-panel-timeline">
-                                ${tramos.length ? tramos.map((t) => _renderViajePanelGpsTramo(t)).join("") : _renderViajesEmptyState({ title: "Sin tramos para validar GPS", copy: "Cuando existan tramos, aquí aparecerá el avance de validación.", icon: "gps", compact: true })}
-                            </div>
-                        </section>
-                    </div>
                 </div>`;
+        }
+
+        function _renderViajePanelGpsResumen(tramos = []) {
+            if (!tramos.length) return "";
+            return `<div class="mt-3">
+                <div class="viajes-panel-summary-kicker">Validación GPS por tramo</div>
+                <div class="viajes-panel-summary-stats viajes-panel-gps-summary-grid mt-2">
+                    ${tramos
+                        .map((t) => {
+                            const gpsEstado = _parseGpsEstado(t.gps_estado);
+                            const resumenGps = _getGpsResumen(t.gps_estado);
+                            const completo = resumenGps.completo;
+                            const label = `T${escapeHtml(t.tramo_numero || "-")}`;
+                            const value = resumenGps.sinDatos
+                                ? "Sin validar"
+                                : `${resumenGps.validados}/${resumenGps.aplicables}`;
+                            const detail = resumenGps.sinDatos
+                                ? "Sin configuración"
+                                : completo
+                                  ? "Aplicables validados"
+                                  : `${resumenGps.pendientes} pendiente${resumenGps.pendientes !== 1 ? "s" : ""}`;
+                            const tone = completo
+                                ? "oklch(0.37 0.12 149)"
+                                : "oklch(0.42 0.17 27)";
+                            const chips = GPS_ITEMS.filter(
+                                (g) => gpsEstado[g.key] === GPS_STATUS.ok,
+                            )
+                                .map((g) => {
+                                    const status =
+                                        gpsEstado[g.key] ||
+                                        (gpsEstado.__legacySelectedOnly
+                                            ? GPS_STATUS.na
+                                            : GPS_STATUS.pending);
+                                    const cls =
+                                        status === GPS_STATUS.ok
+                                            ? "is-ok"
+                                            : status === GPS_STATUS.na
+                                              ? "is-na"
+                                              : "is-pending";
+                                    return `<span class="viajes-panel-gps-chip ${cls}" title="${escapeHtml(g.label)}: ${escapeHtml(_gpsStatusLabel(status))}">
+                                    ${escapeHtml(g.label)}
+                                </span>`;
+                                })
+                                .join("");
+                            return `<button type="button"
+                                            class="viajes-panel-summary-stat text-left"
+                                            style="--gps-summary-color:${tone}"
+                                            onclick="enfocarViajePanelSeccion('gps-tramo-${escapeHtml(t.id || "")}')">
+                                <span>${label} · ${escapeHtml(t.origen || "Origen")} → ${escapeHtml(t.destino || "Destino")}</span>
+                                <strong style="color:var(--gps-summary-color)">${escapeHtml(value)}</strong>
+                                <span>${escapeHtml(detail)}</span>
+                                ${chips ? `<div class="viajes-panel-gps-validations">${chips}</div>` : ""}
+                            </button>`;
+                        })
+                        .join("")}
+                </div>
+            </div>`;
         }
 
         function _renderViajePanelTramo(viaje, t) {
@@ -14598,9 +15091,8 @@
                 ? t.incidencias.length
                 : 0;
             const gpsEstado = _parseGpsEstado(t.gps_estado);
-            const gpsValidado =
-                GPS_ITEMS.length > 0 &&
-                GPS_ITEMS.every((g) => gpsEstado[g.key] === true);
+            const gpsResumen = _getGpsResumen(gpsEstado);
+            const gpsValidado = gpsResumen.completo;
             const estado = String(t.estado || "pendiente").toLowerCase();
             const timelineColor = retraso
                 ? "oklch(0.61 0.22 27)"
@@ -14698,6 +15190,7 @@
                     <div class="viajes-panel-tramo-metrics">
                         <div class="viajes-panel-tramo-metric"><span>Salida</span><strong>${salidaTexto}</strong></div>
                         <div class="viajes-panel-tramo-metric"><span>ETA</span><strong>${etaTexto}</strong></div>
+                        <div class="viajes-panel-tramo-metric"><span>Monitor</span><strong>${escapeHtml(t.operador_monitoreo || "Sin asignar")}</strong></div>
                         <div class="viajes-panel-tramo-metric"><span>GPS</span><strong>${gpsValidado ? "Validado" : "Pendiente"}</strong></div>
                         <div class="viajes-panel-tramo-metric"><span>Incidencias</span><strong>${incidencias || 0}</strong></div>
                     </div>
@@ -14719,45 +15212,12 @@
             </div>`;
         }
 
-        function _renderViajePanelGpsTramo(t) {
-            const gpsEstado = _parseGpsEstado(t.gps_estado);
-            const total = GPS_ITEMS.length || 0;
-            const validados = GPS_ITEMS.filter(
-                (g) => gpsEstado[g.key] === true,
-            ).length;
-            const completo = total > 0 && validados === total;
-            const estado = completo
-                ? "GPS validado"
-                : `${Math.max(total - validados, 0)} GPS pendiente${total - validados !== 1 ? "s" : ""}`;
-            return `<div class="viajes-panel-tramo" style="--timeline-color:${completo ? "oklch(0.62 0.16 149)" : "oklch(0.61 0.22 27)"};--timeline-line:oklch(0.86 0.02 255)">
-                <span class="viajes-panel-tramo-rail" aria-hidden="true">
-                    <span class="viajes-panel-tramo-node ${completo ? "is-complete" : ""}">${completo ? "✓" : ""}</span>
-                </span>
-                <div class="viajes-panel-tramo-card">
-                    <div class="viajes-panel-tramo-top">
-                        <div class="min-w-0">
-                            <div class="viajes-panel-tramo-title">Tramo ${escapeHtml(t.tramo_numero || "-")}</div>
-                            <div class="viajes-panel-tramo-meta">${escapeHtml(t.origen || "Origen")} -> ${escapeHtml(t.destino || "Destino")}</div>
-                            <span class="viajes-panel-tramo-status">${escapeHtml(estado)}</span>
-                        </div>
-                        <button type="button" class="viajes-card-action" onclick="enfocarViajePanelSeccion('gps-tramo-${escapeHtml(t.id || "")}')">${_viajesIcon("gps")} Abrir tramo</button>
-                    </div>
-                    <div class="viajes-progress-row mt-3">
-                        <div class="viajes-progress-track">
-                            <div class="viajes-progress-fill" style="width:${total ? Math.round((validados / total) * 100) : 0}%;--progress-color:${completo ? "oklch(0.62 0.16 149)" : "oklch(0.61 0.22 27)"}"></div>
-                        </div>
-                        <span class="viajes-progress-value">${validados}/${total}</span>
-                    </div>
-                </div>
-            </div>`;
-        }
-
         function _viajePanelTabFromAction(action = "resumen") {
             const map = {
                 editar: "resumen",
                 resumen: "resumen",
                 tramos: "tramos",
-                gps: "gps",
+                gps: "tramos",
                 incidencia: "incidencias",
                 incidencias: "incidencias",
             };
@@ -14857,8 +15317,7 @@
                 tramo
                     ?.querySelector("details.viajes-panel-tramo-operacion")
                     ?.setAttribute("open", "");
-                const gpsTarget =
-                    tramo?.querySelector("input.gps-check") || tramo;
+                const gpsTarget = tramo?.querySelector(".gps-check") || tramo;
                 gpsTarget?.scrollIntoView({
                     behavior: "smooth",
                     block: "center",
@@ -14875,7 +15334,7 @@
                 resumen: "#viajes-panel-pane-resumen",
                 tramos: "#viajes-panel-tramos",
                 editar: "#viajes-panel-actions",
-                gps: "#viajes-panel-gps",
+                gps: "#viajes-panel-tramos",
                 incidencia: "#viajes-panel-incidencias",
                 incidencias: "#viajes-panel-incidencias",
             };
@@ -14884,57 +15343,88 @@
                 .map((selector) => panel.querySelector(selector.trim()))
                 .find(Boolean);
             target?.scrollIntoView({ behavior: "smooth", block: "start" });
+            if (action === "gps") {
+                panel
+                    .querySelector("details.viajes-panel-tramo-operacion")
+                    ?.setAttribute("open", "");
+                const gpsControl = panel.querySelector(".gps-check");
+                if (gpsControl) {
+                    gpsControl.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                    });
+                    if (moveFocus)
+                        setTimeout(
+                            () => gpsControl.focus?.({ preventScroll: true }),
+                            120,
+                        );
+                    return;
+                }
+            }
             if (moveFocus)
                 setTimeout(() => target?.focus?.({ preventScroll: true }), 120);
         }
 
         function _seccionGps(t, viajeId) {
             const estado = _parseGpsEstado(t.gps_estado);
+            const resumenGps = _getGpsResumen(estado);
             const ts = t.gps_timestamp
                 ? `<span class="text-gray-400 text-xs ml-1">— ${_fmtDt(t.gps_timestamp)}</span>`
                 : "";
-            const todoOk = GPS_ITEMS.every((g) => estado[g.key] === true);
-            const alguno = GPS_ITEMS.some((g) => estado[g.key] !== undefined);
 
-            const headerColor = !alguno
+            const headerColor = resumenGps.sinDatos
                 ? TRAMO_UI_TOKENS.headerState.empty
-                : todoOk
+                : resumenGps.completo
                   ? TRAMO_UI_TOKENS.headerState.ok
                   : TRAMO_UI_TOKENS.headerState.warning;
 
-            const badgeGps = !alguno
+            const badgeGps = resumenGps.sinDatos
                 ? `<span class="text-xs text-gray-400 italic">Sin validar</span>`
-                : todoOk
-                  ? `<span class="text-xs font-semibold text-green-700">✅ Operativo</span>`
-                  : `<span class="text-xs font-semibold text-amber-600">⚠️ Con fallas</span>`;
+                : resumenGps.completo
+                  ? `<span class="text-xs font-semibold text-green-700">✅ ${resumenGps.validados}/${resumenGps.aplicables} aplicables</span>`
+                  : `<span class="text-xs font-semibold text-amber-600">⚠️ ${resumenGps.pendientes} pendiente${resumenGps.pendientes !== 1 ? "s" : ""}</span>`;
 
             const esLectorGps = !canEditViajes();
             const items = GPS_ITEMS.map((g) => {
-                const checked = estado[g.key] === true ? "checked" : "";
+                const currentStatus = estado[g.key] || GPS_STATUS.pending;
                 if (esLectorGps) {
                     // Solo lectura: icono de estado, sin checkbox interactivo
-                    const icon =
-                        estado[g.key] === true
-                            ? "✅"
-                            : estado[g.key] === false
-                              ? "❌"
-                              : "—";
                     return `
                         <span class="flex items-center gap-1.5 text-xs text-gray-600">
-                            <span>${icon}</span>
-                            <span>${g.label}</span>
+                            <span>${_gpsStatusIcon(currentStatus)}</span>
+                            <span>${g.label} · ${_gpsStatusLabel(currentStatus)}</span>
                         </span>`;
                 }
+                const checked =
+                    currentStatus === GPS_STATUS.ok ? "checked" : "";
+                const statusLabel =
+                    currentStatus === GPS_STATUS.ok
+                        ? "Validado"
+                        : currentStatus === GPS_STATUS.na
+                          ? "No aplica"
+                          : "Pendiente";
+                const statusClass =
+                    currentStatus === GPS_STATUS.ok
+                        ? "text-green-700"
+                        : currentStatus === GPS_STATUS.na
+                          ? "text-gray-500"
+                          : "text-amber-700";
                 return `
-                        <label class="flex items-center gap-2 text-xs cursor-pointer select-none min-h-10">
-                            <input type="checkbox" ${checked}
+                        <label class="flex min-h-10 items-center gap-2 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs hover:bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1">
+                            <input
+                                   type="checkbox"
                                    data-gps-key="${g.key}"
                                    data-tramo-id="${t.id}"
                                    data-viaje-id="${viajeId}"
+                                   data-original-status="${currentStatus}"
                                    aria-label="Validar ${escapeHtml(g.label)}"
-                                   class="gps-check w-5 h-5 rounded accent-blue-600"
-                                   onchange="guardarGpsTramo(${viajeId}, ${t.id})"/>
-                            <span class="${checked ? "text-gray-800" : "text-gray-500"}">${g.label}</span>
+                                   class="gps-check h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                   ${checked}
+                                   onchange="guardarGpsTramo(${viajeId}, ${t.id})" />
+                            <span class="min-w-0 flex-1">
+                                <span class="block font-semibold text-gray-700">${g.label}</span>
+                                <span class="block ${statusClass}">${statusLabel}</span>
+                            </span>
                         </label>`;
             }).join("");
 
@@ -14947,7 +15437,7 @@
                             </div>
                             ${badgeGps}
                         </div>
-                        <div class="py-2 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
+                        <div class="py-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
                             ${items}
                         </div>
                     </div>`;
@@ -14956,15 +15446,16 @@
         async function guardarGpsTramo(viajeId, tramoId) {
             if (!canEditViajes()) return denyReadOnlyViajes();
 
-            // Recolectar estado de todos los checkboxes de este tramo
-            const checks = document.querySelectorAll(
-                `input.gps-check[data-tramo-id="${tramoId}"]`,
-            );
             const gpsEstado = GPS_ITEMS.map((g) => {
                 const el = document.querySelector(
-                    `input.gps-check[data-tramo-id="${tramoId}"][data-gps-key="${g.key}"]`,
+                    `.gps-check[data-tramo-id="${tramoId}"][data-gps-key="${g.key}"]`,
                 );
-                return { key: g.key, ok: el ? el.checked : false };
+                const status = el?.checked
+                    ? GPS_STATUS.ok
+                    : el?.dataset?.originalStatus === GPS_STATUS.na
+                      ? GPS_STATUS.na
+                      : GPS_STATUS.pending;
+                return { key: g.key, status, ok: status === GPS_STATUS.ok };
             });
 
             try {
@@ -15723,8 +16214,8 @@
                                                       etiquetaInput: "Vacio:",
                                                   },
                                               ];
-                                              const renderFilas = (grupo) =>
-                                                  campos
+                                               const renderFilas = (grupo) =>
+                                                   campos
                                                       .filter(
                                                           (c) =>
                                                               c.campoReal &&
@@ -15791,12 +16282,29 @@
                                             </div>
                                         </div>`;
                                                           },
-                                                      )
-                                                      .join("");
-                                              return `<div class="mt-2 space-y-2">
-                                                <details open class="tramo-panel border-t border-gray-200">
-                                                  <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
-                                                    Salida de patio programada: ${fmtProg(t.salida_patio)}
+                                                       )
+                                                       .join("");
+                                               const operadorActual = t.operador_monitoreo || "";
+                                               const operadorModulo = `
+                                                 <div class="mt-2 rounded-lg border border-gray-200 bg-white p-3">
+                                                   <label for="ft-${t.id}-operador_monitoreo" class="block text-sm font-semibold text-gray-700 mb-1">ID del Operador de Monitoreo</label>
+                                                   ${
+                                                       esLectorTramo
+                                                           ? `<div class="text-sm font-semibold text-gray-800">${escapeHtml(operadorActual || "No asignado")}</div>`
+                                                           : `<select id="ft-${t.id}-operador_monitoreo"
+                                                                     class="tramo-control w-full border focus:outline-none focus:ring-2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-100"
+                                                                     onchange="guardarOperadorMonitoreoTramo(${viajeId},${t.id},this)">
+                                                                 <option value="">-- Seleccione --</option>
+                                                                 ${getOperadorMonitoreoOptions(operadorActual)}
+                                                              </select>`
+                                                   }
+                                                   <p class="mt-1 text-xs text-gray-500">Se guarda en la bitácora operativa de este tramo.</p>
+                                                 </div>`;
+                                               return `<div class="mt-2 space-y-2">
+                                                 ${operadorModulo}
+                                                 <details open class="tramo-panel border-t border-gray-200">
+                                                   <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
+                                                     Salida de patio programada: ${fmtProg(t.salida_patio)}
                                                   </summary>
                                                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">${renderFilas("patio")}</div>
                                                 </details>
@@ -16246,6 +16754,54 @@
                 renderViajes();
             } catch (e) {
                 alert("Error de red al guardar la fecha.");
+            }
+        }
+
+        async function guardarOperadorMonitoreoTramo(viajeId, tramoId, inputEl) {
+            if (!canEditViajes()) return denyReadOnlyViajes();
+
+            const valorEnvio = inputEl?.value?.trim() || null;
+
+            try {
+                const res = await fetch(
+                    trackerViajesApiUrl("actualizar_tramo", "PUT"),
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({
+                            tramo_id: tramoId,
+                            operador_monitoreo: valorEnvio,
+                        }),
+                    },
+                );
+                const json = await res.json().catch(() => ({}));
+
+                if (!res.ok || !json.ok) {
+                    alert(
+                        "No se pudo guardar el operador: " +
+                            (json.error || `Error ${res.status}`),
+                    );
+                    return;
+                }
+
+                const idxViaje = allViajesData.findIndex(
+                    (v) => v.viaje_id === viajeId,
+                );
+                if (idxViaje !== -1 && allViajesData[idxViaje].tramos) {
+                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(
+                        (t) => t.id === tramoId,
+                    );
+                    if (idxTramo !== -1) {
+                        allViajesData[idxViaje].tramos[
+                            idxTramo
+                        ].operador_monitoreo = valorEnvio;
+                    }
+                }
+                renderViajes();
+            } catch (e) {
+                alert("Error de red al guardar el operador de monitoreo.");
             }
         }
 

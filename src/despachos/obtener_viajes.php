@@ -234,6 +234,7 @@ try {
                 vt.id, vt.viaje_id, vt.tramo_numero,
                 vt.origen, vt.lugar_carga, vt.destino, vt.ruta,
                 vt.instrucciones,
+                vt.operador_monitoreo,
                 vt.gps_estado, vt.gps_timestamp,
                 vt.salida_patio,      vt.salida_patio_real,
                 vt.cita_carga,        vt.cita_carga_real,
@@ -280,6 +281,9 @@ try {
                 "destino" => (string) $t["destino"],
                 "ruta" => (string) $t["ruta"],
                 "instrucciones" => (string) $t["instrucciones"],
+                "operador_monitoreo" => $t["operador_monitoreo"]
+                    ? (string) $t["operador_monitoreo"]
+                    : null,
                 "gps_estado" => $t["gps_estado"]
                     ? (string) $t["gps_estado"]
                     : null,

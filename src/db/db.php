@@ -43,27 +43,35 @@ function connectDatabase() {
     $configs = getDbConfigs();
     $conn = null;
     $last_error = '';
+    $max_attempts = 3;
     
     foreach ($configs as $config) {
         if (empty($config['user']) || empty($config['db'])) {
             $last_error = 'Credenciales de base de datos no configuradas';
             continue;
         }
-        $conn = @new mysqli(
-            $config['host'],
-            $config['user'],
-            $config['pass'],
-            $config['db'],
-            intval($config['port'] ?? 3306)
-        );
-        
-        if (!$conn->connect_error) {
-            $conn->set_charset("utf8mb4");
-            return $conn;
+
+        for ($attempt = 1; $attempt <= $max_attempts; $attempt++) {
+            $conn = @new mysqli(
+                $config['host'],
+                $config['user'],
+                $config['pass'],
+                $config['db'],
+                intval($config['port'] ?? 3306)
+            );
+
+            if (!$conn->connect_error) {
+                $conn->set_charset("utf8mb4");
+                return $conn;
+            }
+
+            $last_error = $conn->connect_error;
+            $conn = null;
+
+            if ($attempt < $max_attempts) {
+                usleep(250000);
+            }
         }
-        
-        $last_error = $conn->connect_error;
-        $conn = null;
     }
     
     if (DEBUG) {

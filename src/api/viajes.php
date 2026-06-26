@@ -167,6 +167,7 @@ function format_tramo_response($tramo) {
     'salida_carga_real' => $tramo['salida_carga_real'] !== null ? (string)$tramo['salida_carga_real'] : null,
     'descarga_real' => $tramo['descarga_real'] !== null ? (string)$tramo['descarga_real'] : null,
     'vacio_real' => $tramo['vacio_real'] !== null ? (string)$tramo['vacio_real'] : null,
+    'operador_monitoreo' => $tramo['operador_monitoreo'] !== null ? (string)$tramo['operador_monitoreo'] : null,
   ];
 }
 
@@ -360,6 +361,19 @@ try {
       $campos[] = 'estado = ?';
       $types .= 's';
       $params[] = $estado;
+    }
+
+    if (array_key_exists('operador_monitoreo', $data)) {
+      $operador_monitoreo = str_or_null($data['operador_monitoreo']);
+      if ($operador_monitoreo !== null) {
+        $operadores_validos = ['GEO-01', 'GEO-02', 'GEO-03', 'GEO-04', 'GEO-05', 'GEO-06'];
+        if (!in_array($operador_monitoreo, $operadores_validos, true)) {
+          resp_err('Operador de monitoreo inválido.', 400);
+        }
+      }
+      $campos[] = 'operador_monitoreo = ?';
+      $types .= 's';
+      $params[] = $operador_monitoreo;
     }
 
     if (count($campos) === 0) {
