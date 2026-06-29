@@ -67,6 +67,122 @@ function bind_stmt_params($stmt, $types, $params) {
   call_user_func_array([$stmt, 'bind_param'], $refs);
 }
 
+function tramo_field_has_value($value) {
+  return trim((string)($value ?? '')) !== '';
+}
+
+function infer_tramo_estado_automatico($tramo, $campos_fecha_actualizados) {
+  $estado_actual = (string)($tramo['estado'] ?? 'pendiente');
+  if ($estado_actual === 'cancelado') {
+    return $estado_actual;
+  }
+
+  if ($estado_actual === 'completado') {
+    return $estado_actual;
+  }
+
+  $campos_inicio = [
+    'salida_patio_real',
+    'cita_carga_real',
+    'salida_carga_real',
+    'descarga_real',
+    'vacio_real',
+  ];
+  foreach ($campos_inicio as $campo) {
+    if (tramo_field_has_value($tramo[$campo] ?? null)) {
+      return 'en_curso';
+    }
+  }
+
+  return 'pendiente';
+}
+
+function activar_siguiente_tramo_pendiente($conn, $viaje_id, $tramo_numero) {
+  $stmt = $conn->prepare(
+    "SELECT id FROM viaje_tramos
+      WHERE viaje_id = ?
+        AND tramo_numero > ?
+        AND estado = 'pendiente'
+      ORDER BY tramo_numero ASC, id ASC
+      LIMIT 1"
+  );
+  if (!$stmt) {
+    throw new Exception('Error buscando siguiente tramo: ' . $conn->error);
+  }
+  $stmt->bind_param('ii', $viaje_id, $tramo_numero);
+  if (!$stmt->execute()) {
+    throw new Exception('Error ejecutando siguiente tramo: ' . $stmt->error);
+  }
+  $siguiente = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
+
+  if (!$siguiente) {
+    return null;
+  }
+
+  $siguiente_id = (int)$siguiente['id'];
+  $stmt = $conn->prepare(
+    "UPDATE viaje_tramos SET estado = 'en_curso' WHERE id = ?"
+  );
+  if (!$stmt) {
+    throw new Exception('Error preparando activar tramo: ' . $conn->error);
+  }
+  $stmt->bind_param('i', $siguiente_id);
+  if (!$stmt->execute()) {
+    throw new Exception('Error activando tramo: ' . $stmt->error);
+  }
+  $stmt->close();
+
+  return ['id' => $siguiente_id, 'estado' => 'en_curso'];
+}
+
+function sincronizar_estado_viaje_por_tramos($conn, $viaje_id) {
+  $stmt = $conn->prepare(
+    "SELECT
+        COUNT(*) AS total,
+        SUM(estado = 'completado') AS completados,
+        SUM(estado = 'en_curso') AS en_curso,
+        SUM(estado = 'pendiente') AS pendientes
+      FROM viaje_tramos
+      WHERE viaje_id = ? AND estado != 'cancelado'"
+  );
+  if (!$stmt) {
+    throw new Exception('Error preparando conteo de tramos: ' . $conn->error);
+  }
+  $stmt->bind_param('i', $viaje_id);
+  if (!$stmt->execute()) {
+    throw new Exception('Error contando tramos: ' . $stmt->error);
+  }
+  $resumen = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
+
+  $total = (int)($resumen['total'] ?? 0);
+  $completados = (int)($resumen['completados'] ?? 0);
+  $en_curso = (int)($resumen['en_curso'] ?? 0);
+
+  if ($total > 0 && $completados === $total) {
+    $estado = 'completado';
+  } elseif ($en_curso > 0 || $completados > 0) {
+    $estado = 'en_curso';
+  } else {
+    $estado = 'planificado';
+  }
+
+  $stmt = $conn->prepare(
+    "UPDATE viajes SET estado = ? WHERE id = ? AND estado != 'cancelado'"
+  );
+  if (!$stmt) {
+    throw new Exception('Error preparando estado de viaje: ' . $conn->error);
+  }
+  $stmt->bind_param('si', $estado, $viaje_id);
+  if (!$stmt->execute()) {
+    throw new Exception('Error actualizando estado de viaje: ' . $stmt->error);
+  }
+  $stmt->close();
+
+  return $estado;
+}
+
 function get_current_user_or_fail($conn) {
   require_once __DIR__ . '/../auth/jwt.php';
 
@@ -331,7 +447,8 @@ try {
 
   if ($action === 'actualizar_tramo') {
     $tramo_id = intval($data['tramo_id'] ?? 0);
-    get_tramo_with_access_or_fail($conn, $tramo_id, $user);
+    $tramo = get_tramo_with_access_or_fail($conn, $tramo_id, $user);
+    $estado_anterior = (string)($tramo['estado'] ?? 'pendiente');
 
     $campos_fecha = [
       'salida_patio_real',
@@ -343,16 +460,23 @@ try {
     $campos = [];
     $types = '';
     $params = [];
+    $campos_fecha_actualizados = [];
+    $estado_auto = null;
+    $estado_explicito = false;
 
     foreach ($campos_fecha as $campo) {
       if (array_key_exists($campo, $data)) {
+        $valor_fecha = to_mysql_datetime_or_null($data[$campo]);
         $campos[] = "$campo = ?";
         $types .= 's';
-        $params[] = to_mysql_datetime_or_null($data[$campo]);
+        $params[] = $valor_fecha;
+        $tramo[$campo] = $valor_fecha;
+        $campos_fecha_actualizados[] = $campo;
       }
     }
 
     if (array_key_exists('estado', $data)) {
+      $estado_explicito = true;
       $estado = trim((string)$data['estado']);
       $estados_validos = ['pendiente', 'en_curso', 'completado', 'cancelado'];
       if (!in_array($estado, $estados_validos, true)) {
@@ -361,6 +485,7 @@ try {
       $campos[] = 'estado = ?';
       $types .= 's';
       $params[] = $estado;
+      $tramo['estado'] = $estado;
     }
 
     if (array_key_exists('operador_monitoreo', $data)) {
@@ -374,6 +499,16 @@ try {
       $campos[] = 'operador_monitoreo = ?';
       $types .= 's';
       $params[] = $operador_monitoreo;
+    }
+
+    if (!$estado_explicito && count($campos_fecha_actualizados) > 0) {
+      $estado_auto = infer_tramo_estado_automatico($tramo, $campos_fecha_actualizados);
+      if ($estado_auto !== (string)$tramo['estado']) {
+        $campos[] = 'estado = ?';
+        $types .= 's';
+        $params[] = $estado_auto;
+        $tramo['estado'] = $estado_auto;
+      }
     }
 
     if (count($campos) === 0) {
@@ -393,7 +528,24 @@ try {
     }
     $stmt->close();
 
-    resp_ok(['tramo_id' => $tramo_id]);
+    $tramo_activado = null;
+    if ($estado_auto === 'completado' && $estado_anterior !== 'completado') {
+      try {
+        $tramo_activado = activar_siguiente_tramo_pendiente(
+          $conn,
+          (int)$tramo['viaje_id'],
+          (int)$tramo['tramo_numero']
+        );
+      } catch (Exception $e) {
+        resp_err($e->getMessage(), 500);
+      }
+    }
+
+    resp_ok([
+      'tramo_id' => $tramo_id,
+      'tramo' => format_tramo_response($tramo),
+      'tramo_activado' => $tramo_activado,
+    ]);
   }
 
   if ($action === 'completar_tramo') {
@@ -416,38 +568,12 @@ try {
       }
       $stmt->close();
 
-      $stmt = $conn->prepare(
-        "SELECT id FROM viaje_tramos
-          WHERE viaje_id = ?
-            AND tramo_numero > ?
-            AND estado = 'pendiente'
-          ORDER BY tramo_numero ASC, id ASC
-          LIMIT 1"
+      $tramo_activado = activar_siguiente_tramo_pendiente(
+        $conn,
+        $viaje_id,
+        $tramo_numero
       );
-      if (!$stmt) {
-        throw new Exception('Error buscando siguiente tramo: ' . $conn->error);
-      }
-      $stmt->bind_param('ii', $viaje_id, $tramo_numero);
-      $stmt->execute();
-      $siguiente = $stmt->get_result()->fetch_assoc();
-      $stmt->close();
-
-      $tramo_activado = null;
-      if ($siguiente) {
-        $siguiente_id = (int)$siguiente['id'];
-        $stmt = $conn->prepare(
-          "UPDATE viaje_tramos SET estado = 'en_curso' WHERE id = ?"
-        );
-        if (!$stmt) {
-          throw new Exception('Error preparando activar tramo: ' . $conn->error);
-        }
-        $stmt->bind_param('i', $siguiente_id);
-        if (!$stmt->execute()) {
-          throw new Exception('Error activando tramo: ' . $stmt->error);
-        }
-        $stmt->close();
-        $tramo_activado = ['id' => $siguiente_id, 'estado' => 'en_curso'];
-      }
+      $viaje_estado = sincronizar_estado_viaje_por_tramos($conn, $viaje_id);
 
       $conn->commit();
     } catch (Exception $e) {
@@ -458,6 +584,7 @@ try {
     resp_ok([
       'tramo_completado' => ['id' => $tramo_id, 'estado' => 'completado'],
       'tramo_activado' => $tramo_activado,
+      'viaje_estado' => $viaje_estado,
     ]);
   }
 

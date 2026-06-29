@@ -1788,6 +1788,134 @@
                 gap: 0.9rem;
                 margin-top: 0.75rem;
             }
+            .viajes-panel-timeline--summary {
+                gap: 0;
+                overflow: hidden;
+                border: 1px solid var(--color-line);
+                border-radius: 0.85rem;
+                background: var(--color-card);
+                box-shadow: 0 8px 18px oklch(0.35 0.02 255 / 0.05);
+            }
+            .viajes-panel-timeline-row {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 2.1rem minmax(0, 1fr) auto 1.6rem;
+                align-items: center;
+                gap: 0.75rem;
+                min-height: 4.1rem;
+                border: 0;
+                border-bottom: 1px solid var(--color-line);
+                background: var(--color-card);
+                padding: 0.7rem 0.8rem 0.7rem 0.3rem;
+                color: inherit;
+                text-align: left;
+                cursor: pointer;
+                transition:
+                    background-color 160ms var(--ease-out),
+                    border-color 160ms var(--ease-out);
+            }
+            .viajes-panel-timeline-row:last-child {
+                border-bottom: 0;
+            }
+            .viajes-panel-timeline-row:hover,
+            .viajes-panel-timeline-row:focus-visible {
+                background: oklch(0.982 0.006 255);
+                outline: none;
+            }
+            .viajes-panel-timeline-row:focus-visible {
+                box-shadow: inset 0 0 0 2px oklch(0.58 0.18 251 / 0.35);
+            }
+            .viajes-panel-timeline-rail {
+                position: relative;
+                align-self: stretch;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .viajes-panel-timeline-rail::before {
+                content: "";
+                position: absolute;
+                top: -0.75rem;
+                bottom: -0.75rem;
+                left: 50%;
+                width: 2px;
+                transform: translateX(-50%);
+                background: oklch(0.86 0.02 255);
+            }
+            .viajes-panel-timeline-row:first-child
+                .viajes-panel-timeline-rail::before {
+                top: 50%;
+            }
+            .viajes-panel-timeline-row:last-child
+                .viajes-panel-timeline-rail::before {
+                bottom: 50%;
+            }
+            .viajes-panel-timeline-node {
+                position: relative;
+                z-index: 1;
+                width: 1.35rem;
+                height: 1.35rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid var(--timeline-color, oklch(0.72 0.018 255));
+                border-radius: 9999px;
+                background: var(--color-card);
+                color: var(--timeline-color, var(--color-muted));
+                font-size: 0.65rem;
+                font-weight: 850;
+            }
+            .viajes-panel-timeline-node.is-complete {
+                background: var(--timeline-color, oklch(0.62 0.16 149));
+                color: var(--color-card);
+            }
+            .viajes-panel-timeline-copy {
+                min-width: 0;
+            }
+            .viajes-panel-timeline-kicker {
+                color: var(--color-muted);
+                font-size: 0.68rem;
+                font-weight: 750;
+            }
+            .viajes-panel-timeline-title {
+                display: block;
+                margin-top: 0.08rem;
+                overflow: hidden;
+                color: var(--color-text);
+                font-size: 0.82rem;
+                font-weight: 850;
+                line-height: 1.25;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .viajes-panel-timeline-status {
+                display: block;
+                margin-top: 0.12rem;
+                color: var(--timeline-color, var(--color-muted));
+                font-size: 0.7rem;
+                font-weight: 850;
+            }
+            .viajes-panel-timeline-time {
+                color: var(--color-text);
+                font-size: 0.78rem;
+                font-weight: 850;
+                white-space: nowrap;
+            }
+            .viajes-panel-timeline-chevron {
+                color: var(--color-muted);
+                font-size: 1rem;
+                font-weight: 850;
+                text-align: center;
+            }
+            #viajes-panel-pane-tramos .viajes-panel-timeline {
+                gap: 0.75rem;
+            }
+            #viajes-panel-pane-tramos .viajes-panel-tramo {
+                grid-template-columns: minmax(0, 1fr);
+            }
+            #viajes-panel-pane-tramos .viajes-panel-tramo-rail {
+                display: none;
+            }
             .viajes-panel-tramo {
                 display: grid;
                 grid-template-columns: 2.4rem minmax(0, 1fr);
@@ -2257,6 +2385,20 @@
                 .viajes-panel-section {
                     padding: 0.7rem;
                 }
+                .viajes-panel-timeline-row {
+                    grid-template-columns: 1.8rem minmax(0, 1fr) 1.2rem;
+                    gap: 0.55rem;
+                    padding-right: 0.65rem;
+                }
+                .viajes-panel-timeline-time {
+                    grid-column: 2;
+                    grid-row: 2;
+                    font-size: 0.74rem;
+                }
+                .viajes-panel-timeline-chevron {
+                    grid-column: 3;
+                    grid-row: 1 / span 2;
+                }
                 .viajes-panel-tramo {
                     grid-template-columns: 1.6rem minmax(0, 1fr);
                 }
@@ -2477,6 +2619,75 @@
                 background: var(--color-card);
                 scrollbar-gutter: stable;
             }
+            .lector-matrix-shell {
+                display: grid;
+                gap: 0.75rem;
+            }
+            .lector-matrix-summary {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+                border: 1px solid var(--color-line);
+                border-radius: 0.75rem;
+                background: var(--color-card);
+                padding: 0.75rem 0.9rem;
+            }
+            .lector-matrix-title {
+                color: var(--color-text);
+                font-size: 0.9rem;
+                font-weight: 850;
+                line-height: 1.25;
+            }
+            .lector-matrix-meta {
+                margin-top: 0.1rem;
+                color: var(--color-muted);
+                font-size: 0.74rem;
+                line-height: 1.35;
+            }
+            .lector-matrix-legend {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 0.45rem;
+                flex-wrap: wrap;
+            }
+            .lector-matrix-legend-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                min-height: 1.9rem;
+                border: 1px solid var(--color-line);
+                border-radius: 9999px;
+                background: var(--color-panel);
+                padding: 0.32rem 0.55rem;
+                color: var(--color-muted);
+                font-size: 0.7rem;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+            .lector-matrix-table-wrap {
+                max-height: min(70vh, 820px);
+            }
+            .lector-matrix-table {
+                min-width: 1320px;
+            }
+            .lector-matrix-table th:nth-child(1) {
+                width: 18%;
+            }
+            .lector-matrix-table th:nth-child(2),
+            .lector-matrix-table th:nth-child(3),
+            .lector-matrix-table th:nth-child(4),
+            .lector-matrix-table th:nth-child(5) {
+                width: 13.5%;
+            }
+            .lector-matrix-table th:nth-child(6) {
+                width: 15%;
+            }
+            .lector-matrix-table th:nth-child(7) {
+                width: 13%;
+            }
             .registro-board {
                 width: 100%;
                 min-width: 1180px;
@@ -2631,6 +2842,9 @@
             .registro-stage-dot--pending {
                 background: oklch(0.62 0.16 251);
             }
+            .registro-stage-dot--active {
+                background: oklch(0.7 0.14 85);
+            }
             .registro-stage-dot--late {
                 background: oklch(0.61 0.22 27);
             }
@@ -2672,6 +2886,89 @@
             }
             .registro-stage-time--real strong {
                 font-weight: 800;
+            }
+            .lector-delivery-stack,
+            .lector-progress-stack {
+                display: grid;
+                gap: 0.45rem;
+            }
+            .lector-delivery-route {
+                min-width: 0;
+                color: var(--color-text);
+                font-size: 0.75rem;
+                font-weight: 750;
+                line-height: 1.3;
+            }
+            .lector-delivery-meta {
+                display: block;
+                margin-top: 0.12rem;
+                color: var(--color-muted);
+                font-size: 0.68rem;
+                font-weight: 650;
+                line-height: 1.3;
+            }
+            .lector-gps-chip {
+                width: max-content;
+                max-width: 100%;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                border: 1px solid var(--gps-border, var(--color-line));
+                border-radius: 9999px;
+                background: var(--gps-bg, var(--color-panel));
+                color: var(--gps-color, var(--color-muted));
+                padding: 0.28rem 0.5rem;
+                font-size: 0.68rem;
+                font-weight: 850;
+                line-height: 1;
+                white-space: nowrap;
+            }
+            .lector-gps-chip--ok {
+                --gps-bg: oklch(0.953 0.05 149);
+                --gps-border: oklch(0.84 0.12 149);
+                --gps-color: oklch(0.37 0.12 149);
+            }
+            .lector-gps-chip--pending {
+                --gps-bg: oklch(0.947 0.035 251);
+                --gps-border: oklch(0.84 0.09 251);
+                --gps-color: oklch(0.39 0.14 251);
+            }
+            .lector-gps-chip--review {
+                --gps-bg: oklch(0.955 0.045 27);
+                --gps-border: oklch(0.84 0.12 27);
+                --gps-color: oklch(0.42 0.17 27);
+            }
+            .lector-progress-caption {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.5rem;
+                color: var(--color-muted);
+                font-size: 0.72rem;
+                font-weight: 800;
+            }
+            .lector-progress-caption strong {
+                color: var(--color-text);
+                font-variant-numeric: tabular-nums;
+            }
+            .lector-matrix-progress {
+                height: 0.45rem;
+                overflow: hidden;
+                border-radius: 9999px;
+                background: oklch(0.9 0.012 255);
+            }
+            .lector-matrix-progress > span {
+                display: block;
+                width: var(--progress, 0%);
+                height: 100%;
+                border-radius: inherit;
+                background: var(--progress-color, oklch(0.58 0.18 251));
+            }
+            .lector-next-event {
+                color: var(--color-muted);
+                font-size: 0.68rem;
+                font-weight: 700;
+                line-height: 1.3;
             }
             .registro-status-cell {
                 text-align: center;
@@ -3362,6 +3659,10 @@
                     font-weight: 800;
                     letter-spacing: 0.035em;
                     text-transform: uppercase;
+                }
+                .lector-matrix-table
+                    .registro-board-cell[data-label="Proceso de descarga"]::before {
+                    content: "Descarga";
                 }
                 .registro-board-cell:first-child {
                     display: block;
@@ -4941,6 +5242,61 @@
         </div>
 
         <div
+            id="tramo-validacion-completar-modal"
+            class="modal hidden fixed inset-0 flex items-center justify-center z-50 p-4"
+        >
+            <div
+                class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+                <div class="border-b border-gray-200 px-6 py-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h3
+                                id="tramo-validacion-completar-modal-title"
+                                class="text-xl font-bold text-gray-900"
+                            >
+                                Validar cierre de tramo
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Revisa pendientes antes de completar el tramo.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="cancelarValidacionCompletarTramo()"
+                            class="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                            aria-label="Cerrar validación"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                <div
+                    id="tramo-validacion-completar-modal-body"
+                    class="p-6"
+                ></div>
+                <div
+                    class="border-t border-gray-200 px-6 py-4 flex flex-col sm:flex-row sm:justify-end gap-3"
+                >
+                    <button
+                        type="button"
+                        onclick="cancelarValidacionCompletarTramo()"
+                        class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50"
+                    >
+                        Revisar pendientes
+                    </button>
+                    <button
+                        type="button"
+                        onclick="confirmarCompletarTramoValidado()"
+                        class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700"
+                    >
+                        Completar tramo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div
             id="login-modal"
             class="hidden modal fixed inset-0 flex items-center justify-center z-50 p-4"
         >
@@ -5740,6 +6096,8 @@
         let viajeDetalleActivoId = null;
         let viajeDetalleLastFocus = null;
         let viajesPanelActiveTab = "resumen";
+        let tramoValidacionCompletarPendiente = null;
+        let viajesPanelTramosOperacionAbiertos = {};
         let viajesViewDensity = "comoda";
         let viajesMonitorMode = false;
         let viajeDetallePersistidoId = null;
@@ -8238,17 +8596,17 @@
         }
 
         const INCIDENCIA_PROTOCOLOS = {
-            "Desconexión de batería": {
+            desconexion_bateria: {
                 nivel: "Crítica",
                 pasos: [
                     "Verificar si hubo corte de energía/tamper y hora del último ping válido.",
                     "Llamar al operador (1 intento inmediato). Si no responde en 5–10 min → tratar como Crítica.",
                     "Escalar a Seguridad patrimonial + Jefe de tráfico.",
                     "Activar seguimiento alterno (último punto, geocercas dinámicas, etc.).",
-                    "Si coincide con desvío/parada/zona de riesgo → proceder como “Robo/Asalto”.",
+                    "Si coincide con desvío/parada/zona de riesgo → proceder como 'Robo/Asalto'.",
                 ],
             },
-            "Botón de pánico": {
+            boton_panico: {
                 nivel: "Crítica",
                 pasos: [
                     "Confirmar evento en plataforma (hora, ubicación, velocidad, rumbo).",
@@ -8258,7 +8616,7 @@
                     "Activar protocolo externo (911) y notificar aseguradora/cliente si corresponde.",
                 ],
             },
-            Persecución: {
+            persecucion: {
                 nivel: "Crítica",
                 pasos: [
                     "Escalar inmediato a Seguridad + Operaciones.",
@@ -8268,7 +8626,7 @@
                     "Comunicación controlada y bitácora detallada.",
                 ],
             },
-            "Accidente vehicular propio": {
+            accidente_vehicular: {
                 nivel: "Crítica",
                 pasos: [
                     "Confirmar estado del operador y ocupantes (lesiones / necesidad de emergencia).",
@@ -8278,7 +8636,7 @@
                     "Cierre con reporte y evidencias.",
                 ],
             },
-            "Robo o asalto": {
+            robo: {
                 nivel: "Crítica",
                 pasos: [
                     "Escalar inmediato a Seguridad + Operaciones (y aseguradora).",
@@ -8287,7 +8645,7 @@
                     "Gestionar comunicaciones con cliente y continuidad (plan alterno).",
                 ],
             },
-            "Despacho No Recibido": {
+            despacho_no_recibido: {
                 nivel: "Crítica",
                 pasos: [
                     "Confirmar datos del despacho: unidad, folio, destino, ventana de entrega y contacto del cliente.",
@@ -8301,7 +8659,7 @@
                 ],
             },
 
-            "Ausencia de actualización": {
+            ausencia_actualizacion: {
                 nivel: "Relevante",
                 pasos: [
                     "Confirmar último ping y calidad de señal.",
@@ -8309,7 +8667,7 @@
                     "Escalar según umbrales y contexto (zona/horario/carga).",
                 ],
             },
-            "Parada no autorizada": {
+            parada_no_autorizada: {
                 nivel: "Relevante",
                 pasos: [
                     "Validar duración y lugar (geocerca, punto autorizado, etc.).",
@@ -8318,7 +8676,7 @@
                     "Registrar y ajustar ETA.",
                 ],
             },
-            "Operador no contesta más de 2 veces": {
+            operador_no_contesta: {
                 nivel: "Relevante",
                 pasos: [
                     "Hacer 2 intentos en 5–7 min por canales distintos.",
@@ -8326,7 +8684,7 @@
                     "Escalar a Tráfico; si hay condiciones de riesgo → Seguridad.",
                 ],
             },
-            "Detención por faltas al reglamento de tránsito": {
+            faltas_transito: {
                 nivel: "Relevante",
                 pasos: [
                     "Confirmar ubicación y estatus (¿detenido formalmente o infracción?).",
@@ -8335,7 +8693,7 @@
                     "Registrar evidencia y datos de la autoridad (si aplica).",
                 ],
             },
-            "Falla mecánica": {
+            falla_mecanica: {
                 nivel: "Relevante",
                 pasos: [
                     "Indicar al operador ubicarse en punto seguro y activar intermitentes.",
@@ -8344,7 +8702,7 @@
                     "Si zona de riesgo: involucrar Seguridad.",
                 ],
             },
-            "Ponchadura de llantas": {
+            ponchadura_llantas: {
                 nivel: "Relevante",
                 pasos: [
                     "Confirmar ubicación segura para detenerse.",
@@ -8352,7 +8710,7 @@
                     "Registrar tiempo fuera de operación y ajustar ETA.",
                 ],
             },
-            "Cierres carreteros": {
+            cierre_carreteros: {
                 nivel: "Relevante",
                 pasos: [
                     "Confirmar tramo afectado y ruta alterna autorizada.",
@@ -8360,7 +8718,7 @@
                     "Ajustar ETA, notificar cliente y registrar causa externa.",
                 ],
             },
-            "Condiciones climatológicas": {
+            condiciones_climatologicas: {
                 nivel: "Relevante",
                 pasos: [
                     "Evaluar riesgo: reducir velocidad/pausar operación según política.",
@@ -8369,7 +8727,7 @@
                     "Registrar evento para análisis.",
                 ],
             },
-            "Sin contacto con el operador": {
+            sin_contacto_operador: {
                 nivel: "Relevante",
                 pasos: [
                     "Hacer 2 intentos (llamada + mensaje) en 5–7 min.",
@@ -8378,7 +8736,7 @@
                     "Definir acción (punto seguro / verificación física, según operación).",
                 ],
             },
-            "Desvío de ruta": {
+            desvio_ruta: {
                 nivel: "Relevante",
                 pasos: [
                     "Medir distancia/tiempo fuera de ruta y si se aleja del destino.",
@@ -8387,7 +8745,7 @@
                     "Actualizar ETA y notificar si impacta entrega.",
                 ],
             },
-            "Vehículo sospechoso": {
+            vehiculo_sospechoso: {
                 nivel: "Relevante",
                 pasos: [
                     "Contactar operador y pedir descripción breve (sin distraer).",
@@ -8397,7 +8755,7 @@
                 ],
             },
 
-            "Salida a destiempo": {
+            salida_destiempo: {
                 nivel: "Ordinaria",
                 pasos: [
                     "Recalcular ETA y notificar al cliente/almacén.",
@@ -8405,7 +8763,7 @@
                     "Registrar para mejora (KPI puntualidad).",
                 ],
             },
-            "Desconocimiento de lugar de entrega": {
+            desconocimiento_lugar_entrega: {
                 nivel: "Ordinaria",
                 pasos: [
                     "Proveer indicaciones y contacto del cliente.",
@@ -8413,7 +8771,7 @@
                     "Documentar para actualizar instrucciones de entrega.",
                 ],
             },
-            "Mala actitud del Operador": {
+            mala_actitud_operador: {
                 nivel: "Ordinaria",
                 pasos: [
                     "Interacción breve y profesional: recordar procedimiento.",
@@ -8440,7 +8798,9 @@
             const bodyEl = document.getElementById("protocolo-modal-body");
             if (!titleEl || !bodyEl) return;
 
-            titleEl.textContent = `Protocolo: ${tipo}`;
+            const label =
+                TIPOS_INCIDENCIA.find((t) => t.value === tipo)?.label ?? tipo;
+            titleEl.textContent = `Protocolo: ${label}`;
             if (!item) {
                 bodyEl.innerHTML = `<p class="text-gray-600">No hay protocolo configurado para esta incidencia.</p>`;
                 openModal("protocolo-modal");
@@ -8756,14 +9116,7 @@
         }
 
         function getOperadorMonitoreoOptions(selected = "") {
-            return [
-                "GEO-01",
-                "GEO-02",
-                "GEO-03",
-                "GEO-04",
-                "GEO-05",
-                "GEO-06",
-            ]
+            return ["GEO-01", "GEO-02", "GEO-03", "GEO-04", "GEO-05", "GEO-06"]
                 .map(
                     (v) =>
                         `<option value="${v}" ${selected === v ? "selected" : ""}>${v}</option>`,
@@ -8832,14 +9185,14 @@
         function formatGpsEstado(gpsValidacionEstado) {
             const resumen = _getGpsResumen(gpsValidacionEstado);
             if (resumen.sinDatos) return "GPS no validado";
-            if (resumen.completo) {
-                return `${resumen.validados}/${resumen.aplicables} aplicables validados`;
+            if (resumen.conValidacion) {
+                return `${resumen.validados} validación${resumen.validados !== 1 ? "es" : ""}`;
             }
             return `${resumen.pendientes} pendiente${resumen.pendientes !== 1 ? "s" : ""}, ${resumen.noAplica} no aplica`;
         }
 
         function isGpsOperativo(gpsValidacionEstado) {
-            return _getGpsResumen(gpsValidacionEstado).completo;
+            return _getGpsResumen(gpsValidacionEstado).conValidacion;
         }
         function updateTimeFieldStatus(fieldName) {
             const container = document.getElementById(`container-${fieldName}`);
@@ -9127,9 +9480,7 @@
             _syncUnidadSelectorByIndex(index);
             renderSeguimientoForm(index);
 
-            saveSeguimientoToDb(filteredDespachosData[index]).catch(
-                (err) => {},
-            );
+            persistSeguimientoAndTramo(filteredDespachosData[index]);
         }
 
         const SEGUIMIENTO_SAVE_ENDPOINT = phpApiPath(
@@ -9463,6 +9814,159 @@
             renderIncidenciasExecutiveReport();
 
             return json;
+        }
+
+        function formatDateTimeForTramoPayload(value) {
+            const s = String(value || "").trim();
+            return s ? s : null;
+        }
+
+        function applyTramoUpdateResponse(
+            viajeId,
+            tramoId,
+            json,
+            fallback = {},
+        ) {
+            const idViaje = parseInt(viajeId, 10);
+            const idTramo = parseInt(tramoId, 10);
+            if (!idViaje || !idTramo) return;
+
+            const idxViaje = allViajesData.findIndex(
+                (v) => parseInt(v.viaje_id || v.id, 10) === idViaje,
+            );
+            if (idxViaje === -1 || !allViajesData[idxViaje].tramos) return;
+
+            const tramos = allViajesData[idxViaje].tramos;
+            const idxTramo = tramos.findIndex(
+                (t) => parseInt(t.id, 10) === idTramo,
+            );
+            if (idxTramo === -1) return null;
+            const estadoAnterior = String(
+                tramos[idxTramo].estado || "pendiente",
+            ).toLowerCase();
+
+            const tramoActualizado = json?.tramo || {};
+            [
+                "salida_patio_real",
+                "cita_carga_real",
+                "salida_carga_real",
+                "descarga_real",
+                "vacio_real",
+                "operador_monitoreo",
+            ].forEach((campo) => {
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        tramoActualizado,
+                        campo,
+                    )
+                ) {
+                    tramos[idxTramo][campo] = tramoActualizado[campo];
+                } else if (
+                    Object.prototype.hasOwnProperty.call(fallback, campo)
+                ) {
+                    tramos[idxTramo][campo] = fallback[campo];
+                }
+            });
+
+            if (tramoActualizado.estado) {
+                tramos[idxTramo].estado = tramoActualizado.estado;
+            }
+
+            if (json?.tramo_activado?.id) {
+                const idxActivado = tramos.findIndex(
+                    (t) =>
+                        parseInt(t.id, 10) ===
+                        parseInt(json.tramo_activado.id, 10),
+                );
+                if (idxActivado !== -1) {
+                    tramos[idxActivado].estado =
+                        json.tramo_activado.estado || "en_curso";
+                }
+            }
+
+            allViajesData[idxViaje].tramos_completados = tramos.filter(
+                (t) => t.estado === "completado",
+            ).length;
+
+            const estadoActual = String(
+                tramos[idxTramo].estado || estadoAnterior,
+            ).toLowerCase();
+            return {
+                viajeId: idViaje,
+                tramoId: idTramo,
+                estadoAnterior,
+                estadoActual,
+                completadoAhora:
+                    estadoAnterior !== "completado" &&
+                    estadoActual === "completado",
+            };
+        }
+
+        async function syncTramoProgressFromSeguimiento(d) {
+            const tramoId = parseInt(d?.tramoId, 10);
+            const viajeId = parseInt(d?.viajeId, 10);
+            if (!tramoId || !viajeId) return null;
+
+            const payload = {
+                tramo_id: tramoId,
+                cita_carga_real: formatDateTimeForTramoPayload(d.realCarga),
+                salida_carga_real: formatDateTimeForTramoPayload(d.realSalida),
+                descarga_real: formatDateTimeForTramoPayload(d.realDescarga),
+                vacio_real: formatDateTimeForTramoPayload(d.realVacio),
+            };
+            const operador = String(d.operadorMonitoreoId || "").trim();
+            if (operador) payload.operador_monitoreo = operador;
+
+            const res = await fetch(
+                trackerViajesApiUrl("actualizar_tramo", "PUT"),
+                {
+                    method: "POST",
+                    headers: getAuthHeaders({
+                        "Content-Type": "application/json",
+                    }),
+                    body: JSON.stringify(payload),
+                },
+            );
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || !json.ok) {
+                throw new Error(json.error || `Error ${res.status}`);
+            }
+
+            const updateInfo = applyTramoUpdateResponse(
+                viajeId,
+                tramoId,
+                json,
+                payload,
+            );
+            renderViajes();
+            if (
+                payload.vacio_real &&
+                updateInfo?.estadoActual !== "completado"
+            ) {
+                setTimeout(
+                    () => abrirTramoValidacionCompletarModal(viajeId, tramoId),
+                    80,
+                );
+            }
+            return json;
+        }
+
+        function persistSeguimientoAndTramo(d) {
+            const jobs = [saveSeguimientoToDb(d)];
+            if (parseInt(d?.tramoId, 10) > 0) {
+                jobs.push(syncTramoProgressFromSeguimiento(d));
+            }
+
+            Promise.allSettled(jobs).then((results) => {
+                results.forEach((result) => {
+                    if (result.status === "rejected") {
+                        console.error(
+                            "Error guardando seguimiento/tramo",
+                            result.reason,
+                        );
+                    }
+                });
+            });
         }
 
         function populateRegistroFilter() {
@@ -11588,6 +12092,7 @@
                 aplicables: aplicables.length,
                 validados,
                 pendientes,
+                conValidacion: !sinDatos && validados > 0,
                 completo:
                     !sinDatos && aplicables.length > 0 && pendientes === 0,
             };
@@ -11675,9 +12180,9 @@
                     return false;
                 const estadoMap = _parseGpsEstado(f.gps_estado);
                 const resumenGps = _getGpsResumen(estadoMap);
-                if (filtroEstado === "validado" && !resumenGps.completo)
+                if (filtroEstado === "validado" && !resumenGps.conValidacion)
                     return false;
-                if (filtroEstado === "sin_validar" && resumenGps.completo)
+                if (filtroEstado === "sin_validar" && resumenGps.conValidacion)
                     return false;
                 return true;
             });
@@ -11703,19 +12208,19 @@
                     // Estados visuales del registro GPS.
                     const topBar = resumenGps.sinDatos
                         ? "border-gray-200"
-                        : resumenGps.completo
+                        : resumenGps.conValidacion
                           ? "border-green-200 bg-green-50"
                           : "border-amber-200 bg-amber-50";
 
                     const badgeCls = resumenGps.sinDatos
                         ? "bg-gray-100 text-gray-500"
-                        : resumenGps.completo
+                        : resumenGps.conValidacion
                           ? "bg-green-100 text-green-800"
                           : "bg-amber-100 text-amber-800";
                     const badgeTxt = resumenGps.sinDatos
                         ? "Sin validar"
-                        : resumenGps.completo
-                          ? `✅ ${resumenGps.validados}/${resumenGps.aplicables} validados`
+                        : resumenGps.conValidacion
+                          ? `✅ ${resumenGps.validados} validación${resumenGps.validados !== 1 ? "es" : ""}`
                           : `⚠️ ${resumenGps.pendientes} pendiente${resumenGps.pendientes !== 1 ? "s" : ""}`;
 
                     const tramoBadgeCls =
@@ -12015,6 +12520,8 @@
                     rows.push({
                         // Identificadores
                         despachoId: `${v.id}-${t.tramo_numero}`,
+                        viajeId: v.viaje_id || v.id || "",
+                        tramoId: t.id || "",
                         clienteId: v.cliente_id || "",
                         unidadId: v.unidad_id || "",
                         tramoNumero: t.tramo_numero,
@@ -12047,7 +12554,7 @@
                         citaDescarga: t.descarga_programada || "",
 
                         // Tiempos reales → calcularEstatusAutomatico los lee
-                        realSalidaUnidad: t.salida_patio || "",
+                        realSalidaUnidad: t.salida_patio_real || "",
                         realCarga: t.cita_carga_real || "",
                         realSalida: t.salida_carga_real || "",
                         realDescarga: t.descarga_real || "",
@@ -12225,6 +12732,122 @@
                 : Number.MAX_SAFE_INTEGER;
         }
 
+        function _getLectorTramoItems(viajes) {
+            return (Array.isArray(viajes) ? viajes : [])
+                .flatMap((viaje) =>
+                    (Array.isArray(viaje.tramos) ? viaje.tramos : []).map(
+                        (tramo) => ({
+                            viaje,
+                            tramo,
+                            status: _getLectorTramoStatus(viaje, tramo),
+                            nextMilestone: _getLectorNextMilestone(tramo),
+                        }),
+                    ),
+                )
+                .sort((a, b) => {
+                    if (a.status.priority !== b.status.priority) {
+                        return a.status.priority - b.status.priority;
+                    }
+                    if (a.nextMilestone !== b.nextMilestone) {
+                        return a.nextMilestone - b.nextMilestone;
+                    }
+                    return _fechaOrdenViaje(b.viaje) - _fechaOrdenViaje(a.viaje);
+                });
+        }
+
+        function _getLectorTramoProgress(tramo) {
+            const stages = [
+                [tramo.salida_patio, tramo.salida_patio_real],
+                [tramo.cita_carga, tramo.cita_carga_real],
+                [tramo.salida_carga, tramo.salida_carga_real],
+                [tramo.descarga_programada, tramo.descarga_real],
+            ];
+            const complete = stages.filter(([, real]) => !!real).length;
+            const total = stages.length;
+            return {
+                complete,
+                total,
+                percent: total ? Math.round((complete / total) * 100) : 0,
+            };
+        }
+
+        function _getLectorGpsStatus(tramo) {
+            const raw = String(tramo?.gps_estado || "").trim();
+            const resumen = _getGpsResumen(tramo?.gps_estado);
+            if (resumen.conValidacion) {
+                return { key: "ok", label: "GPS validado" };
+            }
+            if (raw && raw !== "[]" && raw !== "{}") {
+                return { key: "review", label: "Revisar GPS" };
+            }
+            return { key: "pending", label: "GPS pendiente" };
+        }
+
+        function _renderLectorGpsChip(tramo) {
+            const gps = _getLectorGpsStatus(tramo);
+            return `<span class="lector-gps-chip lector-gps-chip--${gps.key}">
+                <span class="registro-gps-dot registro-gps-dot--${gps.key === "ok" ? "ok" : "pending"}" aria-hidden="true"></span>
+                ${gps.label}
+            </span>`;
+        }
+
+        function _renderLectorLegend() {
+            return `<div class="lector-matrix-legend" aria-label="Leyenda de estados de matriz">
+                <span class="lector-matrix-legend-item"><span class="registro-stage-dot registro-stage-dot--complete" aria-hidden="true"></span>En tiempo</span>
+                <span class="lector-matrix-legend-item"><span class="registro-stage-dot registro-stage-dot--late" aria-hidden="true"></span>Retraso</span>
+                <span class="lector-matrix-legend-item"><span class="registro-stage-dot registro-stage-dot--active" aria-hidden="true"></span>En proceso</span>
+                <span class="lector-matrix-legend-item"><span class="registro-stage-dot registro-stage-dot--pending" aria-hidden="true"></span>Pendiente</span>
+                <span class="lector-matrix-legend-item"><span class="registro-stage-dot registro-stage-dot--none" aria-hidden="true"></span>Sin programar</span>
+                <span class="lector-matrix-legend-item"><span class="registro-gps-dot registro-gps-dot--pending" aria-hidden="true"></span>GPS pendiente</span>
+            </div>`;
+        }
+
+        function _renderLectorDeliveryCell(viaje, tramo, status) {
+            const entregaLabel =
+                status.key === "complete"
+                    ? "Realizado"
+                    : status.key === "cancelled"
+                      ? "Cancelado"
+                      : status.key === "late"
+                        ? "No realizado / revisar"
+                        : "Pendiente";
+            const route =
+                [tramo.origen, tramo.destino].filter(Boolean).join(" -> ") ||
+                tramo.ruta ||
+                "Ruta sin dato";
+            return `<div class="lector-delivery-stack">
+                ${_renderLectorStatusPill(status, entregaLabel)}
+                ${_renderLectorGpsChip(tramo)}
+                <span class="lector-delivery-route">
+                    ${escapeHtml(route)}
+                    <span class="lector-delivery-meta">${escapeHtml(viaje.cliente || "Cliente sin dato")}</span>
+                </span>
+            </div>`;
+        }
+
+        function _renderLectorProgressCell(tramo, status) {
+            const progress = _getLectorTramoProgress(tramo);
+            const next = _getLectorNextStage(tramo);
+            const progressColor =
+                status.key === "late"
+                    ? "oklch(0.61 0.22 27)"
+                    : status.key === "complete"
+                      ? "oklch(0.62 0.16 149)"
+                      : status.key === "active"
+                        ? "oklch(0.62 0.14 85)"
+                        : "oklch(0.58 0.18 251)";
+            return `<div class="lector-progress-stack">
+                <div class="lector-progress-caption">
+                    <span>${progress.complete}/${progress.total} hitos</span>
+                    <strong>${progress.percent}%</strong>
+                </div>
+                <div class="lector-matrix-progress" aria-hidden="true">
+                    <span style="--progress:${progress.percent}%;--progress-color:${progressColor}"></span>
+                </div>
+                <span class="lector-next-event">${escapeHtml(next.label)}: ${_fmtLectorBoardDate(next.value)}</span>
+            </div>`;
+        }
+
         function _renderLectorIncidencias(tramo) {
             const incidencias = Array.isArray(tramo.incidencias)
                 ? tramo.incidencias
@@ -12267,7 +12890,7 @@
             ];
             return `
                 <tr class="registro-detail-row">
-                    <td colspan="6">
+                    <td colspan="7">
                         <section id="${detailId}" class="registro-detail" aria-label="Detalle del tramo ${escapeHtml(tramo.tramo_numero || "")}">
                             <div class="registro-detail-grid">
                                 <div class="registro-detail-block">
@@ -12320,36 +12943,44 @@
             const key = `${viajeId}:${tramoId}`;
             const expanded = lectorTramoDetalleActivoKey === key;
             const detailId = `lector-tramo-detail-${viajeId}-${tramoId}`;
-            const gpsOk = isGpsOperativo(tramo.gps_estado);
             const tramoNumero = tramo.tramo_numero || "-";
+            const statusDot =
+                status.key === "complete"
+                    ? "complete"
+                    : status.key === "late"
+                      ? "late"
+                      : status.key === "active"
+                        ? "active"
+                        : status.key === "planned"
+                        ? "pending"
+                        : "none";
             return `
                 <tr class="registro-board-row registro-board-row--${status.key}">
-                    <td class="registro-board-cell" data-label="Unidad">
+                    <td class="registro-board-cell" data-label="Unidad / Tramo">
                         <button type="button"
                                 class="registro-unit-button"
                                 data-lector-tramo-key="${key}"
                                 aria-expanded="${expanded ? "true" : "false"}"
                                 aria-controls="${detailId}"
                                 onclick="toggleLectorTramoDetalle('${key}')">
-                            <span class="registro-gps-dot registro-gps-dot--${gpsOk ? "ok" : "pending"}" aria-hidden="true"></span>
+                            <span class="registro-stage-dot registro-stage-dot--${statusDot}" aria-hidden="true"></span>
                             <span class="min-w-0 flex-1">
                                 <span class="block text-sm font-extrabold text-gray-900">${escapeHtml(viaje.unidad || "Sin unidad")}</span>
                                 <span class="block text-xs font-semibold text-gray-700">Tramo ${escapeHtml(tramoNumero)}</span>
                                 <span class="block truncate text-xs text-gray-500">${escapeHtml(viaje.placas || "Sin placas")} · Folio ${escapeHtml(viaje.folio || "-")}</span>
-                                <span class="block mt-1 text-[11px] font-semibold ${gpsOk ? "text-green-700" : "text-gray-500"}">${gpsOk ? "GPS validado" : "GPS pendiente"}</span>
+                                <span class="block mt-1 text-[11px] font-semibold text-gray-500">${escapeHtml(viaje.operador || "Operador sin dato")}</span>
                             </span>
                             <svg class="h-4 w-4 flex-none text-gray-500 transition-transform ${expanded ? "rotate-180" : ""}" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                     </td>
-                    <td class="registro-board-cell" data-label="Salida inicial">${_renderLectorStage(tramo.salida_patio, tramo.salida_patio_real)}</td>
-                    <td class="registro-board-cell" data-label="Proceso de carga">${_renderLectorStage(tramo.cita_carga, tramo.cita_carga_real)}</td>
+                    <td class="registro-board-cell" data-label="Salida unidad">${_renderLectorStage(tramo.salida_patio, tramo.salida_patio_real)}</td>
+                    <td class="registro-board-cell" data-label="Carga">${_renderLectorStage(tramo.cita_carga, tramo.cita_carga_real)}</td>
                     <td class="registro-board-cell" data-label="Salida de carga">${_renderLectorStage(tramo.salida_carga, tramo.salida_carga_real)}</td>
                     <td class="registro-board-cell" data-label="Proceso de descarga">${_renderLectorStage(tramo.descarga_programada, tramo.descarga_real, { label: "Vacío", value: tramo.vacio_real })}</td>
-                    <td class="registro-board-cell registro-status-cell registro-status-cell--${status.key}" data-label="Estatus">
-                        <span class="registro-status-label"><span aria-hidden="true">${status.icon}</span>${status.label}</span>
-                    </td>
+                    <td class="registro-board-cell registro-status-cell registro-status-cell--${status.key}" data-label="Entrega / GPS">${_renderLectorDeliveryCell(viaje, tramo, status)}</td>
+                    <td class="registro-board-cell" data-label="Avance">${_renderLectorProgressCell(tramo, status)}</td>
                 </tr>
                 ${expanded ? _renderLectorTramoDetail(viaje, tramo, detailId) : ""}`;
         }
@@ -12554,7 +13185,7 @@
                 0,
             );
             const gpsPendientes = tramos.filter(
-                (tramo) => !_getGpsResumen(tramo.gps_estado).completo,
+                (tramo) => !_getGpsResumen(tramo.gps_estado).conValidacion,
             ).length;
             const primaryStatus = items
                 .map((item) => item.status)
@@ -12772,6 +13403,59 @@
         }
 
         function _renderLectorBoard(viajes) {
+            const matrixItems = _getLectorTramoItems(viajes);
+            if (!matrixItems.length) {
+                return `<div class="registro-board-state">
+                    <strong class="block text-gray-800">No hay tramos para mostrar</strong>
+                    <span class="mt-1 block text-sm">Ajusta el rango o los filtros de bÃºsqueda.</span>
+                </div>`;
+            }
+
+            const matrixTotals = matrixItems.reduce(
+                (acc, item) => {
+                    acc.retrasos += item.status.key === "late" ? 1 : 0;
+                    acc.gps += _getLectorGpsStatus(item.tramo).key === "ok" ? 0 : 1;
+                    acc.incidencias += Array.isArray(item.tramo.incidencias)
+                        ? item.tramo.incidencias.length
+                        : 0;
+                    return acc;
+                },
+                { retrasos: 0, gps: 0, incidencias: 0 },
+            );
+
+            return `<div class="lector-matrix-shell">
+                <div class="lector-matrix-summary">
+                    <div>
+                        <div class="lector-matrix-title">Matriz por tramo</div>
+                        <div class="lector-matrix-meta">${matrixItems.length} tramo${matrixItems.length !== 1 ? "s" : ""} visible${matrixItems.length !== 1 ? "s" : ""}. Prioridad por retraso, proceso, pendiente y cierre.</div>
+                    </div>
+                    ${_renderLectorLegend()}
+                </div>
+                <div class="lector-list-counters">
+                    <span class="lector-counter"><strong>${matrixItems.length}</strong> tramo${matrixItems.length !== 1 ? "s" : ""}</span>
+                    ${matrixTotals.retrasos ? `<span class="lector-counter" style="--counter-bg:oklch(0.955 0.045 27);--counter-border:oklch(0.84 0.12 27);--counter-color:oklch(0.42 0.17 27)"><strong>${matrixTotals.retrasos}</strong> retraso${matrixTotals.retrasos !== 1 ? "s" : ""}</span>` : ""}
+                    ${matrixTotals.gps ? `<span class="lector-counter" style="--counter-bg:oklch(0.947 0.035 251);--counter-border:oklch(0.84 0.09 251);--counter-color:oklch(0.39 0.14 251)"><strong>${matrixTotals.gps}</strong> GPS pendiente${matrixTotals.gps !== 1 ? "s" : ""}</span>` : ""}
+                    ${matrixTotals.incidencias ? `<span class="lector-counter" style="--counter-bg:oklch(0.955 0.06 85);--counter-border:oklch(0.86 0.12 85);--counter-color:oklch(0.4 0.105 72)"><strong>${matrixTotals.incidencias}</strong> incidencia${matrixTotals.incidencias !== 1 ? "s" : ""}</span>` : ""}
+                </div>
+                <div class="registro-board-shell lector-matrix-table-wrap">
+                    <table class="registro-board lector-matrix-table">
+                        <thead>
+                            <tr>
+                                <th>Unidad / Tramo</th>
+                                <th>Salida unidad</th>
+                                <th>Carga</th>
+                                <th>Salida carga</th>
+                                <th>Descarga</th>
+                                <th>Entrega / GPS</th>
+                                <th>Avance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${matrixItems.map(_renderLectorBoardRow).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
             const grupos = (viajes || [])
                 .map((viaje) => ({
                     viaje,
@@ -13173,9 +13857,19 @@
             renderViajes();
         }
 
-        function renderViajes() {
+        function renderViajes(options = {}) {
             const container = document.getElementById("viajes-container");
             if (!container) return;
+            const detallePanel = document.getElementById("viajes-detail-panel");
+            const detallePanelBody =
+                detallePanel?.querySelector(".viajes-panel-body");
+            const detallePanelBodyScrollTop = detallePanelBody?.scrollTop || 0;
+            const pageScrollTop = document.scrollingElement?.scrollTop || 0;
+            const activePanelControl =
+                detallePanel?.contains(document.activeElement) &&
+                document.activeElement?.id
+                    ? document.activeElement.id
+                    : "";
 
             const esLector = String(userRole || "").toLowerCase() === "lector";
             const tabViajes = document.getElementById("tab-0");
@@ -13220,12 +13914,12 @@
             listToolbar?.classList.toggle("hidden", esLector);
             if (title) {
                 title.textContent = esLector
-                    ? "Listado de seguimiento"
+                    ? "Matriz de seguimiento"
                     : "Viajes Planificados";
             }
             if (description) {
                 description.textContent = esLector
-                    ? "Unidades agrupadas con tramos prioritarios y detalle bajo demanda"
+                    ? "Consulta por tramo, estado operativo y prÃ³ximo hito de seguimiento"
                     : "Despachos multi-tramo y multi-día registrados desde el Planificador de Flotas";
             }
 
@@ -13367,15 +14061,29 @@
             datos = _ordenarViajes(datos, ordenViajes);
 
             container.innerHTML = _renderViajesAgrupados(datos);
-            if (viajeDetalleActivoId) {
-                const panel = document.getElementById("viajes-detail-panel");
+            if (viajeDetalleActivoId && !options.skipPanelRefresh) {
                 const viajePanel = datos.find(
                     (v) => String(v.viaje_id) === String(viajeDetalleActivoId),
                 );
-                if (panel && viajePanel) {
-                    panel.innerHTML = _renderViajePanel(viajePanel);
-                    panel.classList.add("is-open");
-                    panel.setAttribute("aria-hidden", "false");
+                if (detallePanel && viajePanel) {
+                    detallePanel.innerHTML = _renderViajePanel(viajePanel);
+                    detallePanel.classList.add("is-open");
+                    detallePanel.setAttribute("aria-hidden", "false");
+                    const restorePanelPosition = () => {
+                        const nextBody =
+                            detallePanel.querySelector(".viajes-panel-body");
+                        const nextActive = activePanelControl
+                            ? document.getElementById(activePanelControl)
+                            : null;
+                        nextActive?.focus?.({ preventScroll: true });
+                        if (nextBody)
+                            nextBody.scrollTop = detallePanelBodyScrollTop;
+                        if (document.scrollingElement)
+                            document.scrollingElement.scrollTop = pageScrollTop;
+                    };
+                    restorePanelPosition();
+                    requestAnimationFrame(restorePanelPosition);
+                    setTimeout(restorePanelPosition, 0);
                 }
             }
         }
@@ -13495,12 +14203,33 @@
                 .join(" ");
         }
 
+        const _CAMPOS_PROGRESO_TRAMO = [
+            "salida_patio_real",
+            "cita_carga_real",
+            "salida_carga_real",
+            "descarga_real",
+        ];
+
+        function _progresoFraccionario(tramos) {
+            // Completados valen 1, en_curso vale fracción de campos reales capturados, resto 0
+            return tramos.reduce((sum, t) => {
+                if (t.estado === "completado") return sum + 1;
+                if (t.estado === "en_curso") {
+                    const filled = _CAMPOS_PROGRESO_TRAMO.filter(
+                        (c) => t[c],
+                    ).length;
+                    return sum + filled / _CAMPOS_PROGRESO_TRAMO.length;
+                }
+                return sum;
+            }, 0);
+        }
+
         function _resumenViaje(v) {
             const tramos = Array.isArray(v.tramos) ? v.tramos : [];
             const total = Number(v.total_tramos || tramos.length || 0);
-            const completados =
-                Number(v.tramos_completados) ||
-                tramos.filter((t) => t.estado === "completado").length;
+            const completados = tramos.length
+                ? tramos.filter((t) => t.estado === "completado").length
+                : Number(v.tramos_completados || 0);
             const conRetraso = tramos
                 .map((t) => ({ t, retraso: _calcRetrasoTramo(t) }))
                 .filter((x) => x.retraso !== null);
@@ -13511,8 +14240,18 @@
                 0,
             );
             const gpsPendientes = tramos.filter(
-                (t) => !_getGpsResumen(t.gps_estado).completo,
+                (t) => !_getGpsResumen(t.gps_estado).conValidacion,
             ).length;
+            const estadoBase = String(v.estado || "planificado").toLowerCase();
+            const estadoOperativo =
+                estadoBase === "cancelado"
+                    ? "cancelado"
+                    : total > 0 && completados >= total
+                      ? "completado"
+                      : tramos.some((t) => t.estado === "en_curso") ||
+                          completados > 0
+                        ? "en_curso"
+                        : estadoBase;
             const activo =
                 tramos.find((t) => t.estado === "en_curso") ||
                 conRetraso[0]?.t ||
@@ -13532,20 +14271,30 @@
                 total,
                 completados,
                 progreso:
-                    total > 0 ? Math.round((completados / total) * 100) : 0,
+                    total > 0
+                        ? Math.round(
+                              (_progresoFraccionario(tramos) / total) * 100,
+                          )
+                        : 0,
                 siguiente: activo,
                 proximaFecha,
                 conRetraso,
-                tieneRetraso: conRetraso.length > 0 && v.estado !== "cancelado",
+                estadoOperativo,
+                tieneRetraso:
+                    conRetraso.length > 0 && estadoOperativo !== "cancelado",
                 incidencias,
                 tieneIncidencias: incidencias > 0,
                 gpsPendientes,
             };
         }
 
+        function _viajeEstadoOperativo(v) {
+            return _resumenViaje(v).estadoOperativo;
+        }
+
         function _renderListaViajes(viajes, scopeKey, opciones = {}) {
             const esHistorial = (v) =>
-                v.estado === "completado" || v.estado === "cancelado";
+                ["completado", "cancelado"].includes(_viajeEstadoOperativo(v));
             const activos = viajes
                 .filter((v) => !esHistorial(v))
                 .sort((a, b) => _fechaOrdenViaje(b) - _fechaOrdenViaje(a));
@@ -13593,7 +14342,7 @@
 
         function _renderHistorialConsolidado(viajes, scopeKey) {
             const esHistorial = (v) =>
-                v.estado === "completado" || v.estado === "cancelado";
+                ["completado", "cancelado"].includes(_viajeEstadoOperativo(v));
             const _fechaComplecion = (v) =>
                 v.ultima_descarga ||
                 v.fecha_fin ||
@@ -13634,7 +14383,7 @@
         // reutiliza _renderListaViajes para activos/recientes/historial (scope por unidad).
         function _renderViajesPorUnidad(viajes, clienteKey) {
             const esHistorial = (v) =>
-                v.estado === "completado" || v.estado === "cancelado";
+                ["completado", "cancelado"].includes(_viajeEstadoOperativo(v));
             const viajesActivos = viajes.filter((v) => !esHistorial(v));
             // Agrupar por unidad (clave estable: unidad_id; respaldo: nombre económico)
             const mapa = new Map();
@@ -13655,7 +14404,7 @@
             const _tieneRetraso = (vs) =>
                 vs.some(
                     (v) =>
-                        v.estado !== "cancelado" &&
+                        _viajeEstadoOperativo(v) !== "cancelado" &&
                         (v.tramos || []).some(
                             (t) => _calcRetrasoTramo(t) !== null,
                         ),
@@ -13663,7 +14412,9 @@
             const _tieneActivo = (vs) =>
                 vs.some(
                     (v) =>
-                        v.estado !== "completado" && v.estado !== "cancelado",
+                        !["completado", "cancelado"].includes(
+                            _viajeEstadoOperativo(v),
+                        ),
                 );
 
             const unidades = [...mapa.values()].sort((a, b) => {
@@ -13687,12 +14438,13 @@
 
                     const activos = u.viajes.filter(
                         (v) =>
-                            v.estado !== "completado" &&
-                            v.estado !== "cancelado",
+                            !["completado", "cancelado"].includes(
+                                _viajeEstadoOperativo(v),
+                            ),
                     ).length;
                     const conRetraso = u.viajes.filter(
                         (v) =>
-                            v.estado !== "cancelado" &&
+                            _viajeEstadoOperativo(v) !== "cancelado" &&
                             (v.tramos || []).some(
                                 (t) => _calcRetrasoTramo(t) !== null,
                             ),
@@ -13761,7 +14513,7 @@
             const _grupoTieneRetraso = (grupo) =>
                 grupo.some(
                     (v) =>
-                        v.estado !== "cancelado" &&
+                        _viajeEstadoOperativo(v) !== "cancelado" &&
                         (v.tramos || []).some(
                             (t) => _calcRetrasoTramo(t) !== null,
                         ),
@@ -13786,16 +14538,16 @@
                     const totalViajes = viajes.length;
                     const conRetraso = viajes.filter(
                         (v) =>
-                            v.estado !== "cancelado" &&
+                            _viajeEstadoOperativo(v) !== "cancelado" &&
                             (v.tramos || []).some(
                                 (t) => _calcRetrasoTramo(t) !== null,
                             ),
                     ).length;
                     const enCurso = viajes.filter(
-                        (v) => v.estado === "en_curso",
+                        (v) => _viajeEstadoOperativo(v) === "en_curso",
                     ).length;
                     const planificados = viajes.filter(
-                        (v) => v.estado === "planificado",
+                        (v) => _viajeEstadoOperativo(v) === "planificado",
                     ).length;
                     const nuevos = viajes.filter((v) =>
                         _esViajeNuevo(v),
@@ -14175,6 +14927,76 @@
             const target = document.getElementById("viajes-kpis");
             if (!target) return;
             const viajes = Array.isArray(datos) ? datos : [];
+            const esLector = String(userRole || "").toLowerCase() === "lector";
+            if (esLector) {
+                const items = _getLectorTramoItems(viajes);
+                const totalTramos = items.length;
+                const enCurso = items.filter(
+                    (item) => item.status.key === "active",
+                ).length;
+                const retrasos = items.filter(
+                    (item) => item.status.key === "late",
+                ).length;
+                const completados = items.filter(
+                    (item) => item.status.key === "complete",
+                ).length;
+                const gpsPendientes = items.filter(
+                    (item) => _getLectorGpsStatus(item.tramo).key !== "ok",
+                ).length;
+                const kpis = [
+                    {
+                        icon: "active",
+                        label: "Tramos visibles",
+                        value: totalTramos,
+                        hint: "Universo filtrado",
+                    },
+                    {
+                        icon: "route",
+                        label: "En curso",
+                        value: enCurso,
+                        hint: "Con movimiento operativo",
+                    },
+                    {
+                        icon: "alert",
+                        label: "Con retraso",
+                        value: retrasos,
+                        hint: "Requieren atenciÃ³n",
+                    },
+                    {
+                        icon: "check",
+                        label: "Completados",
+                        value: completados,
+                        hint: "Tramos cerrados",
+                    },
+                    {
+                        icon: "gps",
+                        label: "GPS pendiente",
+                        value: gpsPendientes,
+                        hint: "ValidaciÃ³n por revisar",
+                    },
+                ];
+                target.innerHTML = kpis
+                    .map(({ icon, label, value, hint }) => {
+                        const color =
+                            icon === "alert"
+                                ? "oklch(0.42 0.17 27)"
+                                : icon === "check"
+                                  ? "oklch(0.37 0.12 149)"
+                                  : icon === "route"
+                                    ? "oklch(0.4 0.105 72)"
+                                    : "oklch(0.39 0.14 251)";
+                        return `<article class="viajes-kpi-card" style="--kpi-color:${color};--kpi-bg:oklch(0.97 0.025 255)">
+                            <span class="viajes-kpi-symbol">${_viajesIcon(icon)}</span>
+                            <div>
+                                <div class="viajes-kpi-value">${value}</div>
+                                <div class="viajes-kpi-label">${label}</div>
+                                <div class="viajes-kpi-hint">${hint}</div>
+                            </div>
+                        </article>`;
+                    })
+                    .join("");
+                return;
+            }
             const total = viajes.length;
             const viajesActivos = viajes.filter(_viajeEstaActivo);
             const viajesEnCurso = viajes.filter((v) => v.estado === "en_curso");
@@ -14281,9 +15103,9 @@
 
         function _renderViajesBadges(v, resumen, visual) {
             const chips = [
-                `<span class="viajes-badge viajes-badge-state" style="--state-bg:${visual.bg};--state-border:${visual.border};--state-color:${visual.color}">${escapeHtml(_viajeEstadoLabel(v.estado))}</span>`,
+                `<span class="viajes-badge viajes-badge-state" style="--state-bg:${visual.bg};--state-border:${visual.border};--state-color:${visual.color}">${escapeHtml(_viajeEstadoLabel(resumen.estadoOperativo || v.estado))}</span>`,
             ];
-            if (resumen.tieneRetraso && v.estado !== "cancelado") {
+            if (resumen.tieneRetraso && resumen.estadoOperativo !== "cancelado") {
                 chips.push(
                     `<span class="viajes-badge" style="--badge-bg:oklch(0.955 0.045 27);--badge-border:oklch(0.84 0.12 27);--badge-color:oklch(0.42 0.17 27)">Con retraso</span>`,
                 );
@@ -14309,7 +15131,7 @@
         }
 
         function _getViajePrioridadOperativa(v, resumen) {
-            const estado = String(v?.estado || "").toLowerCase();
+            const estado = String(resumen?.estadoOperativo || v?.estado || "").toLowerCase();
             if (estado === "cancelado" || estado === "completado") {
                 return {
                     key: "closed",
@@ -14357,13 +15179,13 @@
         }
 
         function _getViajeCardVisualState(v, resumen) {
-            const estado = String(v?.estado || "").toLowerCase();
+            const estado = String(resumen?.estadoOperativo || v?.estado || "").toLowerCase();
             let key = "planned";
 
             if (!resumen.total) key = "empty";
             else if (estado === "cancelado") key = "cancelled";
-            else if (resumen.tieneRetraso) key = "late";
             else if (estado === "completado") key = "complete";
+            else if (resumen.tieneRetraso) key = "late";
             else if (estado === "en_curso") key = "active";
 
             const visual =
@@ -14761,6 +15583,7 @@
             const visual = _viajeCssState(visualState.key);
             const prioridad = _getViajePrioridadOperativa(v, resumen);
             const derived = _viajeDerived(v, resumen);
+            const estadoOperativo = resumen.estadoOperativo || v.estado;
             const placas = v.placas ? ` · ${v.placas}` : "";
             const registroTexto = _viajeRegistroTexto(v);
             const registroRecienteTexto = _viajeRegistroRecienteTexto(v);
@@ -14769,9 +15592,9 @@
                 : "";
             const styleVars = `--state-bg:${visual.bg};--state-border:${visual.border};--state-color:${visual.color};--progress-color:${visual.progress};--state-shadow:${visual.shadow};--state-shadow-strong:${visual.shadowStrong};--state-ring:${visual.ring};--priority-bg:${prioridad.bg};--priority-border:${prioridad.border};--priority-color:${prioridad.color}`;
             const stateLabel =
-                resumen.tieneRetraso && v.estado !== "cancelado"
+                resumen.tieneRetraso && estadoOperativo !== "cancelado"
                     ? "Atencion"
-                    : _viajeEstadoLabel(v.estado);
+                    : _viajeEstadoLabel(estadoOperativo);
             const actionClick = (action) =>
                 `abrirAccionViajePanel(${v.viaje_id}, '${action}', event)`;
 
@@ -14895,6 +15718,7 @@
                 ? '<span class="viajes-today-entry-marker">Ingreso de hoy</span>'
                 : "";
             const tramos = Array.isArray(v.tramos) ? v.tramos : [];
+            const estadoOperativo = resumen.estadoOperativo || v.estado;
             const incidencias = tramos.flatMap((t) =>
                 (Array.isArray(t.incidencias) ? t.incidencias : []).map(
                     (inc) => ({ ...inc, tramo_numero: t.tramo_numero }),
@@ -14903,9 +15727,9 @@
             const accionesEstado = !canEditViajes()
                 ? ""
                 : `
-                    ${v.estado !== "en_curso" && v.estado !== "completado" && v.estado !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)">En curso</button>` : ""}
-                    ${v.estado !== "completado" && v.estado !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)">Completar</button>` : ""}
-                    ${v.estado !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)" style="--action-color:oklch(0.42 0.17 27);--action-border:oklch(0.84 0.12 27);--action-bg:oklch(0.955 0.045 27)">Cancelar</button>` : ""}`;
+                    ${estadoOperativo !== "en_curso" && estadoOperativo !== "completado" && estadoOperativo !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)">En curso</button>` : ""}
+                    ${estadoOperativo !== "completado" && estadoOperativo !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)">Completar</button>` : ""}
+                    ${estadoOperativo !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)" style="--action-color:oklch(0.42 0.17 27);--action-border:oklch(0.84 0.12 27);--action-bg:oklch(0.955 0.045 27)">Cancelar</button>` : ""}`;
             const activeTab = ["resumen", "tramos", "incidencias"].includes(
                 viajesPanelActiveTab,
             )
@@ -14986,9 +15810,13 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div>
+                                    <div class="viajes-panel-summary-kicker">Linea de tiempo de tramos</div>
+                                    ${_renderViajePanelTimelineResumen(v, tramos)}
+                                </div>
                                 <div class="viajes-panel-summary-stats">
                                     <div class="viajes-panel-summary-stat"><span>Cliente</span><strong>${escapeHtml(v.cliente || "-")}</strong></div>
-                                    <div class="viajes-panel-summary-stat"><span>Estado</span><strong>${escapeHtml(_viajeEstadoLabel(v.estado))}</strong></div>
+                                    <div class="viajes-panel-summary-stat"><span>Estado</span><strong>${escapeHtml(_viajeEstadoLabel(estadoOperativo))}</strong></div>
                                     <div class="viajes-panel-summary-stat"><span>GPS tramos</span><strong>${resumen.total - (resumen.gpsPendientes || 0)}/${resumen.total || 0}</strong></div>
                                     <div class="viajes-panel-summary-stat"><span>Incidencias</span><strong>${incidencias.length || 0}</strong></div>
                                     <div class="viajes-panel-summary-stat"><span>Salida</span><strong>${_fmtViajeDt(derived.salida)}</strong></div>
@@ -15002,16 +15830,15 @@
                         <section class="viajes-panel-section" id="viajes-panel-actions" tabindex="-1">
                             <h3>Acciones operativas</h3>
                             <div class="viajes-panel-actions mt-3">
-                                <button type="button" class="viajes-card-action" onclick="enfocarViajePanelSeccion('tramos')">${_viajesIcon("route")} Ver tramos</button>
+                                <button type="button" class="viajes-card-action" onclick="setViajePanelTab('tramos')">${_viajesIcon("route")} Ver tramos</button>
                                 <button type="button" class="viajes-card-action" onclick="enfocarViajePanelSeccion('gps')">${_viajesIcon("gps")} Validar GPS</button>
                                 <button type="button" class="viajes-card-action" onclick="enfocarViajePanelSeccion('incidencia')">${_viajesIcon("incident")} Registrar incidencia</button>
-                                ${accionesEstado}
                             </div>
                         </section>
                     </div>
                     <div class="viajes-panel-pane ${activeTab === "tramos" ? "is-active" : ""}" id="viajes-panel-pane-tramos" role="tabpanel" tabindex="-1">
                         <section class="viajes-panel-section" id="viajes-panel-tramos" tabindex="-1">
-                            <h3>Linea de tiempo de tramos</h3>
+                            <h3>Operacion de tramos</h3>
                             <div class="viajes-panel-timeline">
                                 ${tramos.length ? tramos.map((t) => _renderViajePanelTramo(v, t)).join("") : _renderViajesEmptyState({ title: "Sin tramos registrados", copy: "Este viaje aún no tiene bitácora operativa por tramo.", icon: "route", compact: true })}
                             </div>
@@ -15037,17 +15864,15 @@
                         .map((t) => {
                             const gpsEstado = _parseGpsEstado(t.gps_estado);
                             const resumenGps = _getGpsResumen(t.gps_estado);
-                            const completo = resumenGps.completo;
+                            const conValidacion = resumenGps.conValidacion;
                             const label = `T${escapeHtml(t.tramo_numero || "-")}`;
-                            const value = resumenGps.sinDatos
+                            const value = !conValidacion
                                 ? "Sin validar"
-                                : `${resumenGps.validados}/${resumenGps.aplicables}`;
-                            const detail = resumenGps.sinDatos
-                                ? "Sin configuración"
-                                : completo
-                                  ? "Aplicables validados"
-                                  : `${resumenGps.pendientes} pendiente${resumenGps.pendientes !== 1 ? "s" : ""}`;
-                            const tone = completo
+                                : String(resumenGps.validados);
+                            const detail = !conValidacion
+                                ? "Sin validación registrada"
+                                : `${resumenGps.validados} validación${resumenGps.validados !== 1 ? "es" : ""}`;
+                            const tone = conValidacion
                                 ? "oklch(0.37 0.12 149)"
                                 : "oklch(0.42 0.17 27)";
                             const chips = GPS_ITEMS.filter(
@@ -15085,6 +15910,72 @@
             </div>`;
         }
 
+        function _renderViajePanelTimelineResumen(viaje, tramos = []) {
+            if (!tramos.length) {
+                return _renderViajesEmptyState({
+                    title: "Sin tramos registrados",
+                    copy: "Este viaje aun no tiene una secuencia operativa.",
+                    icon: "route",
+                    compact: true,
+                });
+            }
+
+            const estadoLabels = {
+                pendiente: "Pendiente",
+                planificado: "Pendiente",
+                en_curso: "En curso",
+                completado: "Completado",
+                cancelado: "Cancelado",
+            };
+            const colorByEstado = {
+                completado: "oklch(0.62 0.16 149)",
+                en_curso: "oklch(0.58 0.18 251)",
+                cancelado: "oklch(0.48 0.025 255)",
+                pendiente: "oklch(0.72 0.018 255)",
+                planificado: "oklch(0.72 0.018 255)",
+            };
+
+            return `<div class="viajes-panel-timeline viajes-panel-timeline--summary">
+                ${tramos
+                    .map((t) => {
+                        const estado = String(
+                            t.estado || "pendiente",
+                        ).toLowerCase();
+                        const inicio = t.salida_patio
+                            ? dayjs(t.salida_patio)
+                            : null;
+                        const fin = t.descarga_programada
+                            ? dayjs(t.descarga_programada)
+                            : null;
+                        const ventana =
+                            inicio?.isValid() && fin?.isValid()
+                                ? `${inicio.format("HH:mm")} - ${fin.format("HH:mm")}`
+                                : fin?.isValid()
+                                  ? `ETA ${fin.format("HH:mm")}`
+                                  : "ETA pendiente";
+                        const title = `${t.origen || "Origen"} -> ${t.destino || "Destino"}`;
+                        const timelineColor =
+                            colorByEstado[estado] || colorByEstado.pendiente;
+                        return `<button type="button"
+                                      class="viajes-panel-timeline-row"
+                                      style="--timeline-color:${timelineColor}"
+                                      onclick="abrirAccionViajePanel(${viaje.viaje_id},'gps-tramo-${escapeHtml(t.id || "")}',event)">
+                            <span class="viajes-panel-timeline-rail" aria-hidden="true">
+                                <span class="viajes-panel-timeline-node ${estado === "completado" ? "is-complete" : ""}">${estado === "completado" ? "✓" : ""}</span>
+                            </span>
+                            <span class="viajes-panel-timeline-copy">
+                                <span class="viajes-panel-timeline-kicker">Tramo ${escapeHtml(t.tramo_numero || "-")}</span>
+                                <strong class="viajes-panel-timeline-title">${escapeHtml(title)}</strong>
+                                <span class="viajes-panel-timeline-status">${escapeHtml(estadoLabels[estado] || estado)}</span>
+                            </span>
+                            <span class="viajes-panel-timeline-time">${escapeHtml(ventana)}</span>
+                            <span class="viajes-panel-timeline-chevron" aria-hidden="true">⌄</span>
+                        </button>`;
+                    })
+                    .join("")}
+            </div>`;
+        }
+
         function _renderViajePanelTramo(viaje, t) {
             const retraso = _calcRetrasoTramo(t);
             const incidencias = Array.isArray(t.incidencias)
@@ -15092,7 +15983,7 @@
                 : 0;
             const gpsEstado = _parseGpsEstado(t.gps_estado);
             const gpsResumen = _getGpsResumen(gpsEstado);
-            const gpsValidado = gpsResumen.completo;
+            const gpsValidado = gpsResumen.conValidacion;
             const estado = String(t.estado || "pendiente").toLowerCase();
             const timelineColor = retraso
                 ? "oklch(0.61 0.22 27)"
@@ -15153,8 +16044,17 @@
                 ...viaje,
                 tramos: [t],
             });
+            const acordeonKey = _viajePanelTramoOperacionKey(
+                viaje.viaje_id,
+                t.id,
+            );
             const acordeonAbierto =
-                estado === "en_curso" || !!retraso || incidencias > 0;
+                Object.prototype.hasOwnProperty.call(
+                    viajesPanelTramosOperacionAbiertos,
+                    acordeonKey,
+                )
+                    ? viajesPanelTramosOperacionAbiertos[acordeonKey]
+                    : estado === "en_curso" || !!retraso || incidencias > 0;
             const resumenAccion =
                 estado === "completado"
                     ? "Ver bitacora del tramo"
@@ -15199,7 +16099,7 @@
                         ${retraso ? `<span class="viajes-badge" style="--badge-bg:oklch(0.955 0.045 27);--badge-border:oklch(0.84 0.12 27);--badge-color:oklch(0.42 0.17 27)">Retraso ${_fmtRetraso(retraso.ms)}</span>` : ""}
                         ${incidencias ? `<span class="viajes-badge" style="--badge-bg:oklch(0.955 0.06 85);--badge-border:oklch(0.86 0.12 85);--badge-color:oklch(0.4 0.105 72)">${incidencias} incidencia${incidencias !== 1 ? "s" : ""}</span>` : ""}
                     </div>
-                    <details class="viajes-panel-tramo-operacion" ${acordeonAbierto ? "open" : ""}>
+                    <details class="viajes-panel-tramo-operacion" ontoggle="recordarViajePanelTramoOperacion(${viaje.viaje_id}, ${t.id}, this.open)" ${acordeonAbierto ? "open" : ""}>
                         <summary>
                             <span>${resumenAccion}</span>
                             <span class="viajes-meta-line">${gpsValidado ? "GPS validado" : "GPS pendiente"}</span>
@@ -15220,8 +16120,19 @@
                 gps: "tramos",
                 incidencia: "incidencias",
                 incidencias: "incidencias",
+                acciones: "acciones",
             };
             return map[action] || "resumen";
+        }
+
+        function _viajePanelTramoOperacionKey(viajeId, tramoId) {
+            return `${viajeId}:${tramoId}`;
+        }
+
+        function recordarViajePanelTramoOperacion(viajeId, tramoId, abierto) {
+            viajesPanelTramosOperacionAbiertos[
+                _viajePanelTramoOperacionKey(viajeId, tramoId)
+            ] = !!abierto;
         }
 
         function setViajePanelTab(tab = "resumen", moveFocus = true) {
@@ -15337,6 +16248,7 @@
                 gps: "#viajes-panel-tramos",
                 incidencia: "#viajes-panel-incidencias",
                 incidencias: "#viajes-panel-incidencias",
+                acciones: "#viajes-panel-actions",
             };
             const target = String(map[action] || map.tramos)
                 .split(",")
@@ -15374,14 +16286,14 @@
 
             const headerColor = resumenGps.sinDatos
                 ? TRAMO_UI_TOKENS.headerState.empty
-                : resumenGps.completo
+                : resumenGps.conValidacion
                   ? TRAMO_UI_TOKENS.headerState.ok
                   : TRAMO_UI_TOKENS.headerState.warning;
 
             const badgeGps = resumenGps.sinDatos
                 ? `<span class="text-xs text-gray-400 italic">Sin validar</span>`
-                : resumenGps.completo
-                  ? `<span class="text-xs font-semibold text-green-700">✅ ${resumenGps.validados}/${resumenGps.aplicables} aplicables</span>`
+                : resumenGps.conValidacion
+                  ? `<span class="text-xs font-semibold text-green-700">✅ ${resumenGps.validados} validación${resumenGps.validados !== 1 ? "es" : ""}</span>`
                   : `<span class="text-xs font-semibold text-amber-600">⚠️ ${resumenGps.pendientes} pendiente${resumenGps.pendientes !== 1 ? "s" : ""}</span>`;
 
             const esLectorGps = !canEditViajes();
@@ -15532,15 +16444,22 @@
                                     ${inc.direccion ? `<div class="text-xs text-gray-500 mt-0.5">📍 ${escapeHtml(inc.direccion)}</div>` : ""}
                                     ${inc.notas ? `<div class="text-xs text-gray-500 mt-0.5 italic">${escapeHtml(inc.notas)}</div>` : ""}
                                 </div>
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    <button type="button"
+                                            onclick="showProtocoloPorTipo(TIPOS_INCIDENCIA.find(t=>t.label==='${escapeHtml(inc.tipo)}')?.value ?? '${escapeHtml(inc.tipo)}')"
+                                            title="Ver protocolo"
+                                            aria-label="Ver protocolo de esta incidencia"
+                                            class="tramo-touch-button text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors">📋</button>
                                  ${
                                      puedeAgregar
                                          ? `
                                  <button type="button" onclick="eliminarIncidencia(${viajeId},${t.id},${inc.id})"
                                          title="Eliminar"
                                          aria-label="Eliminar incidencia"
-                                         class="tramo-touch-button flex-shrink-0 text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors">✕</button>`
+                                         class="tramo-touch-button text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors">✕</button>`
                                          : ""
                                  }
+                                </div>
                              </div>`;
                           })
                           .join("");
@@ -15589,15 +16508,21 @@
                                               class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"></textarea>
                                 </div>
                             </div>
-                            <div class="flex flex-wrap gap-2 justify-end">
-                                <button type="button" onclick="cerrarIncidenciaForm('${formId}')"
-                                        class="tramo-action-button border border-gray-300 text-gray-700 hover:bg-gray-100">
-                                    Cancelar
+                            <div class="flex flex-wrap gap-2 justify-between items-center">
+                                <button type="button" onclick="showProtocoloPorTipo(document.getElementById('${formId}-tipo').value)"
+                                        class="tramo-action-button border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100">
+                                    📋 Ver protocolo
                                 </button>
-                                <button type="button" onclick="guardarIncidencia(${viajeId},${t.id},'${formId}')"
-                                        class="tramo-action-button bg-red-600 text-white font-semibold hover:bg-red-700">
-                                    Guardar incidencia
-                                </button>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="cerrarIncidenciaForm('${formId}')"
+                                            class="tramo-action-button border border-gray-300 text-gray-700 hover:bg-gray-100">
+                                        Cancelar
+                                    </button>
+                                    <button type="button" onclick="guardarIncidencia(${viajeId},${t.id},'${formId}')"
+                                            class="tramo-action-button bg-red-600 text-white font-semibold hover:bg-red-700">
+                                        Guardar incidencia
+                                    </button>
+                                </div>
                             </div>
                         </div>`
                 : "";
@@ -15912,7 +16837,15 @@
                             </span>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="rounded-lg border border-gray-200 p-3">
+                            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Operador</div>
+                            <div class="mt-1 text-sm font-semibold text-gray-800">${escapeHtml(viaje.operador || "Sin operador asignado")}</div>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 p-3">
+                            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Operador de Monitoreo</div>
+                            <div class="mt-1 text-sm font-semibold text-gray-800">${escapeHtml(tramo.operador_monitoreo || "Sin asignar")}</div>
+                        </div>
                         <div class="rounded-lg border border-gray-200 p-3">
                             <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Ruta</div>
                             <div class="mt-1 text-sm font-semibold text-gray-800">${escapeHtml(tramo.ruta || "Sin ruta registrada")}</div>
@@ -15965,6 +16898,220 @@
                 );
             }
             openModal("tramo-completado-modal");
+        }
+
+        function _findViajeTramo(viajeId, tramoId) {
+            const viaje = allViajesData.find(
+                (v) => String(v.viaje_id) === String(viajeId),
+            );
+            const tramo = viaje?.tramos?.find(
+                (t) => String(t.id) === String(tramoId),
+            );
+            return { viaje, tramo };
+        }
+
+        function _getTramoCompletionPendientes(tramo) {
+            const pendientes = [];
+            const fechaCampos = [
+                ["Salida patio", tramo?.salida_patio_real],
+                ["Llegada carga", tramo?.cita_carga_real],
+                ["Salida carga", tramo?.salida_carga_real],
+                ["Arribo descarga", tramo?.descarga_real],
+                ["Vacio", tramo?.vacio_real],
+            ];
+            const fechasFaltantes = fechaCampos
+                .filter(([, value]) => !String(value || "").trim())
+                .map(([label]) => label);
+            if (fechasFaltantes.length) {
+                pendientes.push({
+                    label: "Fechas reales",
+                    detail: fechasFaltantes.join(", "),
+                    tone: "danger",
+                });
+            }
+
+            const gpsResumen = _getGpsResumen(tramo?.gps_estado);
+            if (!gpsResumen.conValidacion) {
+                const gpsEstado = _parseGpsEstado(tramo?.gps_estado);
+                const gpsPendientes = GPS_ITEMS.filter((g) => {
+                    const status =
+                        gpsEstado[g.key] ||
+                        (gpsEstado.__legacySelectedOnly
+                            ? GPS_STATUS.na
+                            : GPS_STATUS.pending);
+                    return status === GPS_STATUS.pending;
+                }).map((g) => g.label);
+                pendientes.push({
+                    label: "Validacion GPS",
+                    detail: gpsPendientes.length
+                        ? gpsPendientes.join(", ")
+                        : "Sin validacion registrada",
+                    tone: "warning",
+                });
+            }
+
+            if (!String(tramo?.operador_monitoreo || "").trim()) {
+                pendientes.push({
+                    label: "Operador de monitoreo",
+                    detail: "Sin ID asignado",
+                    tone: "warning",
+                });
+            }
+
+            const incidencias = Array.isArray(tramo?.incidencias)
+                ? tramo.incidencias
+                : [];
+            if (!incidencias.length) {
+                pendientes.push({
+                    label: "Incidencias",
+                    detail: "Sin incidencias registradas. Confirma que no aplica antes de cerrar.",
+                    tone: "info",
+                });
+            }
+
+            return pendientes;
+        }
+
+        function _getViajeCompletionPendientes(viaje) {
+            const pendientes = [];
+            const tramos = Array.isArray(viaje?.tramos) ? viaje.tramos : [];
+
+            if (!tramos.length) {
+                pendientes.push({
+                    label: "Tramos",
+                    detail: "Sin tramos registrados para completar el viaje.",
+                    tone: "danger",
+                });
+                return pendientes;
+            }
+
+            const tramosSinCompletar = tramos.filter(
+                (t) => String(t.estado || "").toLowerCase() !== "completado",
+            );
+            if (tramosSinCompletar.length) {
+                pendientes.push({
+                    label: "Tramos sin completar",
+                    detail: tramosSinCompletar
+                        .map(
+                            (t) =>
+                                `T${t.tramo_numero || "-"}: ${t.origen || "Origen"} -> ${t.destino || "Destino"}`,
+                        )
+                        .join("; "),
+                    tone: "danger",
+                });
+            }
+
+            tramos.forEach((tramo) => {
+                const tramoPendientes = _getTramoCompletionPendientes(tramo);
+                if (!tramoPendientes.length) return;
+                const tramoLabel = `T${tramo.tramo_numero || "-"}`;
+                tramoPendientes.forEach((p) => {
+                    pendientes.push({
+                        label: `${tramoLabel} · ${p.label}`,
+                        detail: p.detail,
+                        tone: p.tone,
+                    });
+                });
+            });
+
+            return pendientes;
+        }
+
+        function validarCompletarViaje(viajeId) {
+            const viaje = allViajesData.find(
+                (v) => String(v.viaje_id) === String(viajeId),
+            );
+            if (!viaje) return false;
+
+            const pendientes = _getViajeCompletionPendientes(viaje);
+            if (!pendientes.length) return true;
+
+            const detalle = pendientes
+                .map((p) => `• ${p.label}: ${p.detail}`)
+                .join("\n");
+            alert(
+                `No se puede completar el viaje todavía.\n\nFaltan datos por validar:\n${detalle}`,
+            );
+            return false;
+        }
+
+        function abrirTramoValidacionCompletarModal(viajeId, tramoId) {
+            const { viaje, tramo } = _findViajeTramo(viajeId, tramoId);
+            if (!viaje || !tramo) return;
+
+            tramoValidacionCompletarPendiente = { viajeId, tramoId };
+            const pendientes = _getTramoCompletionPendientes(tramo);
+            const titleEl = document.getElementById(
+                "tramo-validacion-completar-modal-title",
+            );
+            const bodyEl = document.getElementById(
+                "tramo-validacion-completar-modal-body",
+            );
+            if (titleEl) {
+                titleEl.textContent = `Validar tramo ${tramo.tramo_numero || ""}`;
+            }
+            if (bodyEl) {
+                const toneClass = {
+                    danger: "border-red-200 bg-red-50 text-red-800",
+                    warning: "border-amber-200 bg-amber-50 text-amber-800",
+                    info: "border-blue-200 bg-blue-50 text-blue-800",
+                };
+                const pendientesHtml = pendientes.length
+                    ? pendientes
+                          .map(
+                              (
+                                  p,
+                              ) => `<li class="rounded-lg border p-3 ${toneClass[p.tone] || toneClass.info}">
+                                <div class="text-sm font-bold">${escapeHtml(p.label)}</div>
+                                <div class="mt-1 text-sm">${escapeHtml(p.detail)}</div>
+                            </li>`,
+                          )
+                          .join("")
+                    : `<li class="rounded-lg border border-green-200 bg-green-50 p-3 text-green-800">
+                        <div class="text-sm font-bold">Listo para cerrar</div>
+                        <div class="mt-1 text-sm">No hay pendientes detectados para este tramo.</div>
+                    </li>`;
+                bodyEl.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Tramo</div>
+                            <div class="mt-1 text-sm font-semibold text-gray-900">
+                                ${escapeHtml(tramo.origen || "Origen")} -> ${escapeHtml(tramo.destino || "Destino")}
+                            </div>
+                            <div class="mt-1 text-xs text-gray-500">
+                                Unidad ${escapeHtml(viaje.unidad || "-")} · Folio ${escapeHtml(viaje.folio || "-")}
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">
+                            Ya se capturo el cierre operativo. Revisa estos puntos antes de marcar el tramo como completado.
+                        </p>
+                        <ul class="space-y-2">${pendientesHtml}</ul>
+                    </div>`;
+            }
+            openModal("tramo-validacion-completar-modal");
+        }
+
+        function cancelarValidacionCompletarTramo() {
+            const pending = tramoValidacionCompletarPendiente;
+            tramoValidacionCompletarPendiente = null;
+            closeModal("tramo-validacion-completar-modal");
+            if (pending?.viajeId && pending?.tramoId) {
+                enfocarViajePanelSeccion(`gps-tramo-${pending.tramoId}`, true);
+            }
+        }
+
+        function confirmarCompletarTramoValidado() {
+            const pending = tramoValidacionCompletarPendiente;
+            tramoValidacionCompletarPendiente = null;
+            closeModal("tramo-validacion-completar-modal");
+            if (!pending?.viajeId || !pending?.tramoId) return;
+            cambiarEstadoTramo(
+                pending.viajeId,
+                pending.tramoId,
+                "completado",
+                null,
+                { skipValidation: true },
+            );
         }
 
         function _renderTramosDetalle(viaje) {
@@ -16066,9 +17213,10 @@
                         ? t.incidencias.length
                         : 0;
                     const mostrarDetalle =
-                        t.estado === "en_curso" ||
-                        !!retrasoActual ||
-                        t.id === firstPendienteId;
+                        !apagado &&
+                        (t.estado === "en_curso" ||
+                            !!retrasoActual ||
+                            t.id === firstPendienteId);
                     if (!mostrarDetalle) {
                         const compactoClase = apagado
                             ? TRAMO_UI_TOKENS.row.mutedCompact
@@ -16214,8 +17362,8 @@
                                                       etiquetaInput: "Vacio:",
                                                   },
                                               ];
-                                               const renderFilas = (grupo) =>
-                                                   campos
+                                              const renderFilas = (grupo) =>
+                                                  campos
                                                       .filter(
                                                           (c) =>
                                                               c.campoReal &&
@@ -16282,10 +17430,11 @@
                                             </div>
                                         </div>`;
                                                           },
-                                                       )
-                                                       .join("");
-                                               const operadorActual = t.operador_monitoreo || "";
-                                               const operadorModulo = `
+                                                      )
+                                                      .join("");
+                                              const operadorActual =
+                                                  t.operador_monitoreo || "";
+                                              const operadorModulo = `
                                                  <div class="mt-2 rounded-lg border border-gray-200 bg-white p-3">
                                                    <label for="ft-${t.id}-operador_monitoreo" class="block text-sm font-semibold text-gray-700 mb-1">ID del Operador de Monitoreo</label>
                                                    ${
@@ -16300,7 +17449,7 @@
                                                    }
                                                    <p class="mt-1 text-xs text-gray-500">Se guarda en la bitácora operativa de este tramo.</p>
                                                  </div>`;
-                                               return `<div class="mt-2 space-y-2">
+                                              return `<div class="mt-2 space-y-2">
                                                  ${operadorModulo}
                                                  <details open class="tramo-panel border-t border-gray-200">
                                                    <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
@@ -16464,6 +17613,12 @@
             if (!canEditViajes()) return denyReadOnlyViajes();
 
             if (!viajeId || !nuevoEstado) return;
+            if (
+                nuevoEstado === "completado" &&
+                !validarCompletarViaje(viajeId)
+            ) {
+                return;
+            }
             let tramoCompletadoModalId = null;
 
             const confirmaciones = {
@@ -16479,6 +17634,46 @@
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = "⏳";
+            }
+
+            // Update optimista
+            const idxOpt = allViajesData.findIndex(
+                (v) => v.viaje_id === viajeId,
+            );
+            const snapViajeOpt =
+                idxOpt !== -1
+                    ? JSON.parse(JSON.stringify(allViajesData[idxOpt]))
+                    : null;
+            if (idxOpt !== -1) {
+                allViajesData[idxOpt].estado = nuevoEstado;
+                if (
+                    nuevoEstado === "completado" &&
+                    allViajesData[idxOpt].tramos
+                ) {
+                    allViajesData[idxOpt].tramos = allViajesData[
+                        idxOpt
+                    ].tramos.map((t) =>
+                        ["pendiente", "en_curso"].includes(t.estado)
+                            ? { ...t, estado: "completado" }
+                            : t,
+                    );
+                    allViajesData[idxOpt].tramos_completados = allViajesData[
+                        idxOpt
+                    ].tramos.filter((t) => t.estado === "completado").length;
+                }
+                if (
+                    nuevoEstado === "cancelado" &&
+                    allViajesData[idxOpt].tramos
+                ) {
+                    allViajesData[idxOpt].tramos = allViajesData[
+                        idxOpt
+                    ].tramos.map((t) =>
+                        t.estado !== "completado"
+                            ? { ...t, estado: "cancelado" }
+                            : t,
+                    );
+                }
+                renderViajes();
             }
 
             try {
@@ -16498,6 +17693,10 @@
                 const json = await res.json().catch(() => ({}));
 
                 if (!res.ok || !json.ok) {
+                    if (snapViajeOpt && idxOpt !== -1) {
+                        allViajesData[idxOpt] = snapViajeOpt;
+                        renderViajes();
+                    }
                     alert(
                         "No se pudo cambiar el estado: " +
                             (json.error || `Error ${res.status}`),
@@ -16564,6 +17763,10 @@
                     );
                 }
             } catch (e) {
+                if (snapViajeOpt && idxOpt !== -1) {
+                    allViajesData[idxOpt] = snapViajeOpt;
+                    renderViajes();
+                }
                 alert("Error de red al cambiar el estado.");
                 if (btn) {
                     btn.disabled = false;
@@ -16572,16 +17775,57 @@
             }
         }
 
-        async function cambiarEstadoTramo(viajeId, tramoId, nuevoEstado, btn) {
+        async function cambiarEstadoTramo(
+            viajeId,
+            tramoId,
+            nuevoEstado,
+            btn,
+            options = {},
+        ) {
             if (!canEditViajes()) return denyReadOnlyViajes();
 
             if (!viajeId || !tramoId || !nuevoEstado) return;
+            if (nuevoEstado === "completado" && !options.skipValidation) {
+                abrirTramoValidacionCompletarModal(viajeId, tramoId);
+                return;
+            }
             let tramoCompletadoModalId = null;
 
             const textoOrig = btn ? btn.innerHTML : "";
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = "⏳";
+            }
+
+            // Update optimista: reflejar cambio en UI antes de que responda el servidor
+            const idxViajeOpt = allViajesData.findIndex(
+                (v) => v.viaje_id === viajeId,
+            );
+            const snapOpt =
+                idxViajeOpt !== -1
+                    ? JSON.parse(JSON.stringify(allViajesData[idxViajeOpt]))
+                    : null;
+            if (idxViajeOpt !== -1 && allViajesData[idxViajeOpt].tramos) {
+                const tramosOpt = allViajesData[idxViajeOpt].tramos;
+                const idxT = tramosOpt.findIndex((t) => t.id === tramoId);
+                if (idxT !== -1) tramosOpt[idxT].estado = nuevoEstado;
+                if (nuevoEstado === "completado") {
+                    const sig = tramosOpt.find(
+                        (t, i) => i > idxT && t.estado === "pendiente",
+                    );
+                    if (sig) sig.estado = "en_curso";
+                }
+                allViajesData[idxViajeOpt].tramos_completados =
+                    tramosOpt.filter((t) => t.estado === "completado").length;
+                if (
+                    tramosOpt.length > 0 &&
+                    tramosOpt.every((t) => t.estado === "completado")
+                ) {
+                    allViajesData[idxViajeOpt].estado = "completado";
+                } else if (tramosOpt.some((t) => t.estado === "en_curso")) {
+                    allViajesData[idxViajeOpt].estado = "en_curso";
+                }
+                renderViajes();
             }
 
             try {
@@ -16605,6 +17849,11 @@
                 const json = await res.json().catch(() => ({}));
 
                 if (!res.ok || !json.ok) {
+                    // Revertir update optimista
+                    if (snapOpt && idxViajeOpt !== -1) {
+                        allViajesData[idxViajeOpt] = snapOpt;
+                        renderViajes();
+                    }
                     alert(
                         "No se pudo cambiar el estado del tramo: " +
                             (json.error || `Error ${res.status}`),
@@ -16616,48 +17865,45 @@
                     return;
                 }
 
-                // Actualizar estado local sin recargar
+                // Aplicar estado definitivo del servidor (puede diferir del optimista)
                 const idxViaje = allViajesData.findIndex(
                     (v) => v.viaje_id === viajeId,
                 );
                 if (idxViaje !== -1 && allViajesData[idxViaje].tramos) {
                     const tramos = allViajesData[idxViaje].tramos;
-
-                    if (usarCompletarTramo) {
-                        // Aplicar los dos cambios que devuelve el backend:
-                        // tramo_completado + tramo_activado (puede ser null)
-                        const completado = json.tramo_completado;
-                        const activado = json.tramo_activado;
-
+                    if (usarCompletarTramo && json.tramo_completado) {
                         const idxActual = tramos.findIndex(
-                            (t) => t.id === completado.id,
+                            (t) => t.id === json.tramo_completado.id,
                         );
                         if (idxActual !== -1) {
                             tramos[idxActual].estado = "completado";
                             tramoCompletadoModalId = tramos[idxActual].id;
                         }
-                        if (activado) {
+                        if (json.tramo_activado) {
                             const idxSig = tramos.findIndex(
-                                (t) => t.id === activado.id,
+                                (t) => t.id === json.tramo_activado.id,
                             );
-                            if (idxSig !== -1) {
+                            if (idxSig !== -1)
                                 tramos[idxSig].estado = "en_curso";
-                            }
                         }
                     } else {
-                        // Cambio simple (pendiente ← reactivar, etc.)
                         const idxTramo = tramos.findIndex(
                             (t) => t.id === tramoId,
                         );
-                        if (idxTramo !== -1) {
+                        if (idxTramo !== -1)
                             tramos[idxTramo].estado = nuevoEstado;
-                        }
                     }
-
-                    // Recalcular contadores
                     allViajesData[idxViaje].tramos_completados = tramos.filter(
                         (t) => t.estado === "completado",
                     ).length;
+                    if (json.viaje_estado) {
+                        allViajesData[idxViaje].estado = json.viaje_estado;
+                    } else if (
+                        tramos.length > 0 &&
+                        tramos.every((t) => t.estado === "completado")
+                    ) {
+                        allViajesData[idxViaje].estado = "completado";
+                    }
                 }
                 renderViajes();
                 if (usarCompletarTramo && tramoCompletadoModalId) {
@@ -16671,6 +17917,10 @@
                     );
                 }
             } catch (e) {
+                if (snapOpt && idxViajeOpt !== -1) {
+                    allViajesData[idxViajeOpt] = snapOpt;
+                    renderViajes();
+                }
                 alert("Error de red al cambiar el estado del tramo.");
                 if (btn) {
                     btn.disabled = false;
@@ -16712,6 +17962,21 @@
 
             const valorEnvio = valor || null;
 
+            // Update optimista: reflejar el campo en allViajesData para que la barra suba ya
+            const idxVOpt = allViajesData.findIndex(
+                (v) => v.viaje_id === viajeId,
+            );
+            if (idxVOpt !== -1) {
+                const tramosOpt = allViajesData[idxVOpt].tramos || [];
+                const tOpt = tramosOpt.find((t) => t.id === tramoId);
+                if (tOpt) {
+                    tOpt[campo] = valorEnvio
+                        ? valorEnvio.replace("T", " ") + ":00"
+                        : null;
+                    renderViajes({ skipPanelRefresh: true });
+                }
+            }
+
             try {
                 const res = await fetch(
                     trackerViajesApiUrl("actualizar_tramo", "PUT"),
@@ -16737,27 +18002,41 @@
                 }
 
                 // Actualizar en memoria → alertas se recalculan al re-renderizar
-                const idxViaje = allViajesData.findIndex(
-                    (v) => v.viaje_id === viajeId,
+                const updateInfo = applyTramoUpdateResponse(
+                    viajeId,
+                    tramoId,
+                    json,
+                    {
+                        [campo]: valorEnvio
+                            ? valorEnvio.replace("T", " ") + ":00"
+                            : null,
+                    },
                 );
-                if (idxViaje !== -1 && allViajesData[idxViaje].tramos) {
-                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(
-                        (t) => t.id === tramoId,
+                renderViajes({ skipPanelRefresh: true });
+                if (
+                    campo === "vacio_real" &&
+                    valorEnvio &&
+                    updateInfo?.estadoActual !== "completado"
+                ) {
+                    setTimeout(
+                        () =>
+                            abrirTramoValidacionCompletarModal(
+                                viajeId,
+                                tramoId,
+                            ),
+                        80,
                     );
-                    if (idxTramo !== -1) {
-                        allViajesData[idxViaje].tramos[idxTramo][campo] =
-                            valorEnvio
-                                ? valorEnvio.replace("T", " ") + ":00"
-                                : null;
-                    }
                 }
-                renderViajes();
             } catch (e) {
                 alert("Error de red al guardar la fecha.");
             }
         }
 
-        async function guardarOperadorMonitoreoTramo(viajeId, tramoId, inputEl) {
+        async function guardarOperadorMonitoreoTramo(
+            viajeId,
+            tramoId,
+            inputEl,
+        ) {
             if (!canEditViajes()) return denyReadOnlyViajes();
 
             const valorEnvio = inputEl?.value?.trim() || null;
@@ -16786,20 +18065,10 @@
                     return;
                 }
 
-                const idxViaje = allViajesData.findIndex(
-                    (v) => v.viaje_id === viajeId,
-                );
-                if (idxViaje !== -1 && allViajesData[idxViaje].tramos) {
-                    const idxTramo = allViajesData[idxViaje].tramos.findIndex(
-                        (t) => t.id === tramoId,
-                    );
-                    if (idxTramo !== -1) {
-                        allViajesData[idxViaje].tramos[
-                            idxTramo
-                        ].operador_monitoreo = valorEnvio;
-                    }
-                }
-                renderViajes();
+                applyTramoUpdateResponse(viajeId, tramoId, json, {
+                    operador_monitoreo: valorEnvio,
+                });
+                renderViajes({ skipPanelRefresh: true });
             } catch (e) {
                 alert("Error de red al guardar el operador de monitoreo.");
             }
