@@ -134,6 +134,30 @@
                 font-size: 0.875rem;
                 line-height: 1.25rem;
             }
+            .tramo-registro-meta,
+            .tramo-registro-row {
+                display: grid;
+                align-items: center;
+                column-gap: 0.5rem;
+            }
+            .tramo-registro-meta {
+                grid-template-columns: 6.5rem minmax(0, 1fr);
+            }
+            .tramo-registro-row {
+                grid-template-columns: minmax(0, 1fr) 3.5rem;
+                row-gap: 0.5rem;
+            }
+            .tramo-registro-label {
+                grid-column: 1 / -1;
+            }
+            .tramo-registro-action {
+                justify-self: stretch;
+            }
+            @media (min-width: 640px) {
+                .tramo-registro-row {
+                    grid-template-columns: minmax(13.5rem, 1fr) 3.5rem;
+                }
+            }
             .tramo-action-button {
                 min-height: 44px;
                 display: inline-flex;
@@ -5831,11 +5855,101 @@
         let userTabs = [];
         let username = "";
         let bitacoraAuthToken = "";
+        let bitacoraTokenExpiresAt = 0;
+        let tokenRefreshTimer = null;
 
         function getAuthHeaders(extra = {}) {
             return bitacoraAuthToken
                 ? { ...extra, Authorization: `Bearer ${bitacoraAuthToken}` }
                 : extra;
+        }
+
+        function parseJwtPayload(token) {
+            try {
+                const payload = String(token || "").split(".")[1];
+                if (!payload) return null;
+                const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+                const padded = normalized.padEnd(
+                    normalized.length + ((4 - (normalized.length % 4)) % 4),
+                    "=",
+                );
+                return JSON.parse(atob(padded));
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function getTokenExpiresAt(token) {
+            const exp = parseInt(parseJwtPayload(token)?.exp ?? 0, 10);
+            return Number.isFinite(exp) ? exp : 0;
+        }
+
+        function isTokenExpired(token) {
+            const exp = getTokenExpiresAt(token);
+            return !exp || exp <= Math.floor(Date.now() / 1000);
+        }
+
+        function updateSessionToken(token, expiresAt = 0) {
+            bitacoraAuthToken = String(token || "").trim();
+            bitacoraTokenExpiresAt =
+                parseInt(expiresAt, 10) || getTokenExpiresAt(bitacoraAuthToken);
+            if (bitacoraAuthToken) {
+                setStoredSessionValue("bitacoraAuthToken", bitacoraAuthToken);
+                setStoredSessionValue(
+                    "bitacoraTokenExpiresAt",
+                    String(bitacoraTokenExpiresAt || ""),
+                );
+            }
+            scheduleTokenRefresh();
+        }
+
+        function handleExpiredSession() {
+            if (!userRole && !bitacoraAuthToken) return;
+            alert("Tu sesión expiró. Inicia sesión nuevamente.");
+            handleLogout();
+        }
+
+        function scheduleTokenRefresh() {
+            if (tokenRefreshTimer) {
+                clearTimeout(tokenRefreshTimer);
+                tokenRefreshTimer = null;
+            }
+            if (!bitacoraAuthToken || !bitacoraTokenExpiresAt) return;
+            const secondsUntilRefresh =
+                bitacoraTokenExpiresAt - Math.floor(Date.now() / 1000) - 300;
+            const delayMs = Math.max(60, secondsUntilRefresh) * 1000;
+            tokenRefreshTimer = setTimeout(refreshSessionToken, delayMs);
+        }
+
+        async function refreshSessionToken() {
+            if (!bitacoraAuthToken) return;
+            if (isTokenExpired(bitacoraAuthToken)) {
+                handleExpiredSession();
+                return;
+            }
+            try {
+                await fetchSessionUserFromToken(bitacoraAuthToken);
+            } catch (e) {
+                if (e?.status === 401) {
+                    handleExpiredSession();
+                    return;
+                }
+                if (bitacoraAuthToken && !isTokenExpired(bitacoraAuthToken)) {
+                    tokenRefreshTimer = setTimeout(refreshSessionToken, 60000);
+                }
+            }
+        }
+
+        async function authFetch(url, options = {}) {
+            if (bitacoraAuthToken && isTokenExpired(bitacoraAuthToken)) {
+                handleExpiredSession();
+                throw new Error("Sesión expirada");
+            }
+            const response = await fetch(url, options);
+            if (response.status === 401) {
+                handleExpiredSession();
+            }
+            return response;
         }
 
         const SESSION_KEYS = [
@@ -5845,6 +5959,7 @@
             "bitacoraUserClientes",
             "bitacoraUsername",
             "bitacoraAuthToken",
+            "bitacoraTokenExpiresAt",
         ];
 
         function setStoredSessionValue(key, value) {
@@ -5910,7 +6025,11 @@
                 clearSessionCookie();
                 return;
             }
-            document.cookie = `bitacoraAuthToken=${encodeURIComponent(cleanToken)}; Max-Age=28800; Path=/; SameSite=Lax`;
+            const exp = bitacoraTokenExpiresAt || getTokenExpiresAt(cleanToken);
+            const maxAge = exp
+                ? Math.max(0, exp - Math.floor(Date.now() / 1000))
+                : 28800;
+            document.cookie = `bitacoraAuthToken=${encodeURIComponent(cleanToken)}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
         }
 
         function getSessionCookie() {
@@ -5938,9 +6057,14 @@
             });
             const payload = await response.json().catch(() => null);
             if (!response.ok || !payload?.success || !payload?.user) {
-                throw new Error(
+                const error = new Error(
                     payload?.message || `Sesion invalida (${response.status})`,
                 );
+                error.status = response.status;
+                throw error;
+            }
+            if (payload.token) {
+                updateSessionToken(payload.token, payload.expires_at);
             }
             return payload.user;
         }
@@ -6068,6 +6192,11 @@
             activeClienteId = "";
             username = "";
             bitacoraAuthToken = "";
+            bitacoraTokenExpiresAt = 0;
+            if (tokenRefreshTimer) {
+                clearTimeout(tokenRefreshTimer);
+                tokenRefreshTimer = null;
+            }
 
             removeStoredSession();
 
@@ -6188,6 +6317,7 @@
                 label: "Mala actitud del Operador",
                 sev: "baja",
             },
+            { value: "otro", label: "Otro", sev: "media", custom: true },
         ];
 
         const SEV_CONFIG = {
@@ -6485,21 +6615,32 @@
 
         function handleIncidenciaTipoChange() {
             const sel = document.getElementById("incidencia-tipo");
-
             const wrap = document.getElementById(
                 "incidencia-direccion-wrapper",
             );
-
             const input = document.getElementById("incidencia-direccion");
+            const otroWrap = document.getElementById(
+                "incidencia-otro-wrapper",
+            );
+            const otroInput = document.getElementById("incidencia-otro");
+            const sevWrap = document.getElementById(
+                "incidencia-severidad-wrapper",
+            );
 
             if (!sel || !wrap || !input) return;
 
             const hasValue = String(sel.value || "").trim().length > 0;
+            const isOtro = sel.value === "otro";
 
             wrap.classList.toggle("hidden", !hasValue);
+            otroWrap?.classList.toggle("hidden", !isOtro);
+            sevWrap?.classList.toggle("hidden", !isOtro);
 
             if (!hasValue) {
                 input.value = "";
+                if (otroInput) otroInput.value = "";
+            } else if (isOtro) {
+                otroInput?.focus();
             } else {
                 input.focus();
             }
@@ -6833,7 +6974,7 @@
                 }
 
                 username = data.user.username;
-                bitacoraAuthToken = data.token || "";
+                updateSessionToken(data.token || "", data.expires_at);
                 setUserRole(
                     data.user.role,
                     data.user.unidades,
@@ -8881,7 +9022,8 @@
                           <option>Salida a destiempo</option>
                           <option>Desconocimiento de lugar de entrega</option>
                           <option>Mala actitud del Operador</option>
-                        </optgroup>`;
+                        </optgroup>
+                        <option value="otro">Otro</option>`;
 
             const refField = (label, progIso) => {
                 const hasProg = progIso && progIso.trim();
@@ -9048,6 +9190,26 @@
                                   <select id="incidencia-tipo" class="p-2 border rounded-md w-72" ${disabled} onchange="handleIncidenciaTipoChange()">
                                     ${incidenciaOptions}
                                   </select>
+
+                                  <div id="incidencia-otro-wrapper" class="hidden w-full md:w-80">
+                                    <label class="block text-sm font-medium text-gray-700">Describe la incidencia</label>
+                                    <input
+                                      id="incidencia-otro"
+                                      type="text"
+                                      placeholder="Ej. Retén de seguridad, espera por documentación"
+                                      class="mt-1 w-full p-2 border rounded-md"
+                                      ${disabled}
+                                    />
+                                  </div>
+
+                                  <div id="incidencia-severidad-wrapper" class="hidden w-full md:w-48">
+                                    <label class="block text-sm font-medium text-gray-700">Severidad</label>
+                                    <select id="incidencia-severidad" class="mt-1 w-full p-2 border rounded-md" ${disabled}>
+                                      <option value="Rojo">Rojo</option>
+                                      <option value="Naranja" selected>Naranja</option>
+                                      <option value="Verde">Verde</option>
+                                    </select>
+                                  </div>
 
                                   <div id="incidencia-direccion-wrapper" class="hidden w-full md:w-[32rem]">
 
@@ -9336,8 +9498,21 @@
             if (userRole !== "admin") return;
 
             const sel = document.getElementById("incidencia-tipo");
-            const tipo = sel ? sel.value : "";
-            if (!tipo) return alert("Seleccione una incidencia.");
+            const tipoSeleccionado = sel ? sel.value : "";
+            if (!tipoSeleccionado) return alert("Seleccione una incidencia.");
+
+            const otroInput = document.getElementById("incidencia-otro");
+            const sevInput = document.getElementById("incidencia-severidad");
+            const esOtro = tipoSeleccionado === "otro";
+            const tipoOtro = (otroInput?.value || "").trim();
+
+            if (esOtro && !tipoOtro)
+                return alert("Describe la incidencia para continuar.");
+
+            const tipo = esOtro ? tipoOtro : tipoSeleccionado;
+            const severidad = esOtro
+                ? sevInput?.value || "Naranja"
+                : getIncidenciaSeveridad(tipo);
 
             const dirInput = document.getElementById("incidencia-direccion");
 
@@ -9356,7 +9531,7 @@
             const incObj = {
                 tipo,
                 fecha: new Date().toISOString(),
-                severidad: getIncidenciaSeveridad(tipo),
+                severidad,
                 direccion,
             };
 
@@ -9375,6 +9550,8 @@
 
             try {
                 if (sel) sel.value = "";
+                if (otroInput) otroInput.value = "";
+                if (sevInput) sevInput.value = "Naranja";
 
                 if (dirInput) dirInput.value = "";
 
@@ -9917,7 +10094,7 @@
             const operador = String(d.operadorMonitoreoId || "").trim();
             if (operador) payload.operador_monitoreo = operador;
 
-            const res = await fetch(
+            const res = await authFetch(
                 trackerViajesApiUrl("actualizar_tramo", "PUT"),
                 {
                     method: "POST",
@@ -11252,7 +11429,7 @@
                     datos_informe: lastInformeData,
                 };
 
-                const res = await fetch(
+                const res = await authFetch(
                     phpApiPath("informe/guardar_informe.php"),
                     {
                         method: "POST",
@@ -11463,7 +11640,7 @@
             });
 
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     phpApiPath("despachos/obtener_papelera.php"),
                     {
                         cache: "no-store",
@@ -11576,7 +11753,7 @@
                     );
                 }
                 const query = params.toString();
-                const res = await fetch(
+                const res = await authFetch(
                     phpApiPath(
                         `informe/obtener_informes.php${query ? `?${query}` : ""}`,
                     ),
@@ -11795,7 +11972,7 @@
             openModal("modal-informe-detalle");
 
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     `informe/obtener_informe_detalle.php?id=${encodeURIComponent(numericId)}`,
                     {
                         cache: "no-store",
@@ -11970,7 +12147,7 @@
             if (!confirm(`¿Eliminar el informe ID ${numericId}?`)) return;
 
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     phpApiPath("informe/eliminar_informe.php"),
                     {
                         method: "POST",
@@ -12308,25 +12485,15 @@
                 let restoredSession = false;
                 try {
                     const savedRole = getStoredSessionValue("bitacoraUserRole");
-                    const savedUnidades = getStoredSessionValue(
-                        "bitacoraUserUnidades",
-                    );
-                    const savedClientes = getStoredSessionValue(
-                        "bitacoraUserClientes",
-                    );
-                    const savedTabs = getStoredSessionValue("bitacoraUserTabs");
                     const savedUsername =
                         getStoredSessionValue("bitacoraUsername");
-                    const savedToken =
-                        getStoredSessionValue("bitacoraAuthToken");
+                    const savedToken = getStoredSessionValue("bitacoraAuthToken");
 
                     if (savedToken) {
-                        let restoredUser = null;
-                        const restoredClientes =
-                            parseStoredArray(savedClientes);
-                        const restoredTabs = parseStoredArray(savedTabs);
-                        const restoredUnidades =
-                            parseStoredArray(savedUnidades);
+                        if (isTokenExpired(savedToken)) {
+                            removeStoredSession();
+                            throw new Error("Sesion expirada");
+                        }
                         if (
                             String(savedRole || "").toLowerCase() === "editor"
                         ) {
@@ -12335,23 +12502,14 @@
                                 "Rol editor no permitido en bitácora",
                             );
                         }
-                        if (
-                            savedRole &&
-                            savedUsername &&
-                            restoredClientes.length > 0 &&
-                            restoredTabs.length > 0
-                        ) {
-                            restoredUser = {
-                                username: savedUsername,
-                                role: savedRole,
-                                unidades: restoredUnidades,
-                                tabs: restoredTabs,
-                                clientes: restoredClientes,
-                            };
-                        } else {
-                            restoredUser =
-                                await fetchSessionUserFromToken(savedToken);
-                        }
+                        bitacoraAuthToken = savedToken;
+                        bitacoraTokenExpiresAt =
+                            parseInt(
+                                getStoredSessionValue("bitacoraTokenExpiresAt"),
+                                10,
+                            ) || getTokenExpiresAt(savedToken);
+                        const restoredUser =
+                            await fetchSessionUserFromToken(savedToken);
 
                         if (
                             String(restoredUser?.role || "").toLowerCase() ===
@@ -12364,7 +12522,6 @@
                         }
 
                         username = restoredUser.username;
-                        bitacoraAuthToken = savedToken;
                         setUserRole(
                             restoredUser.role,
                             restoredUser.unidades || [],
@@ -12450,7 +12607,7 @@
             if (estadoF) params.set("estado", estadoF);
 
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     phpApiPath(`despachos/obtener_viajes.php?${params}`),
                     { headers: getAuthHeaders({ Accept: "application/json" }) },
                 );
@@ -16371,7 +16528,7 @@
             });
 
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     trackerViajesApiUrl("guardar_gps", "PUT"),
                     {
                         method: "POST",
@@ -16474,14 +16631,14 @@
                         <div id="${formId}" class="hidden mt-2 border-t border-gray-200 pt-3">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                                 <div>
-                                    <label for="${formId}-tipo" class="block text-sm font-semibold text-gray-700 mb-1">Tipo *</label>
-                                    <select id="${formId}-tipo"
-                                            onchange="_autoSeveridad('${formId}')"
-                                            class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400">
-                                        <option value="">— Seleccionar —</option>
-                                        ${tiposOpts}
-                                    </select>
-                                </div>
+                                     <label for="${formId}-tipo" class="block text-sm font-semibold text-gray-700 mb-1">Tipo *</label>
+                                     <select id="${formId}-tipo"
+                                             onchange="_handleViajeIncidenciaTipoChange('${formId}')"
+                                             class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400">
+                                         <option value="">— Seleccionar —</option>
+                                         ${tiposOpts}
+                                     </select>
+                                 </div>
                                 <div>
                                     <label for="${formId}-sev" class="block text-sm font-semibold text-gray-700 mb-1">Severidad</label>
                                     <select id="${formId}-sev"
@@ -16491,17 +16648,22 @@
                                         <option value="baja">🟢 Baja</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label for="${formId}-fecha" class="block text-sm font-semibold text-gray-700 mb-1">Fecha y hora *</label>
-                                    <input type="datetime-local" id="${formId}-fecha"
-                                           value="${new Date().toISOString().slice(0, 16)}"
-                                           class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
-                                </div>
-                                <div>
-                                    <label for="${formId}-dir" class="block text-sm font-semibold text-gray-700 mb-1">Dirección / Ubicación</label>
-                                    <input type="text" id="${formId}-dir" placeholder="Km 145 MEX-150D"
-                                           class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
-                                </div>
+                                 <div>
+                                     <label for="${formId}-fecha" class="block text-sm font-semibold text-gray-700 mb-1">Fecha y hora *</label>
+                                     <input type="datetime-local" id="${formId}-fecha"
+                                            value="${new Date().toISOString().slice(0, 16)}"
+                                            class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
+                                 </div>
+                                 <div id="${formId}-otro-wrap" class="hidden">
+                                     <label for="${formId}-otro" class="block text-sm font-semibold text-gray-700 mb-1">Describe la incidencia *</label>
+                                     <input type="text" id="${formId}-otro" placeholder="Ej. Retén de seguridad, espera por documentación"
+                                            class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
+                                 </div>
+                                 <div>
+                                     <label for="${formId}-dir" class="block text-sm font-semibold text-gray-700 mb-1">Dirección / Ubicación</label>
+                                     <input type="text" id="${formId}-dir" placeholder="Km 145 MEX-150D"
+                                            class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
+                                 </div>
                                 <div class="sm:col-span-2">
                                     <label for="${formId}-notas" class="block text-sm font-semibold text-gray-700 mb-1">Notas</label>
                                     <textarea id="${formId}-notas" rows="2" placeholder="Descripción adicional..."
@@ -16603,6 +16765,20 @@
             if (opt?.dataset?.sev) sevEl.value = opt.dataset.sev;
         }
 
+        function _handleViajeIncidenciaTipoChange(formId) {
+            _autoSeveridad(formId);
+            const tipoEl = document.getElementById(`${formId}-tipo`);
+            const otroWrap = document.getElementById(`${formId}-otro-wrap`);
+            const otroInput = document.getElementById(`${formId}-otro`);
+            const isOtro = tipoEl?.value === "otro";
+            otroWrap?.classList.toggle("hidden", !isOtro);
+            if (isOtro) {
+                otroInput?.focus();
+            } else if (otroInput) {
+                otroInput.value = "";
+            }
+        }
+
         async function guardarIncidencia(viajeId, tramoId, formId) {
             if (!canEditViajes()) return denyReadOnlyViajes();
             const viaje = allViajesData.find(
@@ -16628,9 +16804,21 @@
             const dir = document.getElementById(`${formId}-dir`)?.value || "";
             const notas =
                 document.getElementById(`${formId}-notas`)?.value || "";
+            const tipoOtro = (
+                document.getElementById(`${formId}-otro`)?.value || ""
+            ).trim();
+            const tipoFinal =
+                tipo === "otro"
+                    ? tipoOtro
+                    : TIPOS_INCIDENCIA.find((t) => t.value === tipo)?.label ||
+                      tipo;
 
             if (!tipo) {
                 alert("Selecciona el tipo de incidencia.");
+                return;
+            }
+            if (tipo === "otro" && !tipoOtro) {
+                alert("Describe la incidencia para continuar.");
                 return;
             }
             if (!fecha) {
@@ -16639,7 +16827,7 @@
             }
 
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     trackerViajesApiUrl("agregar_incidencia"),
                     {
                         method: "POST",
@@ -16648,9 +16836,7 @@
                         }),
                         body: JSON.stringify({
                             tramo_id: tramoId,
-                            tipo:
-                                TIPOS_INCIDENCIA.find((t) => t.value === tipo)
-                                    ?.label || tipo,
+                            tipo: tipoFinal,
                             severidad: sev,
                             fecha: fecha,
                             direccion: dir,
@@ -16694,7 +16880,7 @@
 
             if (!confirm("¿Eliminar esta incidencia?")) return;
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     trackerViajesApiUrl("eliminar_incidencia", "DELETE"),
                     {
                         method: "POST",
@@ -17359,7 +17545,7 @@
                                                       prog: null,
                                                       real: t.vacio_real,
                                                       grupo: "descarga",
-                                                      etiquetaInput: "Vacio:",
+                                                      etiquetaInput: "Vacío:",
                                                   },
                                               ];
                                               const renderFilas = (grupo) =>
@@ -17401,29 +17587,25 @@
                                                 <span>${icon}</span>
                                                 <span class="font-semibold ${fieldToken.label}">${label}${tarde ? " ⚠️" : ""}</span>
                                             </div>
-                                            ${
-                                                prog
-                                                    ? `<div class="flex items-center gap-2 text-sm text-gray-500">
-                                                <span class="w-24 flex-shrink-0 font-medium">Programada:</span>
-                                                <span class="font-mono">${fmtProg(prog)}</span>
-                                            </div>`
-                                                    : ""
-                                            }
-                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                                                <span class="text-sm font-medium text-gray-600 sm:w-24 sm:flex-shrink-0">${etiquetaInput}</span>
+                                            <div class="tramo-registro-meta min-h-[1.5rem] text-sm text-gray-500">
+                                                <span class="font-medium">${prog ? "Programada:" : ""}</span>
+                                                <span class="font-mono">${prog ? fmtProg(prog) : ""}</span>
+                                            </div>
+                                            <div class="tramo-registro-row">
+                                                <span class="tramo-registro-label text-sm font-medium text-gray-600">${etiquetaInput}</span>
                                                 ${
                                                     esLectorTramo
                                                         ? `<span class="text-sm">${realTexto}</span>`
                                                         : `<input type="datetime-local"
-                                                       id="ft-${t.id}-${campoReal}"
-                                                       value="${toInputVal(real)}"
-                                                       aria-label="${label}: registrar fecha y hora real"
-                                                       onchange="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',this)"
-                                                       class="tramo-control flex-1 min-w-0 border focus:outline-none focus:ring-2 ${fieldToken.input}"/>
+                                                        id="ft-${t.id}-${campoReal}"
+                                                        value="${toInputVal(real)}"
+                                                        aria-label="${label}: registrar fecha y hora real"
+                                                        onchange="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',this)"
+                                                        class="tramo-control w-full min-w-0 border focus:outline-none focus:ring-2 ${fieldToken.input}"/>
                                                 <button type="button" onclick="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',null,true)"
                                                           title="Registrar hora actual"
                                                           aria-label="Registrar hora actual para ${label}"
-                                                          class="tramo-touch-button flex-shrink-0 border font-bold transition-colors ${fieldToken.action}">
+                                                          class="tramo-touch-button tramo-registro-action border font-bold transition-colors ${fieldToken.action}">
                                                       ↺
                                                   </button>`
                                                 }
@@ -17677,7 +17859,7 @@
             }
 
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     phpApiPath("despachos/cambiar_estado_viaje.php"),
                     {
                         method: "POST",
@@ -17839,7 +18021,7 @@
                     ? { tramo_id: tramoId }
                     : { tramo_id: tramoId, estado: nuevoEstado };
 
-                const res = await fetch(endpoint, {
+                const res = await authFetch(endpoint, {
                     method: "POST",
                     headers: getAuthHeaders({
                         "Content-Type": "application/json",
@@ -17978,7 +18160,7 @@
             }
 
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     trackerViajesApiUrl("actualizar_tramo", "PUT"),
                     {
                         method: "POST",
@@ -18042,7 +18224,7 @@
             const valorEnvio = inputEl?.value?.trim() || null;
 
             try {
-                const res = await fetch(
+                const res = await authFetch(
                     trackerViajesApiUrl("actualizar_tramo", "PUT"),
                     {
                         method: "POST",

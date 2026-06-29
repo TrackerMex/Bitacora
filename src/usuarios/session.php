@@ -18,7 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $response = [
   'success' => false,
   'message' => '',
-  'user' => null
+  'user' => null,
+  'token' => null,
+  'expires_at' => null
 ];
 
 function default_tabs_for_role_session($role) {
@@ -204,6 +206,13 @@ try {
     'unidades' => $unidades,
     'tabs' => $tabs
   ];
+  [$new_token, $expires_at] = jwt_encode_payload([
+    'sub' => $usuario_id,
+    'email' => strtolower((string)$user['email']),
+    'role' => $role
+  ]);
+  $response['token'] = $new_token;
+  $response['expires_at'] = $expires_at;
 } catch (Exception $e) {
   if (http_response_code() < 400) {
     http_response_code(400);
