@@ -5,11 +5,41 @@ ini_set("display_errors", 0);
 
 ini_set("memory_limit", "256M");
 ini_set("max_execution_time", 30);
+ob_start();
 
 header("Content-Type: application/json; charset=utf-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+function clear_login_output_buffer()
+{
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+}
+
+register_shutdown_function(function () {
+    $error = error_get_last();
+    $fatal_types = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR];
+    if (!$error || !in_array($error["type"], $fatal_types, true)) {
+        return;
+    }
+
+    error_log("[usuarios/login] FATAL: " . ($error["message"] ?? "Error fatal"));
+    if (!headers_sent()) {
+        clear_login_output_buffer();
+        http_response_code(500);
+        header("Content-Type: application/json; charset=utf-8");
+        echo json_encode(
+            [
+                "success" => false,
+                "message" => "Error interno del servidor durante el login. Revisa la configuración y migraciones de producción.",
+            ],
+            JSON_UNESCAPED_UNICODE,
+        );
+    }
+});
 
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     http_response_code(200);
@@ -260,5 +290,6 @@ try {
     }
 }
 
+clear_login_output_buffer();
 echo json_encode($response, JSON_UNESCAPED_UNICODE);
 exit();
