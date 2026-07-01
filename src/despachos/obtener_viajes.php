@@ -62,7 +62,29 @@ function firma_ruta_v($origen, $lugar_carga, $destino)
     return $firma === "||" ? null : $firma;
 }
 
-// Umbral de usos a partir del cual un tramo muestra el badge "ruta frecuente".
+function db_column_exists_v($conn, $table, $column)
+{
+    $stmt = $conn->prepare(
+        "SELECT 1
+           FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = ?
+            AND COLUMN_NAME = ?
+          LIMIT 1",
+    );
+    if (!$stmt) {
+        return false;
+    }
+    $stmt->bind_param("ss", $table, $column);
+    if (!$stmt->execute()) {
+        $stmt->close();
+        return false;
+    }
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return (bool) $row;
+}
+
 const RUTA_FRECUENTE_MIN_USOS = 5;
 
 try {
@@ -83,7 +105,6 @@ try {
 
     $estados_validos = ["planificado", "en_curso", "completado", "cancelado"];
 
-    // Excluir registros eliminados (soft-delete) → solo viven en la tab Papelera
     $where = ["c.activo = 1", "u.activo = 1", "v.eliminado_at IS NULL"];
     $types = "";
     $params = [];
@@ -229,16 +250,30 @@ try {
 
     if ($con_tramos && count($viaje_ids) > 0) {
         $ph_v = implode(",", array_fill(0, count($viaje_ids), "?"));
+        $has_regreso_origen = db_column_exists_v(
+            $conn,
+            "viaje_tramos",
+            "requiere_regreso_origen",
+        );
+        $select_regreso_origen = $has_regreso_origen
+            ? "vt.requiere_regreso_origen,
+                vt.regreso_origen_programado,
+                vt.regreso_origen_real,"
+            : "0 AS requiere_regreso_origen,
+                NULL AS regreso_origen_programado,
+                NULL AS regreso_origen_real,";
         $sql_t = "
             SELECT
                 vt.id, vt.viaje_id, vt.tramo_numero,
                 vt.origen, vt.lugar_carga, vt.destino, vt.ruta,
                 vt.instrucciones,
+                vt.operador_monitoreo,
                 vt.gps_estado, vt.gps_timestamp,
                 vt.salida_patio,      vt.salida_patio_real,
                 vt.cita_carga,        vt.cita_carga_real,
                 vt.salida_carga,      vt.salida_carga_real,
                 vt.descarga_programada, vt.descarga_real, vt.vacio_real,
+                $select_regreso_origen
                 vt.estado, vt.created_at, vt.updated_at
             FROM viaje_tramos vt
             WHERE vt.viaje_id IN ($ph_v)
@@ -280,6 +315,9 @@ try {
                 "destino" => (string) $t["destino"],
                 "ruta" => (string) $t["ruta"],
                 "instrucciones" => (string) $t["instrucciones"],
+                "operador_monitoreo" => $t["operador_monitoreo"]
+                    ? (string) $t["operador_monitoreo"]
+                    : null,
                 "gps_estado" => $t["gps_estado"]
                     ? (string) $t["gps_estado"]
                     : null,
@@ -313,6 +351,14 @@ try {
                 "vacio_real" => $t["vacio_real"]
                     ? (string) $t["vacio_real"]
                     : null,
+                "requiere_regreso_origen" =>
+                    (int) ($t["requiere_regreso_origen"] ?? 0),
+                "regreso_origen_programado" => $t["regreso_origen_programado"]
+                    ? (string) $t["regreso_origen_programado"]
+                    : null,
+                "regreso_origen_real" => $t["regreso_origen_real"]
+                    ? (string) $t["regreso_origen_real"]
+                    : null,
                 "estado" => (string) $t["estado"],
                 // Enriquecimiento desde el catálogo de rutas (se llena más abajo)
                 "veces_usada" => 0,
@@ -323,12 +369,6 @@ try {
         }
         $stmt_t->close();
 
-        // -------------------------------------------------------------------
-        // Enriquecer tramos con datos del catálogo de rutas (tramos_catalogo):
-        // veces_usada, es_favorito y el flag es_ruta_frecuente (>= umbral).
-        // Match por (cliente_id, firma_ruta) normalizada. Una sola consulta
-        // para todos los clientes de la página.
-        // -------------------------------------------------------------------
         $cliente_ids_pagina = [];
         foreach ($viajes as $vw) {
             $cliente_ids_pagina[(int) $vw["cliente_id"]] = true;
@@ -340,7 +380,6 @@ try {
                 ",",
                 array_fill(0, count($cliente_ids_pagina), "?"),
             );
-            // firma_ruta puede ser NULL en filas legacy/ocultas → se excluyen.
             $sql_cat = "
                 SELECT cliente_id, firma_ruta, veces_usada, es_favorito
                   FROM tramos_catalogo
@@ -359,7 +398,6 @@ try {
                 $stmt_cat->execute();
                 $res_cat = $stmt_cat->get_result();
 
-                // Mapa "cliente_id|firma" → [veces_usada, es_favorito]
                 $catalogo = [];
                 while ($cr = $res_cat->fetch_assoc()) {
                     $key = (int) $cr["cliente_id"] . "|" . $cr["firma_ruta"];
@@ -370,7 +408,6 @@ try {
                 }
                 $stmt_cat->close();
 
-                // Aplicar enriquecimiento a cada tramo
                 foreach ($viajes as $vid => &$vref) {
                     $cid = (int) $vref["cliente_id"];
                     foreach ($vref["tramos"] as &$tref) {
@@ -428,6 +465,10 @@ try {
                             $tramo["incidencias"][] = [
                                 "id" => (int) $inc["id"],
                                 "tramo_id" => $tid,
+                                "tramo_numero" => (int) $tramo["tramo_numero"],
+                                "tramo_origen" => (string) $tramo["origen"],
+                                "tramo_destino" => (string) $tramo["destino"],
+                                "ruta_tramo" => (string) $tramo["ruta"],
                                 "tipo" => (string) $inc["tipo"],
                                 "severidad" => (string) $inc["severidad"],
                                 "fecha" => (string) $inc["fecha"],
