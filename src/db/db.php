@@ -80,6 +80,9 @@ try {
     $conn = connectDatabase();
 } catch (Exception $e) {
     error_log("Database connection error: " . $e->getMessage());
+    if (function_exists("sentry_capture_exception")) {
+        sentry_capture_exception($e, ["module" => "db", "operation" => "connect"]);
+    }
     throw $e;
 }
 

@@ -153,6 +153,10 @@ class Logger {
         $entry .= "\n";
         
         @file_put_contents($log_file, $entry, FILE_APPEND);
+
+        if (function_exists('sentry_log')) {
+            sentry_log($level, $message, $context);
+        }
     }
     
     public static function error($message, $context = []) {

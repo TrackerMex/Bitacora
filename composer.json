@@ -1,0 +1,8 @@
+{
+    "name": "tracker-mexico/bitacora",
+    "description": "Bitacora electronica para monitoreo de logistica.",
+    "license": "proprietary",
+    "require": {
+        "sentry/sentry": "^4.29"
+    }
+}
