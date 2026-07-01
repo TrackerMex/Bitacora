@@ -4,5 +4,10 @@
     "license": "proprietary",
     "require": {
         "sentry/sentry": "^4.29"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.31"
+        }
     }
 }
