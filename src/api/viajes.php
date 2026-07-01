@@ -87,6 +87,7 @@ function infer_tramo_estado_automatico($tramo, $campos_fecha_actualizados) {
     'salida_carga_real',
     'descarga_real',
     'vacio_real',
+    'regreso_origen_real',
   ];
   foreach ($campos_inicio as $campo) {
     if (tramo_field_has_value($tramo[$campo] ?? null)) {
@@ -283,6 +284,9 @@ function format_tramo_response($tramo) {
     'salida_carga_real' => $tramo['salida_carga_real'] !== null ? (string)$tramo['salida_carga_real'] : null,
     'descarga_real' => $tramo['descarga_real'] !== null ? (string)$tramo['descarga_real'] : null,
     'vacio_real' => $tramo['vacio_real'] !== null ? (string)$tramo['vacio_real'] : null,
+    'requiere_regreso_origen' => (int)($tramo['requiere_regreso_origen'] ?? 0),
+    'regreso_origen_programado' => $tramo['regreso_origen_programado'] !== null ? (string)$tramo['regreso_origen_programado'] : null,
+    'regreso_origen_real' => $tramo['regreso_origen_real'] !== null ? (string)$tramo['regreso_origen_real'] : null,
     'operador_monitoreo' => $tramo['operador_monitoreo'] !== null ? (string)$tramo['operador_monitoreo'] : null,
   ];
 }
@@ -360,6 +364,10 @@ try {
         'id' => $incidencia_id,
         'viaje_id' => $viaje_id,
         'tramo_id' => $tramo_id,
+        'tramo_numero' => (int)($tramo['tramo_numero'] ?? 0),
+        'tramo_origen' => $tramo['origen'] !== null ? (string)$tramo['origen'] : null,
+        'tramo_destino' => $tramo['destino'] !== null ? (string)$tramo['destino'] : null,
+        'ruta_tramo' => $tramo['ruta'] !== null ? (string)$tramo['ruta'] : null,
         'tipo' => $tipo,
         'severidad' => $severidad,
         'fecha' => $fecha,
@@ -456,6 +464,7 @@ try {
       'salida_carga_real',
       'descarga_real',
       'vacio_real',
+      'regreso_origen_real',
     ];
     $campos = [];
     $types = '';

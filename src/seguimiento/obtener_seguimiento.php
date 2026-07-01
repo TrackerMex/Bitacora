@@ -40,6 +40,28 @@ function bind_statement_params($stmt, $types, $params) {
   call_user_func_array([$stmt, 'bind_param'], $refs);
 }
 
+function db_column_exists($conn, $table, $column) {
+  $stmt = $conn->prepare(
+    "SELECT 1
+       FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+      LIMIT 1"
+  );
+  if (!$stmt) {
+    return false;
+  }
+  $stmt->bind_param('ss', $table, $column);
+  if (!$stmt->execute()) {
+    $stmt->close();
+    return false;
+  }
+  $row = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
+  return (bool)$row;
+}
+
 try {
   require_once __DIR__ . '/../db/db.php';
 
@@ -70,6 +92,14 @@ try {
   }
 
   $where_sql = count($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+  $has_regreso_origen = db_column_exists($conn, 'seguimiento_despacho', 'requiere_regreso_origen');
+  $select_regreso_origen = $has_regreso_origen
+    ? "s.requiere_regreso_origen,
+      s.regreso_origen_programado,
+      s.regreso_origen_real,"
+    : "0 AS requiere_regreso_origen,
+      NULL AS regreso_origen_programado,
+      NULL AS regreso_origen_real,";
 
   $sql = "SELECT
       s.id,
@@ -85,6 +115,7 @@ try {
       s.real_salida,
       s.real_descarga,
       s.real_vacio,
+      $select_regreso_origen
       s.cita_carga,
       s.cita_salida,
       s.cita_descarga,
