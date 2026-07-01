@@ -4057,6 +4057,11 @@
             .lector-unit-modal-button:hover {
                 filter: brightness(0.97);
             }
+            .lector-unit-modal-button--primary:hover {
+                background: oklch(0.52 0.18 255);
+                color: oklch(0.99 0.004 255);
+                filter: none;
+            }
             .lector-progress-row td {
                 padding-block: 6px;
                 border-bottom: 1px solid var(--color-line);
@@ -8777,8 +8782,20 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll(".modal").forEach(ensureModalA11y);
+            setupModalCloseButtons();
             setupTabsKeyboard();
         });
+
+        function setupModalCloseButtons() {
+            document.addEventListener("click", (event) => {
+                const button = event.target.closest("[data-close-modal]");
+                if (!button) return;
+                const modalId = button.getAttribute("data-close-modal");
+                if (!modalId) return;
+                event.preventDefault();
+                closeModal(modalId);
+            });
+        }
 
         function setupTabsKeyboard() {
             const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
@@ -15028,8 +15045,8 @@
                     </section>
                 </div>
                 <div class="lector-unit-modal-actions">
-                    <button type="button" class="lector-unit-modal-button lector-unit-modal-button--secondary" onclick="closeModal('lector-unit-detail-modal')">Cerrar</button>
-                    <button type="button" class="lector-unit-modal-button lector-unit-modal-button--primary" onclick="closeModal('lector-unit-detail-modal')">Entendido</button>
+                    <button type="button" class="lector-unit-modal-button lector-unit-modal-button--secondary" data-close-modal="lector-unit-detail-modal">Cerrar</button>
+                    <button type="button" class="lector-unit-modal-button lector-unit-modal-button--primary" data-close-modal="lector-unit-detail-modal">Entendido</button>
                 </div>`;
         }
 
