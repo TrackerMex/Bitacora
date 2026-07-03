@@ -385,6 +385,7 @@
             .viajes-card-action {
                 min-height: 2.45rem;
                 display: inline-flex;
+                flex-direction: row;
                 align-items: center;
                 justify-content: center;
                 gap: 0.45rem;
@@ -1547,6 +1548,7 @@
             }
             .viajes-card-action {
                 display: inline-flex;
+                flex-direction: row;
                 align-items: center;
                 justify-content: center;
                 gap: 0.45rem;
@@ -1564,6 +1566,9 @@
                     box-shadow 160ms var(--ease-out),
                     color 160ms var(--ease-out),
                     transform 160ms var(--ease-out);
+            }
+            .viajes-card-action .app-icon {
+                flex: 0 0 auto;
             }
             .viajes-card-action:hover {
                 background: var(--action-hover, oklch(0.96 0.01 255));
@@ -2014,6 +2019,10 @@
                 display: flex;
                 flex-wrap: wrap;
                 gap: 0.5rem;
+            }
+            .viajes-panel-actions .viajes-card-action {
+                flex: 0 0 auto;
+                width: auto;
             }
             .viajes-panel-actions .viajes-card-action,
             .viajes-panel-tramo-operacion > summary,
@@ -4176,15 +4185,23 @@
                 font-weight: 900;
                 line-height: 1.25;
             }
+            .lector-board-progress-next {
+                display: inline-flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 0.75rem;
+                margin-left: auto;
+            }
             .lector-board-progress-percent {
                 display: inline-flex;
                 align-items: center;
-                gap: 0.25rem;
-                border: 1px solid oklch(0.84 0.09 251);
+                justify-content: center;
+                min-width: 4.25rem;
+                border: 1px solid oklch(0.86 0.12 85);
                 border-radius: 9999px;
-                background: oklch(0.955 0.035 251);
-                padding: 0.18rem 0.5rem;
-                color: oklch(0.39 0.14 251);
+                background: oklch(0.97 0.06 85);
+                padding: 0.32rem 0.8rem;
+                color: oklch(0.42 0.105 72);
                 font-size: 0.68rem;
                 font-weight: 950;
                 white-space: nowrap;
@@ -15022,6 +15039,27 @@
             return stages;
         }
 
+        function _getLectorDeliveryVisualStage(status) {
+            const key =
+                status?.key === "complete"
+                    ? "complete"
+                    : status?.key === "late"
+                      ? "late"
+                      : status?.key === "active"
+                        ? "active"
+                        : status?.key === "cancelled"
+                          ? "none"
+                          : "pending";
+            return {
+                label: "Estatus de Entrega",
+                real: status?.key === "complete" ? "complete" : "",
+                info: {
+                    key,
+                    label: status?.label || "Pendiente",
+                },
+            };
+        }
+
         function _renderLectorFinalStatus(status) {
             const copy =
                 status.key === "complete"
@@ -15041,6 +15079,10 @@
 
         function _renderLectorBoardProgress(tramo, status) {
             const stages = _getLectorBoardStages(tramo);
+            const visualStages = [
+                ...stages,
+                _getLectorDeliveryVisualStage(status),
+            ];
             const finishedIndexes = stages
                 .map((stage, index) => (stage.real ? index : -1))
                 .filter((index) => index >= 0);
@@ -15048,29 +15090,32 @@
                 ? finishedIndexes[finishedIndexes.length - 1]
                 : -1;
             const lastIndex =
-                capturedLastIndex >= 0
-                    ? capturedLastIndex
-                    : status?.key === "complete"
-                      ? stages.length - 1
+                status?.key === "complete"
+                    ? visualStages.length - 1
+                    : capturedLastIndex >= 0
+                      ? capturedLastIndex
                       : -1;
             const activeIndex = lastIndex >= 0 ? lastIndex : 0;
-            const stageCount = Math.max(stages.length, 1);
+            const stageCount = Math.max(visualStages.length, 1);
             const truckPosition = ((activeIndex + 0.5) / stageCount) * 100;
             const progress = _getLectorTramoProgress(tramo, status);
-            const last = lastIndex >= 0 ? stages[lastIndex] : null;
-            const currentStage = stages[activeIndex] || stages[0];
+            const last = lastIndex >= 0 ? visualStages[lastIndex] : null;
+            const currentStage =
+                visualStages[activeIndex] || visualStages[0];
             const next = _getLectorNextStage(tramo, status);
             return `<div class="lector-board-progress">
                 <div class="lector-board-progress-head">
                     <span>Último punto ejecutado: ${escapeHtml(last?.label || "Sin ejecución")}</span>
-                    <span class="lector-board-progress-percent">Avance ${progress.percent}%</span>
-                    <span>Siguiente hito: ${escapeHtml(next.label)}</span>
+                    <span class="lector-board-progress-next">
+                        <span>Siguiente hito: ${escapeHtml(next.label)}</span>
+                        <span class="lector-board-progress-percent">${progress.percent}%</span>
+                    </span>
                 </div>
                 <div class="lector-board-rail" style="--stage-count:${stageCount};--truck-position:${truckPosition}%">
                     <span class="lector-board-truck" aria-label="Seguimiento actual en ${escapeHtml(currentStage?.label || "primer punto")}, avance ${progress.percent}%">
                         ${appIcon("truck", "app-icon")}
                     </span>
-                    ${stages
+                    ${visualStages
                         .map(
                             (
                                 stage,
