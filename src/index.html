@@ -3993,11 +3993,17 @@
             }
             .lector-unit-modal {
                 width: min(100%, 58rem);
+                max-height: min(90vh, 46rem);
+                display: flex;
+                flex-direction: column;
                 overflow: hidden;
                 border-radius: 0.9rem;
                 background: var(--color-card);
             }
             .lector-unit-modal-head {
+                position: relative;
+                z-index: 2;
+                flex: 0 0 auto;
                 display: flex;
                 align-items: flex-start;
                 justify-content: space-between;
@@ -4028,19 +4034,42 @@
                 font-weight: 750;
             }
             .lector-unit-modal-close {
-                width: 2.65rem;
-                height: 2.65rem;
+                position: relative;
+                z-index: 4;
+                width: 3rem;
+                height: 3rem;
+                min-width: 3rem;
+                min-height: 3rem;
                 flex: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
                 border: 1px solid oklch(0.65 0.055 255 / 0.35);
                 border-radius: 9999px !important;
                 background: oklch(0.37 0.07 255);
                 color: oklch(0.98 0.004 255) !important;
+                cursor: pointer;
+                touch-action: manipulation;
             }
             .lector-unit-modal-close:hover {
                 background: oklch(0.42 0.08 255) !important;
                 color: oklch(0.99 0.004 255) !important;
             }
+            .lector-unit-modal-close:focus-visible {
+                outline: 3px solid oklch(0.84 0.09 251);
+                outline-offset: 2px;
+            }
+            .lector-unit-modal-close .app-icon,
+            .lector-unit-modal-close svg {
+                width: 1.3rem;
+                height: 1.3rem;
+                min-width: 1.3rem;
+                min-height: 1.3rem;
+                pointer-events: none;
+            }
             .lector-unit-modal-body {
+                min-height: 0;
+                overflow: auto;
                 display: grid;
                 gap: 1rem;
                 padding: 1.35rem 1.55rem 1.55rem;
@@ -6826,7 +6855,9 @@
                     </div>
                     <button
                         type="button"
-                        onclick="closeModal('lector-unit-detail-modal')"
+                        data-close-modal="lector-unit-detail-modal"
+                        onpointerdown="closeModalFromEvent('lector-unit-detail-modal', event)"
+                        onclick="closeModalFromEvent('lector-unit-detail-modal', event)"
                         aria-label="Cerrar detalle de unidad"
                         class="lector-unit-modal-close"
                     >
@@ -8919,15 +8950,32 @@
         });
 
         function setupModalCloseButtons() {
+            document.addEventListener("pointerdown", (event) => {
+                const button = event.target.closest("[data-close-modal]");
+                if (!button) return;
+                const modalId = button.getAttribute("data-close-modal");
+                if (!modalId) return;
+                event.preventDefault();
+                event.stopPropagation();
+                closeModal(modalId);
+            });
             document.addEventListener("click", (event) => {
                 const button = event.target.closest("[data-close-modal]");
                 if (!button) return;
                 const modalId = button.getAttribute("data-close-modal");
                 if (!modalId) return;
                 event.preventDefault();
+                event.stopPropagation();
                 closeModal(modalId);
             });
         }
+
+        function closeModalFromEvent(id, event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            closeModal(id);
+        }
+        window.closeModalFromEvent = closeModalFromEvent;
 
         function setupTabsKeyboard() {
             const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
