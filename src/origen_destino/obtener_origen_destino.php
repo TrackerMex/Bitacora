@@ -13,10 +13,38 @@ $response = [
   'count'   => 0
 ];
 
+function db_column_exists_od($conn, $table, $column) {
+  $sql = "SELECT COUNT(*) AS c
+          FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = ?
+            AND COLUMN_NAME = ?";
+  $stmt = $conn->prepare($sql);
+  if (!$stmt) {
+    return false;
+  }
+  $stmt->bind_param('ss', $table, $column);
+  if (!$stmt->execute()) {
+    $stmt->close();
+    return false;
+  }
+  $result = $stmt->get_result();
+  $row = $result ? $result->fetch_assoc() : null;
+  if ($result) {
+    $result->free();
+  }
+  $stmt->close();
+  return intval($row['c'] ?? 0) > 0;
+}
+
 try {
   require_once __DIR__ . '/../db/db.php';
 
-  $sql = "SELECT folio, unidad, fecha_programada, origen, destino
+  $lugarCargaSelect = db_column_exists_od($conn, 'despacho_origen_destino', 'lugar_carga')
+    ? 'lugar_carga'
+    : "'' AS lugar_carga";
+
+  $sql = "SELECT folio, unidad, fecha_programada, origen, $lugarCargaSelect, destino
           FROM despacho_origen_destino
           ORDER BY fecha_programada DESC, unidad ASC";
 

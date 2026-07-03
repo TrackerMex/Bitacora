@@ -26,6 +26,30 @@ function to_mysql_date($value) {
   }
 }
 
+function db_column_exists_od($conn, $table, $column) {
+  $sql = "SELECT COUNT(*) AS c
+          FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = ?
+            AND COLUMN_NAME = ?";
+  $stmt = $conn->prepare($sql);
+  if (!$stmt) {
+    return false;
+  }
+  $stmt->bind_param('ss', $table, $column);
+  if (!$stmt->execute()) {
+    $stmt->close();
+    return false;
+  }
+  $result = $stmt->get_result();
+  $row = $result ? $result->fetch_assoc() : null;
+  if ($result) {
+    $result->free();
+  }
+  $stmt->close();
+  return intval($row['c'] ?? 0) > 0;
+}
+
 try {
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     throw new Exception('Método no permitido. Use POST.');
@@ -43,25 +67,42 @@ try {
   $unidad          = isset($data['unidad'])          ? (string)$data['unidad']          : '';
   $fechaProgramada = to_mysql_date($data['fechaProgramada'] ?? '');
   $origen          = isset($data['origen'])          ? (string)$data['origen']          : '';
+  $lugarCarga      = isset($data['lugarCarga'])      ? (string)$data['lugarCarga']      : (isset($data['lugar_carga']) ? (string)$data['lugar_carga'] : '');
   $destino         = isset($data['destino'])         ? (string)$data['destino']         : '';
 
   if ($folio === '' || $unidad === '' || $fechaProgramada === '') {
     throw new Exception('Faltan campos requeridos: folio, unidad, fechaProgramada.');
   }
 
-  $sql = "INSERT INTO despacho_origen_destino
-            (folio, unidad, fecha_programada, origen, destino)
-          VALUES (?, ?, ?, ?, ?)
-          ON DUPLICATE KEY UPDATE
-            origen  = VALUES(origen),
-            destino = VALUES(destino)";
+  $hasLugarCarga = db_column_exists_od($conn, 'despacho_origen_destino', 'lugar_carga');
+
+  if ($hasLugarCarga) {
+    $sql = "INSERT INTO despacho_origen_destino
+              (folio, unidad, fecha_programada, origen, lugar_carga, destino)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+              origen      = VALUES(origen),
+              lugar_carga = VALUES(lugar_carga),
+              destino     = VALUES(destino)";
+  } else {
+    $sql = "INSERT INTO despacho_origen_destino
+              (folio, unidad, fecha_programada, origen, destino)
+            VALUES (?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+              origen  = VALUES(origen),
+              destino = VALUES(destino)";
+  }
 
   $stmt = $conn->prepare($sql);
   if (!$stmt) {
     throw new Exception('Error preparando query: ' . $conn->error);
   }
 
-  $stmt->bind_param('sssss', $folio, $unidad, $fechaProgramada, $origen, $destino);
+  if ($hasLugarCarga) {
+    $stmt->bind_param('ssssss', $folio, $unidad, $fechaProgramada, $origen, $lugarCarga, $destino);
+  } else {
+    $stmt->bind_param('sssss', $folio, $unidad, $fechaProgramada, $origen, $destino);
+  }
   if (!$stmt->execute()) {
     throw new Exception('Error ejecutando query: ' . $stmt->error);
   }
@@ -70,7 +111,7 @@ try {
   $stmt->close();
 
   $response['success'] = true;
-  $response['message'] = 'Origen y destino actualizados correctamente.';
+  $response['message'] = 'Origen, carga y destino actualizados correctamente.';
   $response['id']      = $insertId ?: 0;
 
 } catch (Exception $e) {
