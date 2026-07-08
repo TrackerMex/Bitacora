@@ -146,6 +146,19 @@
                 line-height: 1.25rem;
                 font-variant-numeric: tabular-nums;
             }
+            .tramo-registro-input-wrap {
+                min-width: 0;
+                display: grid;
+                gap: 0.22rem;
+            }
+            .tramo-registro-time-preview {
+                min-height: 1rem;
+                color: oklch(0.43 0.035 255);
+                font-size: 0.7rem;
+                font-weight: 800;
+                line-height: 1.2;
+                font-variant-numeric: tabular-nums;
+            }
             .tramo-touch-button {
                 min-height: 44px;
                 min-width: 44px;
@@ -407,6 +420,9 @@
                 display: grid;
                 grid-template-columns: repeat(12, minmax(0, 1fr));
                 gap: 0.75rem;
+            }
+            .viajes-kpi-grid.is-hidden {
+                display: none;
             }
             .viajes-kpi-card {
                 min-height: 6.25rem;
@@ -730,12 +746,21 @@
             }
             .viajes-density-button {
                 min-height: 2.05rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.35rem;
                 border-radius: 0.5rem;
                 color: var(--color-muted);
                 padding: 0.42rem 0.68rem;
                 font-size: 0.76rem;
                 font-weight: 850;
                 line-height: 1;
+                white-space: nowrap;
+            }
+            .viajes-density-button .button-icon {
+                width: 0.95rem;
+                height: 0.95rem;
             }
             .viajes-density-button:hover {
                 color: var(--color-text);
@@ -744,6 +769,9 @@
                 background: var(--color-card);
                 color: var(--color-accent-strong);
                 box-shadow: 0 1px 3px oklch(0.35 0.02 255 / 0.12);
+            }
+            .viajes-density-button[hidden] {
+                display: none;
             }
             .viajes-monitor-toggle {
                 min-height: 2.45rem;
@@ -2823,6 +2851,11 @@
                 gap: 0.55rem;
                 flex-wrap: wrap;
             }
+            .viajes-unit-mainline {
+                display: grid;
+                grid-template-columns: minmax(7.5rem, 10rem) minmax(4.5rem, 5.75rem) minmax(12rem, auto);
+                gap: 0.45rem 0.65rem;
+            }
             .viajes-group-title {
                 display: inline-flex;
                 align-items: center;
@@ -2880,20 +2913,37 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 0.42rem;
+                min-width: 0;
                 color: oklch(0.38 0.15 258);
                 font-size: 0.86rem;
                 font-weight: 900;
             }
+            .viajes-unit-title .app-icon {
+                flex: none;
+            }
             .viajes-unit-plates {
+                min-width: 0;
+                overflow: hidden;
                 color: oklch(0.58 0.025 255);
                 font-size: 0.75rem;
                 font-weight: 800;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
             .viajes-unit-badges {
-                display: inline-flex;
+                display: grid;
+                grid-template-columns: max-content max-content;
                 align-items: center;
                 gap: 0.4rem;
-                flex-wrap: wrap;
+                justify-self: start;
+                width: max-content;
+            }
+            .viajes-unit-badge-slot {
+                display: inline-flex;
+                min-width: 0;
+            }
+            .viajes-unit-badge-slot .viajes-badge {
+                white-space: nowrap;
             }
             .tramo-gps-card {
                 margin-top: 0.75rem;
@@ -5200,6 +5250,13 @@
                 .lector-state-overview {
                     grid-template-columns: repeat(2, minmax(0, 1fr));
                 }
+                .viajes-unit-mainline {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+                .viajes-unit-badges {
+                    grid-template-columns: max-content max-content;
+                    justify-content: start;
+                }
                 .lector-status-section-head {
                     grid-template-columns: minmax(0, 1fr);
                 }
@@ -6794,22 +6851,7 @@
                                 </optgroup>
                             </select>
                         </div>
-                        <button
-                            type="button"
-                            id="viajes-monitor-toggle"
-                            class="viajes-monitor-toggle is-active"
-                            aria-pressed="true"
-                            onclick="toggleViajesMonitorMode()"
-                        >
-                            <span class="icon-label"
-                                ><i
-                                    data-lucide="eye"
-                                    class="app-icon button-icon"
-                                    aria-hidden="true"
-                                ></i
-                                >Modo monitoreo</span
-                            >
-                        </button>
+
                         <div
                             class="viajes-density-control"
                             role="group"
@@ -6817,19 +6859,44 @@
                         >
                             <button
                                 type="button"
+                                id="viajes-monitor-toggle"
+                                class="viajes-monitor-toggle is-active"
+                                aria-pressed="true"
+                                onclick="toggleViajesMonitorMode()"
+                            >
+                                <span class="icon-label"
+                                    ><i
+                                        data-lucide="eye"
+                                        class="app-icon button-icon"
+                                        aria-hidden="true"
+                                    ></i
+                                    >Modo monitoreo</span
+                                >
+                            </button>
+                            <button
+                                type="button"
+                                id="viajes-kpis-toggle"
+                                class="viajes-density-button"
+                                aria-pressed="true"
+                                title="Ocultar KPIs en modo monitoreo"
+                                onclick="toggleViajesKpisInMonitorMode()"
+                            >
+                                <i
+                                    data-lucide="eye-off"
+                                    class="app-icon button-icon"
+                                    aria-hidden="true"
+                                ></i>
+                                <span data-viajes-kpis-toggle-label
+                                    >Ocultar KPIs</span
+                                >
+                            </button>
+                            <button
+                                type="button"
                                 id="viajes-density-comoda"
                                 class="viajes-density-button is-active"
                                 onclick="setViajesDensity('comoda')"
                             >
                                 Modo normal
-                            </button>
-                            <button
-                                type="button"
-                                id="viajes-density-compacta"
-                                class="viajes-density-button"
-                                onclick="setViajesDensity('compacta')"
-                            >
-                                Expandido
                             </button>
                         </div>
                     </div>
@@ -7965,6 +8032,19 @@
         let viajesPanelTramosOperacionAbiertos = {};
         let viajesViewDensity = "comoda";
         let viajesMonitorMode = true;
+        const VIAJES_KPIS_MONITOR_VISIBILITY_KEY =
+            "bitacoraViajesKpisMonitorVisible";
+        let viajesKpisVisibleInMonitorMode = (() => {
+            try {
+                return (
+                    localStorage.getItem(
+                        VIAJES_KPIS_MONITOR_VISIBILITY_KEY,
+                    ) === "1"
+                );
+            } catch (error) {
+                return false;
+            }
+        })();
         let viajeDetallePersistidoId = null;
         let viajePanelCerrando = false;
         let viajePanelSuppressOpenUntil = 0;
@@ -11965,6 +12045,34 @@
             return s ? s : null;
         }
 
+        function formatHora12(value) {
+            const d = dayjs(value);
+            if (!d.isValid()) return "";
+            const hour = d.hour();
+            const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+            const ampm = hour < 12 ? "a.m." : "p.m.";
+            return `${String(hour12).padStart(2, "0")}:${d.format("mm")} ${ampm}`;
+        }
+
+        function formatFechaHora12Corta(value) {
+            const d = dayjs(value);
+            if (!d.isValid()) return "";
+            return `${d.format("DD/MM")} ${formatHora12(d)}`;
+        }
+
+        function formatBitacoraInputPreview(value) {
+            const formatted = formatHora12(value);
+            return formatted ? `Formato 12 h: ${formatted}` : "Formato 12 h";
+        }
+
+        function syncBitacoraTimePreview(input) {
+            const targetId = input?.dataset?.timePreviewTarget || "";
+            const target = targetId ? document.getElementById(targetId) : null;
+            if (target) {
+                target.textContent = formatBitacoraInputPreview(input.value);
+            }
+        }
+
         function applyTramoUpdateResponse(
             viajeId,
             tramoId,
@@ -14983,7 +15091,7 @@
                 return { key: "ok", label: "GPS validado" };
             }
             if (raw && raw !== "[]" && raw !== "{}") {
-                return { key: "review", label: "Revisar GPS" };
+                return { key: "review", label: "Validar GPS" };
             }
             return { key: "pending", label: "GPS pendiente" };
         }
@@ -15793,7 +15901,7 @@
                     ? `<span class="lector-status-pill lector-status-pill--late">${summary.late} retraso${summary.late !== 1 ? "s" : ""}</span>`
                     : "",
                 summary.gpsPendientes
-                    ? `<span class="lector-status-pill lector-status-pill--planned">${summary.gpsPendientes} GPS pendiente por validar${summary.gpsPendientes !== 1 ? "s" : ""}</span>`
+                    ? `<span class="lector-status-pill lector-status-pill--planned">${summary.gpsPendientes} validaciones de GPS pendientes</span>`
                     : "",
                 summary.incidencias
                     ? `<span class="lector-status-pill lector-status-pill--active">${summary.incidencias} incidencia${summary.incidencias !== 1 ? "s" : ""}</span>`
@@ -15995,7 +16103,7 @@
                 <div class="lector-list-counters">
                     <span class="lector-counter"><strong>${matrixItems.length}</strong> tramo${matrixItems.length !== 1 ? "s" : ""}</span>
                     ${matrixTotals.retrasos ? `<span class="lector-counter" style="--counter-bg:oklch(0.955 0.045 27);--counter-border:oklch(0.84 0.12 27);--counter-color:oklch(0.42 0.17 27)"><strong>${matrixTotals.retrasos}</strong> retraso${matrixTotals.retrasos !== 1 ? "s" : ""}</span>` : ""}
-                    ${matrixTotals.gps ? `<span class="lector-counter" style="--counter-bg:oklch(0.947 0.035 251);--counter-border:oklch(0.84 0.09 251);--counter-color:oklch(0.39 0.14 251)"><strong>${matrixTotals.gps}</strong> GPS pendiente por validar${matrixTotals.gps !== 1 ? "s" : ""}</span>` : ""}
+                    ${matrixTotals.gps ? `<span class="lector-counter" style="--counter-bg:oklch(0.947 0.035 251);--counter-border:oklch(0.84 0.09 251);--counter-color:oklch(0.39 0.14 251)"><strong>${matrixTotals.gps}</strong> validaciones de GPS pendientes</span>` : ""}
                     ${matrixTotals.incidencias ? `<span class="lector-counter" style="--counter-bg:oklch(0.955 0.06 85);--counter-border:oklch(0.86 0.12 85);--counter-color:oklch(0.4 0.105 72)"><strong>${matrixTotals.incidencias}</strong> incidencia${matrixTotals.incidencias !== 1 ? "s" : ""}</span>` : ""}
                 </div>
                 <div class="registro-board-shell lector-matrix-table-wrap">
@@ -16076,7 +16184,7 @@
                         <span class="lector-counter"><strong>${grupos.length}</strong> unidad${grupos.length !== 1 ? "es" : ""}</span>
                         <span class="lector-counter"><strong>${totals.tramos}</strong> tramo${totals.tramos !== 1 ? "s" : ""}</span>
                         ${totals.retrasos ? `<span class="lector-counter" style="--counter-bg:oklch(0.955 0.045 27);--counter-border:oklch(0.84 0.12 27);--counter-color:oklch(0.42 0.17 27)"><strong>${totals.retrasos}</strong> retraso${totals.retrasos !== 1 ? "s" : ""}</span>` : ""}
-                        ${totals.gps ? `<span class="lector-counter" style="--counter-bg:oklch(0.947 0.035 251);--counter-border:oklch(0.84 0.09 251);--counter-color:oklch(0.39 0.14 251)"><strong>${totals.gps}</strong> GPS pendiente por validar${totals.gps !== 1 ? "s" : ""}</span>` : ""}
+                        ${totals.gps ? `<span class="lector-counter" style="--counter-bg:oklch(0.947 0.035 251);--counter-border:oklch(0.84 0.09 251);--counter-color:oklch(0.39 0.14 251)"><strong>${totals.gps}</strong> validaciones de GPS pendientes</span>` : ""}
                         ${totals.incidencias ? `<span class="lector-counter" style="--counter-bg:oklch(0.955 0.06 85);--counter-border:oklch(0.86 0.12 85);--counter-color:oklch(0.4 0.105 72)"><strong>${totals.incidencias}</strong> incidencia${totals.incidencias !== 1 ? "s" : ""}</span>` : ""}
                     </div>
                 </div>
@@ -16401,6 +16509,52 @@
             renderViajes();
         }
 
+        function _guardarViajesKpisMonitorVisibility() {
+            try {
+                localStorage.setItem(
+                    VIAJES_KPIS_MONITOR_VISIBILITY_KEY,
+                    viajesKpisVisibleInMonitorMode ? "1" : "0",
+                );
+            } catch (error) {}
+        }
+
+        function toggleViajesKpisInMonitorMode(force) {
+            viajesKpisVisibleInMonitorMode =
+                typeof force === "boolean"
+                    ? force
+                    : !viajesKpisVisibleInMonitorMode;
+            _guardarViajesKpisMonitorVisibility();
+            renderViajes();
+        }
+
+        function _syncViajesKpisMonitorVisibility(esLector = false) {
+            const kpis = document.getElementById("viajes-kpis");
+            const toggle = document.getElementById("viajes-kpis-toggle");
+            const label = toggle?.querySelector(
+                "[data-viajes-kpis-toggle-label]",
+            );
+            const monitorActivo = viajesMonitorMode && !esLector;
+            const kpisVisibles =
+                !monitorActivo || viajesKpisVisibleInMonitorMode;
+
+            kpis?.classList.toggle("is-hidden", !kpisVisibles);
+            kpis?.setAttribute("aria-hidden", kpisVisibles ? "false" : "true");
+
+            if (!toggle) return;
+            toggle.hidden = !monitorActivo;
+            toggle.classList.toggle("is-active", kpisVisibles);
+            toggle.setAttribute("aria-pressed", kpisVisibles ? "true" : "false");
+            toggle.setAttribute(
+                "title",
+                kpisVisibles
+                    ? "Ocultar KPIs en modo monitoreo"
+                    : "Mostrar KPIs en modo monitoreo",
+            );
+            if (label) {
+                label.textContent = kpisVisibles ? "Ocultar KPIs" : "Mostrar KPIs";
+            }
+        }
+
         function _viajePersistenciaKey() {
             const clienteScope =
                 activeClienteId || getActiveClienteName() || "todos";
@@ -16668,6 +16822,7 @@
                 "aria-pressed",
                 viajesMonitorMode && !esLector ? "true" : "false",
             );
+            _syncViajesKpisMonitorVisibility(esLector);
             listToolbar?.classList.toggle("hidden", esLector);
             if (title) {
                 title.textContent = esLector
@@ -17151,7 +17306,7 @@
             const unidadesHtml = unidades
                 .map((u) => {
                     const scope = `${clienteKey}::${u.key}`;
-                    const colapsada = !!unidadesColapsadas[scope];
+                    const colapsada = unidadesColapsadas[scope] !== false;
                     const scopeEsc = scope.replace(/'/g, "\\'");
 
                     const activos = u.viajes.filter(
@@ -17171,14 +17326,14 @@
                     const badgeActivos = activos
                         ? _renderBadge(
                               VIAJE_UI_TOKENS.estado.en_curso,
-                              `${activos} activo${activos !== 1 ? "s" : ""}`,
+                              "activo",
                               UI_BADGE_BASE,
                           )
                         : "";
                     const badgeRetraso = conRetraso
                         ? _renderBadge(
                               VIAJE_UI_TOKENS.badge.retrasoActivo,
-                              `${appIcon("alert-triangle", "app-icon h-3.5 w-3.5")} ${conRetraso}`,
+                              `${appIcon("alert-triangle", "app-icon h-3.5 w-3.5")} con retraso`,
                           )
                         : "";
 
@@ -17195,7 +17350,7 @@
                                     <div class="viajes-unit-mainline">
                                         <span class="viajes-unit-title">${appIcon("truck", "app-icon h-4 w-4")} ${escapeHtml(u.economico)}</span>
                                         ${placasHtml}
-                                        <span class="viajes-unit-badges">${badgeRetraso}${badgeActivos}</span>
+                                        <span class="viajes-unit-badges"><span class="viajes-unit-badge-slot">${badgeRetraso}</span><span class="viajes-unit-badge-slot">${badgeActivos}</span></span>
                                     </div>
                                     ${appIcon("chevron-down", `app-icon h-3.5 w-3.5 text-blue-700 flex-shrink-0 transition-transform ${colapsada ? "-rotate-90" : ""}`)}
                                 </button>
@@ -17266,12 +17421,12 @@
                     const nuevos = viajes.filter((v) =>
                         _esViajeNuevo(v),
                     ).length;
-                    const colapsado = !!gruposColapsados[cliente];
+                    const colapsado = gruposColapsados[cliente] !== false;
 
                     const badgeRetraso = conRetraso
                         ? _renderBadge(
                               VIAJE_UI_TOKENS.badge.retrasoActivo,
-                              `${appIcon("alert-triangle", "app-icon h-3.5 w-3.5")} ${conRetraso} con retraso registrados`,
+                              `${appIcon("alert-triangle", "app-icon h-3.5 w-3.5")} con retraso`,
                           )
                         : "";
                     const badgeEnCurso = enCurso
@@ -17283,7 +17438,7 @@
                     const badgePlanif = planificados
                         ? _renderBadge(
                               `${UI_BADGE_BASE} ${VIAJE_UI_TOKENS.estado.planificado}`,
-                              `${planificados} planificado(sin iniciar)${planificados !== 1 ? "s" : ""}`,
+                              `${planificados} planificado${planificados !== 1 ? "s" : ""} (sin iniciar)`,
                           )
                         : "";
                     const registroReciente = nuevos
@@ -17902,7 +18057,7 @@
                 return {
                     key: "high",
                     label: "Prioridad alta",
-                    detail: `${resumen.gpsPendientes} GPS pendiente por validar${resumen.gpsPendientes !== 1 ? "s" : ""}`,
+                    detail: `${resumen.gpsPendientes} validaciones de GPS pendientes`,
                     bg: "oklch(0.955 0.045 27)",
                     border: "oklch(0.84 0.12 27)",
                     color: "oklch(0.42 0.17 27)",
@@ -17950,7 +18105,8 @@
             if (!resumen.total) key = "empty";
             else if (estado === "cancelado") key = "cancelled";
             else if (estado === "completado") key = "complete";
-            else if (resumen.tieneRetraso) key = "late";
+            else if (estado === "en_curso" && resumen.tieneRetraso)
+                key = "late";
             else if (estado === "en_curso") key = "active";
 
             const visual =
@@ -18019,7 +18175,7 @@
             const gpsBadge = resumen.gpsPendientes
                 ? _renderBadge(
                       VIAJE_UI_TOKENS.badge.gpsPendiente,
-                      `${resumen.gpsPendientes} GPS pendiente por validar${resumen.gpsPendientes !== 1 ? "s" : ""}`,
+                      `${resumen.gpsPendientes} validaciones de GPS pendientes`,
                   )
                 : resumen.total
                   ? _renderBadge(
@@ -18878,7 +19034,7 @@
                 acordeonKey,
             )
                 ? viajesPanelTramosOperacionAbiertos[acordeonKey]
-                : estado === "en_curso" || !!retraso || incidencias > 0;
+                : false;
             const resumenAccion =
                 estado === "completado"
                     ? "Ver bitacora del tramo"
@@ -20038,14 +20194,11 @@
                 tramosActivos
                     ? _renderBadge(
                           `${UI_BADGE_BASE} bg-blue-100 text-blue-700`,
-                          `${tramosActivos} activo${tramosActivos !== 1 ? "s" : ""}`,
+                          "activo",
                       )
                     : "",
                 tramosConRetraso
-                    ? _renderBadge(
-                          VIAJE_UI_TOKENS.badge.retraso,
-                          `${tramosConRetraso} con retraso`,
-                      )
+                    ? _renderBadge(VIAJE_UI_TOKENS.badge.retraso, "con retraso")
                     : "",
                 tramosConIncidencias
                     ? _renderBadge(
@@ -20230,7 +20383,7 @@
                                                       ),
                                                       label: "Salida de carga",
                                                       grupo: "carga",
-                                                      prog: null,
+                                                      prog: t.salida_carga,
                                                       real: t.salida_carga_real,
                                                   },
                                                   {
@@ -20286,7 +20439,7 @@
                                                               campoReal,
                                                               icon,
                                                               label,
-                                                              etiquetaInput = "Registro programado:",
+                                                              etiquetaInput = "Real:",
                                                               prog,
                                                               real,
                                                           }) => {
@@ -20303,15 +20456,20 @@
                                                                       : TRAMO_UI_TOKENS
                                                                             .fieldState
                                                                             .normal;
-                                                              const realTexto =
-                                                                  real
-                                                                      ? `<span class="font-mono ${fieldToken.value}">${_fmtDt(real)}${tarde ? ` ${appIcon("alert-triangle", "app-icon h-4 w-4")}` : ""}</span>`
-                                                                      : `<span class="text-gray-300 italic">Sin registrar</span>`;
-                                                              return `
+                                                               const realTexto =
+                                                                   real
+                                                                       ? `<span class="font-mono ${fieldToken.value}">${_fmtDt(real)}${tarde ? ` ${appIcon("alert-triangle", "app-icon h-4 w-4")}` : ""}</span>`
+                                                                       : `<span class="text-gray-300 italic">Sin registrar</span>`;
+                                                               const inputValue =
+                                                                   toInputVal(
+                                                                       real,
+                                                                   );
+                                                               const previewId = `ft-${t.id}-${campoReal}-hora12`;
+                                                               return `
                                         <div class="col-span-1 flex flex-col gap-2 border-t pt-3 ${fieldToken.shell}">
                                             <div class="flex items-center gap-2 text-sm">
                                                 <span>${icon}</span>
-                                                 <span class="font-semibold ${fieldToken.label}">${label}${tarde ? ` ${appIcon("alert-triangle", "app-icon h-4 w-4")}` : ""}</span>
+                                                  <span class="font-semibold ${fieldToken.label}">${label}</span>
                                             </div>
                                             <div class="tramo-registro-meta min-h-[1.5rem] text-sm text-gray-500">
                                                 <span class="font-medium">${prog ? "Programada:" : ""}</span>
@@ -20322,12 +20480,19 @@
                                                 ${
                                                     esLectorTramo
                                                         ? `<span class="text-sm">${realTexto}</span>`
-                                                        : `<input type="datetime-local"
-                                                        id="ft-${t.id}-${campoReal}"
-                                                        value="${toInputVal(real)}"
-                                                        aria-label="${label}: registrar fecha y hora real"
-                                                        onchange="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',this)"
-                                                        class="tramo-control w-full min-w-0 border focus:outline-none focus:ring-2 ${fieldToken.input}"/>
+                                                        : `<div class="tramo-registro-input-wrap">
+                                                    <input type="datetime-local"
+                                                        lang="en-US"
+                                                         id="ft-${t.id}-${campoReal}"
+                                                         value="${inputValue}"
+                                                         data-time-preview-target="${previewId}"
+                                                         aria-label="${label}: registrar fecha y hora real"
+                                                         aria-describedby="${previewId}"
+                                                         oninput="syncBitacoraTimePreview(this)"
+                                                         onchange="syncBitacoraTimePreview(this); guardarFechaTramo(${viajeId},${t.id},'${campoReal}',this)"
+                                                         class="tramo-control w-full min-w-0 border focus:outline-none focus:ring-2 ${fieldToken.input}"/>
+                                                    <span id="${previewId}" class="tramo-registro-time-preview">${formatBitacoraInputPreview(inputValue)}</span>
+                                                </div>
                                                 <button type="button" onclick="guardarFechaTramo(${viajeId},${t.id},'${campoReal}',null,true)"
                                                           title="Registrar hora actual"
                                                           aria-label="Registrar hora actual para ${label}"
@@ -20359,7 +20524,7 @@
                                                   </div>`;
                                               const regresoOrigenPanel =
                                                   isRegresoOrigenRequired(t)
-                                                      ? `<details open class="tramo-panel border-t border-gray-200">
+                                                      ? `<details class="tramo-panel border-t border-gray-200">
                                                   <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
                                                     Regreso a origen: ${fmtProg(t.regreso_origen_programado)}
                                                   </summary>
@@ -20368,19 +20533,19 @@
                                                       : "";
                                               return `<div class="mt-2 space-y-2">
                                                   ${operadorModulo}
-                                                  <details open class="tramo-panel border-t border-gray-200">
+                                                  <details class="tramo-panel border-t border-gray-200">
                                                    <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
                                                      Inicio de Ruta: ${fmtProg(t.salida_patio)}
                                                   </summary>
                                                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">${renderFilas("patio")}</div>
                                                 </details>
-                                                <details open class="tramo-panel border-t border-gray-200">
+                                                <details class="tramo-panel border-t border-gray-200">
                                                   <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
                                                     Carga: ${fmtProg(t.cita_carga)}
                                                   </summary>
                                                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">${renderFilas("carga")}</div>
                                                 </details>
-                                                <details open class="tramo-panel border-t border-gray-200">
+                                                <details class="tramo-panel border-t border-gray-200">
                                                   <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
                                                     Descarga: ${fmtProg(t.descarga_programada)}
                                                    </summary>
@@ -20433,7 +20598,8 @@
         function _fmtDt(dt) {
             if (!dt) return "-";
             try {
-                return dayjs(dt).format("DD/MM HH:mm");
+                const formatted = formatFechaHora12Corta(dt);
+                return formatted || String(dt).slice(0, 16);
             } catch (e) {
                 return String(dt).slice(0, 16);
             }
@@ -20498,7 +20664,8 @@
         }
 
         function toggleGrupoCliente(clienteKey) {
-            gruposColapsados[clienteKey] = !gruposColapsados[clienteKey];
+            const colapsado = gruposColapsados[clienteKey] !== false;
+            gruposColapsados[clienteKey] = !colapsado;
             renderViajes();
         }
 
@@ -20508,7 +20675,8 @@
         }
 
         function toggleUnidad(key) {
-            unidadesColapsadas[key] = !unidadesColapsadas[key];
+            const colapsada = unidadesColapsadas[key] !== false;
+            unidadesColapsadas[key] = !colapsada;
             renderViajes();
         }
 
