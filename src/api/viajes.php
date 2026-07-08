@@ -550,10 +550,13 @@ try {
       }
     }
 
+    $viaje_estado = sincronizar_estado_viaje_por_tramos($conn, (int)$tramo['viaje_id']);
+
     resp_ok([
       'tramo_id' => $tramo_id,
       'tramo' => format_tramo_response($tramo),
       'tramo_activado' => $tramo_activado,
+      'viaje_estado' => $viaje_estado,
     ]);
   }
 
