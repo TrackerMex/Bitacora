@@ -11088,15 +11088,15 @@
                               <div class="grid grid-cols-2 ${requiereRegresoOrigen ? "md:grid-cols-5" : "md:grid-cols-4"} gap-2 mb-3">
                                 <div class="progress-badge text-center p-2 transition-colors duration-200 ${d.realCarga && String(d.realCarga).trim() ? "text-green-700" : "text-gray-500 opacity-70"}">
                                   <div class="progress-icon text-xl mb-1">${d.realCarga && String(d.realCarga).trim() ? appIcon("check-circle", "app-icon mx-auto h-5 w-5 text-green-700") : appIcon("package", "app-icon mx-auto h-5 w-5")}</div>
-                                  <div class="text-xs font-medium text-gray-700">Llegada Carga</div>
+                                  <div class="text-xs font-medium text-gray-700">Llegada a Carga</div>
                                 </div>
                                 <div class="progress-badge text-center p-2 transition-colors duration-200 ${d.realSalida && String(d.realSalida).trim() ? "text-green-700" : "text-gray-500 opacity-70"}">
                                   <div class="progress-icon text-xl mb-1">${d.realSalida && String(d.realSalida).trim() ? appIcon("check-circle", "app-icon mx-auto h-5 w-5 text-green-700") : appIcon("truck", "app-icon mx-auto h-5 w-5")}</div>
-                                  <div class="text-xs font-medium text-gray-700">Salida Carga</div>
+                                  <div class="text-xs font-medium text-gray-700">Salida de Carga</div>
                                 </div>
                                 <div class="progress-badge text-center p-2 transition-colors duration-200 ${d.realDescarga && String(d.realDescarga).trim() ? "text-green-700" : "text-gray-500 opacity-70"}">
                                   <div class="progress-icon text-xl mb-1">${d.realDescarga && String(d.realDescarga).trim() ? appIcon("check-circle", "app-icon mx-auto h-5 w-5 text-green-700") : appIcon("download", "app-icon mx-auto h-5 w-5")}</div>
-                                  <div class="text-xs font-medium text-gray-700">Arribo Descarga</div>
+                                  <div class="text-xs font-medium text-gray-700">Arribo a Descarga</div>
                                 </div>
                                 ${
                                     requiereRegresoOrigen
@@ -12033,6 +12033,19 @@
                 (t) => t.estado === "completado",
             ).length;
 
+            if (json?.viaje_estado) {
+                allViajesData[idxViaje].estado = json.viaje_estado;
+            } else if (
+                tramos.length > 0 &&
+                tramos.every((t) => t.estado === "completado")
+            ) {
+                allViajesData[idxViaje].estado = "completado";
+            } else if (tramos.some((t) => t.estado === "en_curso")) {
+                allViajesData[idxViaje].estado = "en_curso";
+            } else if (allViajesData[idxViaje].estado !== "cancelado") {
+                allViajesData[idxViaje].estado = "planificado";
+            }
+
             const estadoActual = String(
                 tramos[idxTramo].estado || estadoAnterior,
             ).toLowerCase();
@@ -12705,7 +12718,7 @@
                                 <th scope="col" class="px-4 py-2 text-left">Ruta</th>
                                 <th scope="col" class="px-4 py-2 text-left">Estatus</th>
                                 <th scope="col" class="px-4 py-2 text-left">Prog. Descarga</th>
-                                <th scope="col" class="px-4 py-2 text-left">Arribo Descarga</th>
+                                <th scope="col" class="px-4 py-2 text-left">Arribo a Descarga</th>
                                 <th scope="col" class="px-4 py-2 text-left">Vacío</th>
                                 <th scope="col" class="px-4 py-2 text-left min-w-[200px]">Observaciones</th>
                               </tr>
@@ -12749,7 +12762,7 @@
                 Ruta: t.ruta || "",
                 Estatus: _viajeEstadoLabel(t.estado),
                 "Prog. Descarga": formatDateTime(t.descarga_programada),
-                "Arribo Descarga": formatDateTime(t.descarga_real),
+                "Arribo a Descarga": formatDateTime(t.descarga_real),
                 Vacío: formatDateTime(t.vacio_real),
                 "Req. Regreso": isRegresoOrigenRequired(t) ? "Si" : "No",
                 "Regreso Prog.": formatDateTime(t.regreso_origen_programado),
@@ -12793,13 +12806,13 @@
                 Destino: d.destino,
                 "Prog Carga": formatDateTime(d.citaCarga),
                 "Real Carga": formatDateTime(d.realCarga),
-                "Prog Salida Carga": formatDateTime(d.citaSalida),
-                "Real Salida Carga": formatDateTime(d.realSalida),
+                "Prog Salida de Carga": formatDateTime(d.citaSalida),
+                "Real Salida de Carga": formatDateTime(d.realSalida),
                 "Req Regreso Origen": isRegresoOrigenRequired(d) ? "Si" : "No",
                 "Fecha Regreso": formatDateTime(d.regresoOrigenProgramado),
                 "Vacio Regreso Origen": formatDateTime(d.regresoOrigenReal),
                 "Prog Descarga": formatDateTime(d.citaDescarga),
-                "Arribo Descarga": formatDateTime(d.realDescarga),
+                "Arribo a Descarga": formatDateTime(d.realDescarga),
                 "Real Vacío": formatDateTime(d.realVacio),
                 Estatus: d.estatus,
                 Observaciones: d.observaciones || "",
@@ -15493,7 +15506,7 @@
                     </td>
                     <td class="registro-board-cell" data-label="Salida unidad">${_renderLectorStage("Salida", tramo.salida_patio, tramo.salida_patio_real)}</td>
                     <td class="registro-board-cell" data-label="Proceso de carga">${_renderLectorStage("Carga", tramo.cita_carga, tramo.cita_carga_real)}</td>
-                    <td class="registro-board-cell" data-label="Salida de carga">${_renderLectorStage("Salida carga", tramo.salida_carga, tramo.salida_carga_real)}</td>
+                    <td class="registro-board-cell" data-label="Salida de carga">${_renderLectorStage("Salida de carga", tramo.salida_carga, tramo.salida_carga_real)}</td>
                     <td class="registro-board-cell" data-label="Descarga">${_renderLectorStage("Descarga", tramo.descarga_programada, tramo.descarga_real)}</td>
                     <td class="registro-board-cell registro-status-cell" data-label="Estatus de entrega">${_renderLectorFinalStatus(status)}</td>
                 </tr>
@@ -16811,7 +16824,7 @@
                 const ms = retraso(t.cita_carga, t.cita_carga_real);
                 if (ms)
                     return {
-                        campo: "Llegada carga",
+                        campo: "Llegada a carga",
                         ms,
                         tieneReal: !!t.cita_carga_real,
                     };
@@ -16821,7 +16834,7 @@
                 const ms = retraso(t.descarga_programada, t.descarga_real);
                 if (ms)
                     return {
-                        campo: "Arribo descarga",
+                        campo: "Arribo a descarga",
                         ms,
                         tieneReal: !!t.descarga_real,
                     };
@@ -17270,7 +17283,7 @@
                     const badgePlanif = planificados
                         ? _renderBadge(
                               `${UI_BADGE_BASE} ${VIAJE_UI_TOKENS.estado.planificado}`,
-                              `${planificados} planificado${planificados !== 1 ? "s" : ""}`,
+                              `${planificados} planificado(sin iniciar)${planificados !== 1 ? "s" : ""}`,
                           )
                         : "";
                     const registroReciente = nuevos
@@ -17341,7 +17354,7 @@
         const VIAJE_UI_TOKENS = {
             estado: {
                 planificado: "bg-blue-100 text-blue-800",
-                en_curso: "bg-yellow-100 text-yellow-800",
+                en_curso: "bg-blue-100 text-blue-800",
                 completado: "bg-green-100 text-green-800",
                 cancelado: "bg-gray-100 text-gray-500",
                 default: "bg-gray-100 text-gray-600",
@@ -17375,9 +17388,9 @@
                     label: "Programado sin salir",
                 },
                 active: {
-                    block: "bg-amber-50 border-amber-200 text-amber-900",
-                    badge: "bg-amber-100 text-amber-800 border-amber-200",
-                    progress: "bg-amber-500",
+                    block: "bg-blue-50 border-blue-200 text-blue-900",
+                    badge: "bg-blue-100 text-blue-800 border-blue-200",
+                    progress: "bg-blue-500",
                     label: "En curso",
                 },
                 complete: {
@@ -17411,7 +17424,7 @@
             },
             actionButton: {
                 en_curso:
-                    "text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 px-3 py-2 rounded-full font-semibold transition-colors",
+                    "text-xs bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 px-3 py-2 rounded-full font-semibold transition-colors",
                 completado:
                     "text-xs bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 px-3 py-2 rounded-full font-semibold transition-colors",
                 cancelado:
@@ -17536,13 +17549,13 @@
         function _viajeCssState(visualKey) {
             const map = {
                 active: {
-                    bg: "oklch(0.955 0.06 85)",
-                    border: "oklch(0.86 0.12 85)",
-                    color: "oklch(0.4 0.105 72)",
-                    progress: "oklch(0.62 0.14 85)",
-                    shadow: "oklch(0.62 0.14 85 / 0.16)",
-                    shadowStrong: "oklch(0.62 0.14 85 / 0.24)",
-                    ring: "oklch(0.62 0.14 85 / 0.2)",
+                    bg: "oklch(0.947 0.035 251)",
+                    border: "oklch(0.84 0.09 251)",
+                    color: "oklch(0.39 0.14 251)",
+                    progress: "oklch(0.58 0.18 251)",
+                    shadow: "oklch(0.58 0.18 251 / 0.14)",
+                    shadowStrong: "oklch(0.58 0.18 251 / 0.22)",
+                    ring: "oklch(0.58 0.18 251 / 0.18)",
                 },
                 complete: {
                     bg: "oklch(0.953 0.05 149)",
@@ -17712,7 +17725,7 @@
                                 : icon === "check"
                                   ? "oklch(0.37 0.12 149)"
                                   : icon === "route"
-                                    ? "oklch(0.4 0.105 72)"
+                                    ? "oklch(0.39 0.14 251)"
                                     : "oklch(0.39 0.14 251)";
                         return `<article class="viajes-kpi-card" style="--kpi-color:${color};--kpi-bg:oklch(0.97 0.025 255)">
                             <span class="viajes-kpi-symbol">${_viajesIcon(icon)}</span>
@@ -17767,7 +17780,7 @@
                     detailHtml: `<div class="viajes-kpi-breakdown">
                         <span class="viajes-kpi-substat" style="--substat-bg:oklch(0.955 0.045 27);--substat-border:oklch(0.84 0.12 27);--substat-color:oklch(0.42 0.17 27)">
                             <strong>${enCursoConRetraso}</strong>
-                            <span>Con retraso en llegada a carga</span>
+                            <span>Con retraso</span>
                         </span>
                         <span class="viajes-kpi-substat" style="--substat-bg:oklch(0.953 0.05 149);--substat-border:oklch(0.84 0.12 149);--substat-color:oklch(0.37 0.12 149)">
                             <strong>${enCursoSinRetraso}</strong>
@@ -17812,7 +17825,7 @@
                             : icon === "check"
                               ? "oklch(0.37 0.12 149)"
                               : icon === "route"
-                                ? "oklch(0.4 0.105 72)"
+                                ? "oklch(0.39 0.14 251)"
                                 : "oklch(0.39 0.14 251)";
                     const wideClass = detailHtml
                         ? " viajes-kpi-card--wide"
@@ -18869,7 +18882,7 @@
             const resumenAccion =
                 estado === "completado"
                     ? "Ver bitacora del tramo"
-                    : "Operar tramo";
+                    : "Seguimiento de tramo";
             return `<div class="viajes-panel-tramo" id="viajes-panel-tramo-${t.id}" style="--timeline-color:${timelineColor};--timeline-bg:${timelineBg};--timeline-soft:${timelineSoft};--timeline-shadow:${timelineShadow};--timeline-line:oklch(0.86 0.02 255)">
                 <span class="viajes-panel-tramo-rail" aria-hidden="true">
                     <span class="viajes-panel-tramo-node ${estado === "completado" ? "is-complete" : ""}">${estado === "completado" ? "✓" : escapeHtml(t.tramo_numero || "-")}</span>
@@ -19295,7 +19308,7 @@
                         <div id="${formId}" class="hidden mt-2 border-t border-gray-200 pt-3">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                                 <div>
-                                     <label for="${formId}-tipo" class="block text-sm font-semibold text-gray-700 mb-1">Tipo *</label>
+                                     <label for="${formId}-tipo" class="block text-sm font-semibold text-gray-700 mb-1">Tipo de incidencia*</label>
                                      <select id="${formId}-tipo"
                                              onchange="_handleViajeIncidenciaTipoChange('${formId}')"
                                              class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400">
@@ -19313,7 +19326,7 @@
                                     </select>
                                 </div>
                                  <div>
-                                     <label for="${formId}-fecha" class="block text-sm font-semibold text-gray-700 mb-1">Fecha y hora *</label>
+                                     <label for="${formId}-fecha" class="block text-sm font-semibold text-gray-700 mb-1">Fecha y hora de la incidencia*</label>
                                      <input type="datetime-local" id="${formId}-fecha"
                                             value="${new Date().toISOString().slice(0, 16)}"
                                             class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
@@ -19324,7 +19337,7 @@
                                             class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
                                  </div>
                                  <div>
-                                     <label for="${formId}-dir" class="block text-sm font-semibold text-gray-700 mb-1">Dirección / Ubicación</label>
+                                     <label for="${formId}-dir" class="block text-sm font-semibold text-gray-700 mb-1">Dirección de incidencia</label>
                                      <input type="text" id="${formId}-dir" placeholder="Km 145 MEX-150D"
                                             class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
                                  </div>
@@ -19584,22 +19597,22 @@
         function _getTramoResumenCampos(t) {
             const campos = [
                 {
-                    label: "Salida patio",
+                    label: "Inicio de ruta",
                     programada: t.salida_patio,
                     real: t.salida_patio_real,
                 },
                 {
-                    label: "Llegada carga",
+                    label: "Llegada a carga",
                     programada: t.cita_carga,
                     real: t.cita_carga_real,
                 },
                 {
-                    label: "Salida carga",
+                    label: "Salida de carga",
                     programada: t.salida_carga,
                     real: t.salida_carga_real,
                 },
                 {
-                    label: "Arribo descarga",
+                    label: "Arribo a descarga",
                     programada: t.descarga_programada,
                     real: t.descarga_real,
                 },
@@ -19638,7 +19651,7 @@
                                 <span class="text-xs font-bold uppercase tracking-wide text-gray-500">${escapeHtml(campo.label)}</span>
                                 ${
                                     tarde
-                                        ? `<span class="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700">Con retraso en llegada de carga</span>`
+                                        ? `<span class="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700">Con retraso</span>`
                                         : `<span class="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">Registrado</span>`
                                 }
                             </div>
@@ -19772,9 +19785,9 @@
             const pendientes = [];
             const fechaCampos = [
                 ["Salida patio", tramo?.salida_patio_real],
-                ["Llegada carga", tramo?.cita_carga_real],
-                ["Salida carga", tramo?.salida_carga_real],
-                ["Arribo descarga", tramo?.descarga_real],
+                ["Llegada a carga", tramo?.cita_carga_real],
+                ["Salida a carga", tramo?.salida_carga_real],
+                ["Arribo a descarga", tramo?.descarga_real],
                 ["Vacio", tramo?.vacio_real],
             ];
             if (isRegresoOrigenRequired(tramo)) {
@@ -20191,7 +20204,7 @@
                                                           "log-out",
                                                           "app-icon h-4 w-4",
                                                       ),
-                                                      label: "Salida patio",
+                                                      label: "Inicio de Ruta",
                                                       grupo: "patio",
                                                       prog: t.salida_patio,
                                                       real: t.salida_patio_real,
@@ -20203,7 +20216,7 @@
                                                           "package",
                                                           "app-icon h-4 w-4",
                                                       ),
-                                                      label: "Llegada carga",
+                                                      label: "Llegada a carga",
                                                       grupo: "carga",
                                                       prog: t.cita_carga,
                                                       real: t.cita_carga_real,
@@ -20215,7 +20228,7 @@
                                                           "truck",
                                                           "app-icon h-4 w-4",
                                                       ),
-                                                      label: "Salida carga",
+                                                      label: "Salida de carga",
                                                       grupo: "carga",
                                                       prog: null,
                                                       real: t.salida_carga_real,
@@ -20227,7 +20240,7 @@
                                                           "flag",
                                                           "app-icon h-4 w-4",
                                                       ),
-                                                      label: "Arribo descarga",
+                                                      label: "Arribo a descarga",
                                                       grupo: "descarga",
                                                       prog: t.descarga_programada,
                                                       real: t.descarga_real,
@@ -20273,7 +20286,7 @@
                                                               campoReal,
                                                               icon,
                                                               label,
-                                                              etiquetaInput = "Registro:",
+                                                              etiquetaInput = "Registro programado:",
                                                               prog,
                                                               real,
                                                           }) => {
@@ -20357,13 +20370,13 @@
                                                   ${operadorModulo}
                                                   <details open class="tramo-panel border-t border-gray-200">
                                                    <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
-                                                     Salida de patio: ${fmtProg(t.salida_patio)}
+                                                     Inicio de Ruta: ${fmtProg(t.salida_patio)}
                                                   </summary>
                                                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">${renderFilas("patio")}</div>
                                                 </details>
                                                 <details open class="tramo-panel border-t border-gray-200">
                                                   <summary class="min-h-[44px] flex items-center cursor-pointer select-none px-3 py-2 bg-gray-50 text-sm font-semibold text-gray-700">
-                                                    Carga: llegada ${fmtProg(t.cita_carga)}
+                                                    Carga: ${fmtProg(t.cita_carga)}
                                                   </summary>
                                                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2">${renderFilas("carga")}</div>
                                                 </details>
@@ -20889,6 +20902,23 @@
                     tramoOptimista[campo] = valorEnvio
                         ? valorEnvio.replace("T", " ") + ":00"
                         : null;
+                    if (
+                        valorEnvio &&
+                        !["completado", "cancelado"].includes(
+                            String(tramoOptimista.estado || "").toLowerCase(),
+                        )
+                    ) {
+                        tramoOptimista.estado = "en_curso";
+                        if (
+                            !["completado", "cancelado"].includes(
+                                String(
+                                    allViajesData[idxVOpt].estado || "",
+                                ).toLowerCase(),
+                            )
+                        ) {
+                            allViajesData[idxVOpt].estado = "en_curso";
+                        }
+                    }
                     renderViajes({ skipPanelRefresh: true });
                 }
             }
@@ -20928,7 +20958,7 @@
                             : null,
                     },
                 );
-                renderViajes({ skipPanelRefresh: true });
+                renderViajes();
                 const debeValidarCompletar = isRegresoOrigenRequired(
                     tramoOptimista,
                 )
