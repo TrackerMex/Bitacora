@@ -17474,7 +17474,7 @@
                 v?.fecha_registro ||
                 v?.registrado_at ||
                 "";
-            const creado = raw ? dayjs.utc(raw) : null;
+            const creado = raw ? dayjs.utc(raw).local() : null;
             if (!creado || !creado.isValid()) return false;
             return creado;
         }
@@ -18134,7 +18134,7 @@
             const fechas = v.es_multi_dia
                 ? `${v.fecha_inicio} -> ${v.fecha_fin}`
                 : v.fecha_inicio || "-";
-            const creadoDt = v.created_at ? dayjs.utc(v.created_at) : null;
+            const creadoDt = _viajeFechaRegistro(v);
             const creadoTexto =
                 creadoDt && creadoDt.isValid()
                     ? creadoDt.format("DD/MM/YYYY HH:mm")
@@ -18351,12 +18351,8 @@
                 ? `${v.fecha_inicio} → ${v.fecha_fin}`
                 : v.fecha_inicio;
 
-            // Fecha y hora en que se creó el registro (info para el admin).
-            // created_at viene de BD ya en hora local de México (la conexión
-            // MySQL fija time_zone = -06:00). Se parsea con dayjs.utc() para
-            // mostrar los dígitos tal cual, sin que el navegador los reconvierta
-            // a su propia zona horaria.
-            const creadoDt = v.created_at ? dayjs.utc(v.created_at) : null;
+            // created_at puede llegar como UTC desde MySQL; se muestra en hora local.
+            const creadoDt = _viajeFechaRegistro(v);
             const creadoTexto =
                 creadoDt && creadoDt.isValid()
                     ? creadoDt.format("DD/MM/YYYY HH:mm")
