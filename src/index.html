@@ -17474,7 +17474,9 @@
                 v?.fecha_registro ||
                 v?.registrado_at ||
                 "";
-            const creado = raw ? dayjs.utc(raw).local() : null;
+            const s = String(raw || "").trim();
+            const hasExplicitZone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(s);
+            const creado = s ? (hasExplicitZone ? dayjs(s).local() : dayjs(s)) : null;
             if (!creado || !creado.isValid()) return false;
             return creado;
         }
@@ -17685,10 +17687,26 @@
 
         function _fmtViajeDt(value) {
             if (!value) return "-";
+            const raw = String(value).trim();
+            const hasTime = /(?:T|\s)\d{1,2}:\d{2}/.test(raw);
+            const isMidnight = /(?:T|\s)00:00(?::00)?(?:$|[.,Z+-])/.test(raw);
             const d = dayjs(value);
-            return d.isValid()
+            if (!d.isValid()) return escapeHtml(raw);
+            return hasTime && !isMidnight
                 ? d.format("DD MMM YYYY, HH:mm")
-                : escapeHtml(String(value));
+                : d.format("DD MMM YYYY");
+        }
+
+        function _hasViajeTime(value) {
+            const raw = String(value || "").trim();
+            return (
+                /(?:T|\s)\d{1,2}:\d{2}/.test(raw) &&
+                !/(?:T|\s)00:00(?::00)?(?:$|[.,Z+-])/.test(raw)
+            );
+        }
+
+        function _firstViajeDateTime(...values) {
+            return values.find((value) => value && _hasViajeTime(value)) || "";
         }
 
         function _viajeEstadoLabel(estado) {
@@ -17765,8 +17783,10 @@
             const tramos = Array.isArray(v?.tramos) ? v.tramos : [];
             const first = tramos[0] || null;
             const last = tramos[tramos.length - 1] || null;
-            const salida =
-                v.primera_salida || first?.salida_patio || v.fecha_inicio || "";
+            const salida = _firstViajeDateTime(
+                v.primera_salida,
+                first?.salida_patio,
+            );
             const eta =
                 v.ultima_descarga ||
                 last?.descarga_programada ||
