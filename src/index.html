@@ -17476,8 +17476,11 @@
                 "";
             const s = String(raw || "").trim();
             const hasExplicitZone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(s);
-            const creado = s ? (hasExplicitZone ? dayjs(s).local() : dayjs(s)) : null;
+            let creado = s ? (hasExplicitZone ? dayjs(s).local() : dayjs(s)) : null;
             if (!creado || !creado.isValid()) return false;
+            if (!hasExplicitZone && creado.isAfter(dayjs().add(2, "minute"))) {
+                creado = creado.subtract(6, "hour");
+            }
             return creado;
         }
 

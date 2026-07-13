@@ -164,8 +164,16 @@ try {
             v.estado,
             v.notas,
             v.created_by_usuario_id,
-            v.created_at,
-            v.updated_at,
+            CASE
+              WHEN v.created_at > DATE_ADD(NOW(), INTERVAL 2 MINUTE)
+              THEN DATE_SUB(v.created_at, INTERVAL 6 HOUR)
+              ELSE v.created_at
+            END AS created_at,
+            CASE
+              WHEN v.updated_at > DATE_ADD(NOW(), INTERVAL 2 MINUTE)
+              THEN DATE_SUB(v.updated_at, INTERVAL 6 HOUR)
+              ELSE v.updated_at
+            END AS updated_at,
             COUNT(vt.id)               AS total_tramos,
             SUM(vt.estado = 'completado') AS tramos_completados,
             MIN(vt.salida_patio)       AS primera_salida,
