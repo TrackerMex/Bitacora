@@ -41,10 +41,6 @@ function downloadKpisTabAsHTML() {
 
       cloneCanvases[i].replaceWith(img);
     } catch (e) {
-      console.warn(
-        "No se pudo convertir un canvas a imagen. Se dejará sin gráfico en el export.",
-        e
-      );
 
       cloneCanvases[i].remove();
     }

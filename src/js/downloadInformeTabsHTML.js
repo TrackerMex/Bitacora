@@ -38,7 +38,6 @@ function downloadInformeTabAsHTML() {
 
       cloneCanvases[i].replaceWith(img);
     } catch (e) {
-      console.warn("No se pudo convertir un canvas a imagen (tab-5).", e);
 
       cloneCanvases[i].remove();
     }

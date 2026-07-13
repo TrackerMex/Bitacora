@@ -14,7 +14,7 @@ try {
   $usuario_nombre = clean_string($data['usuarioNombre'] ?? '');
   $email = strtolower(clean_string($data['email'] ?? ''));
   $password = clean_string($data['passwordTemporal'] ?? '');
-  $role = clean_string($data['role'] ?? 'editor') ?: 'editor';
+  $role = clean_string($data['role'] ?? 'lector') ?: 'lector';
   $activo = !isset($data['activo']) || $data['activo'] ? 1 : 0;
   $tabs = parse_admin_tabs($data['tabs'] ?? [], $role);
 

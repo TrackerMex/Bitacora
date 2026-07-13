@@ -131,6 +131,29 @@ function resolve_despacho($conn, $despachoId, $folio, $unidad, $fechaProgramada,
     ];
 }
 
+function db_column_exists($conn, $table, $column)
+{
+    $stmt = $conn->prepare(
+        "SELECT 1
+           FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = ?
+            AND COLUMN_NAME = ?
+          LIMIT 1",
+    );
+    if (!$stmt) {
+        return false;
+    }
+    $stmt->bind_param("ss", $table, $column);
+    if (!$stmt->execute()) {
+        $stmt->close();
+        return false;
+    }
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return (bool) $row;
+}
+
 try {
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
         throw new Exception("Método no permitido. Use POST.");
@@ -169,16 +192,14 @@ try {
         : "";
     $gpsTs = to_mysql_datetime_or_null($data["gpsValidacionTimestamp"] ?? null);
 
-    $realSalidaUnidad = to_mysql_datetime_or_null(
-        $data["realSalidaUnidad"] ?? null,
-    );
     $realCarga = to_mysql_datetime_or_null($data["realCarga"] ?? null);
     $realSalida = to_mysql_datetime_or_null($data["realSalida"] ?? null);
     $realDescarga = to_mysql_datetime_or_null($data["realDescarga"] ?? null);
+    $realVacio = to_mysql_datetime_or_null($data["realVacio"] ?? null);
+    $requiereRegresoOrigen = !empty($data["requiereRegresoOrigen"]) ? 1 : 0;
+    $regresoOrigenProgramado = to_mysql_datetime_or_null($data["regresoOrigenProgramado"] ?? null);
+    $regresoOrigenReal = to_mysql_datetime_or_null($data["regresoOrigenReal"] ?? null);
 
-    $citaSalidaUnidad = to_mysql_datetime_or_null(
-        $data["citaSalidaUnidad"] ?? null,
-    );
     $citaCarga = to_mysql_datetime_or_null($data["citaCarga"] ?? null);
     $citaSalida = to_mysql_datetime_or_null($data["citaSalida"] ?? null);
     $citaDescarga = to_mysql_datetime_or_null($data["citaDescarga"] ?? null);
@@ -214,25 +235,34 @@ try {
     );
     $despachoId = $despacho["despacho_id"];
     $clienteId = $despacho["cliente_id"];
+    $hasRegresoOrigen = db_column_exists(
+        $conn,
+        "seguimiento_despacho",
+        "requiere_regreso_origen",
+    );
 
-    $sql = "INSERT INTO seguimiento_despacho (
+    if ($hasRegresoOrigen) {
+        $sql = "INSERT INTO seguimiento_despacho (
       cliente_id, despacho_id, folio, unidad, fecha_programada,
       operador_monitoreo, gps_estado, gps_timestamp,
-      real_salida_unidad, real_carga, real_salida, real_descarga,
-      cita_salida_unidad, cita_carga, cita_salida, cita_descarga,
+      real_carga, real_salida, real_descarga, real_vacio,
+      requiere_regreso_origen, regreso_origen_programado, regreso_origen_real,
+      cita_carga, cita_salida, cita_descarga,
       confirmacion_entrega, estatus, estatus_especial, observaciones
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
       cliente_id = VALUES(cliente_id),
       despacho_id = VALUES(despacho_id),
       operador_monitoreo = VALUES(operador_monitoreo),
       gps_estado = VALUES(gps_estado),
       gps_timestamp = VALUES(gps_timestamp),
-      real_salida_unidad = VALUES(real_salida_unidad),
       real_carga = VALUES(real_carga),
       real_salida = VALUES(real_salida),
       real_descarga = VALUES(real_descarga),
-      cita_salida_unidad = VALUES(cita_salida_unidad),
+      real_vacio = VALUES(real_vacio),
+      requiere_regreso_origen = VALUES(requiere_regreso_origen),
+      regreso_origen_programado = VALUES(regreso_origen_programado),
+      regreso_origen_real = VALUES(regreso_origen_real),
       cita_carga = VALUES(cita_carga),
       cita_salida = VALUES(cita_salida),
       cita_descarga = VALUES(cita_descarga),
@@ -240,35 +270,88 @@ try {
       estatus = VALUES(estatus),
       estatus_especial = VALUES(estatus_especial),
       observaciones = VALUES(observaciones)";
+    } else {
+        $sql = "INSERT INTO seguimiento_despacho (
+      cliente_id, despacho_id, folio, unidad, fecha_programada,
+      operador_monitoreo, gps_estado, gps_timestamp,
+      real_carga, real_salida, real_descarga, real_vacio,
+      cita_carga, cita_salida, cita_descarga,
+      confirmacion_entrega, estatus, estatus_especial, observaciones
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ON DUPLICATE KEY UPDATE
+      cliente_id = VALUES(cliente_id),
+      despacho_id = VALUES(despacho_id),
+      operador_monitoreo = VALUES(operador_monitoreo),
+      gps_estado = VALUES(gps_estado),
+      gps_timestamp = VALUES(gps_timestamp),
+      real_carga = VALUES(real_carga),
+      real_salida = VALUES(real_salida),
+      real_descarga = VALUES(real_descarga),
+      real_vacio = VALUES(real_vacio),
+      cita_carga = VALUES(cita_carga),
+      cita_salida = VALUES(cita_salida),
+      cita_descarga = VALUES(cita_descarga),
+      confirmacion_entrega = VALUES(confirmacion_entrega),
+      estatus = VALUES(estatus),
+      estatus_especial = VALUES(estatus_especial),
+      observaciones = VALUES(observaciones)";
+    }
 
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
         throw new Exception("Error preparando UPSERT: " . $conn->error);
     }
 
-    $stmt->bind_param(
-        "iissssssssssssssssss",
-        $clienteId,
-        $despachoId,
-        $folio,
-        $unidad,
-        $fechaProgramada,
-        $operadorMonitoreo,
-        $gpsEstado,
-        $gpsTs,
-        $realSalidaUnidad,
-        $realCarga,
-        $realSalida,
-        $realDescarga,
-        $citaSalidaUnidad,
-        $citaCarga,
-        $citaSalida,
-        $citaDescarga,
-        $confirmacion,
-        $estatus,
-        $estatus_especial,
-        $observaciones,
-    );
+    if ($hasRegresoOrigen) {
+        $stmt->bind_param(
+            "iissssssssssisssssssss",
+            $clienteId,
+            $despachoId,
+            $folio,
+            $unidad,
+            $fechaProgramada,
+            $operadorMonitoreo,
+            $gpsEstado,
+            $gpsTs,
+            $realCarga,
+            $realSalida,
+            $realDescarga,
+            $realVacio,
+            $requiereRegresoOrigen,
+            $regresoOrigenProgramado,
+            $regresoOrigenReal,
+            $citaCarga,
+            $citaSalida,
+            $citaDescarga,
+            $confirmacion,
+            $estatus,
+            $estatus_especial,
+            $observaciones,
+        );
+    } else {
+        $stmt->bind_param(
+            "iisssssssssssssssss",
+            $clienteId,
+            $despachoId,
+            $folio,
+            $unidad,
+            $fechaProgramada,
+            $operadorMonitoreo,
+            $gpsEstado,
+            $gpsTs,
+            $realCarga,
+            $realSalida,
+            $realDescarga,
+            $realVacio,
+            $citaCarga,
+            $citaSalida,
+            $citaDescarga,
+            $confirmacion,
+            $estatus,
+            $estatus_especial,
+            $observaciones,
+        );
+    }
 
     if (!$stmt->execute()) {
         throw new Exception("Error ejecutando UPSERT: " . $stmt->error);

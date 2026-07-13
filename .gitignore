@@ -8,7 +8,6 @@ config/credentials.php
 # Sensitive directories
 node_modules/
 vendor/
-composer.lock
 
 # IDE & Editor
 .vscode/

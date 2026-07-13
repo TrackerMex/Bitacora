@@ -43,7 +43,7 @@ try {
   $email = strtolower(clean_string($data['email'] ?? ''));
   $password = clean_string($data['passwordTemporal'] ?? $data['password'] ?? '');
   $nombre = clean_string($data['nombre'] ?? $data['usuarioNombre'] ?? '');
-  $role = clean_string($data['role'] ?? 'editor');
+  $role = clean_string($data['role'] ?? 'lector');
   $activo = !isset($data['activo']) || $data['activo'] ? 1 : 0;
   $tabs = parse_admin_tabs($data['tabs'] ?? [], $role);
   $cliente_ids = is_array($data['clienteIds'] ?? null) ? $data['clienteIds'] : [];
