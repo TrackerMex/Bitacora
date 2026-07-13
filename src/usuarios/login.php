@@ -54,7 +54,7 @@ $response = [
 function default_tabs_for_role($role)
 {
     $role = strtolower(trim((string) $role));
-    return $role === "admin" ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4];
+    return $role === "admin" ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4];
 }
 
 function fetch_user_tabs($conn, $usuario_id, $role)

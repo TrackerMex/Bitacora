@@ -5874,6 +5874,25 @@
                         >Papelera</span
                     >
                 </button>
+                <button
+                    id="tab-btn-6"
+                    class="tab-btn text-gray-500 hidden"
+                    onclick="changeTab(6)"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-6"
+                    tabindex="-1"
+                    type="button"
+                >
+                    <span class="icon-label"
+                        ><i
+                            data-lucide="file-spreadsheet"
+                            class="app-icon"
+                            aria-hidden="true"
+                        ></i
+                        >Importar programacion</span
+                    >
+                </button>
             </div>
 
             <div class="tab-content">
@@ -6565,6 +6584,222 @@
                         <div class="text-center p-6">
                             <p class="text-gray-500">Cargando papelera...</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- TAB 6: Importacion Excel (solo admin) -->
+                <div
+                    id="tab-6"
+                    class="tab-content-item hidden panel-stack"
+                    role="tabpanel"
+                    aria-labelledby="tab-btn-6"
+                    tabindex="0"
+                >
+                    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800">
+                                <span class="icon-label"
+                                    ><i
+                                        data-lucide="file-spreadsheet"
+                                        class="app-icon"
+                                        aria-hidden="true"
+                                    ></i
+                                    >Importar programacion</span
+                                >
+                            </h2>
+                            <p class="mt-1 max-w-3xl text-sm text-gray-500">
+                                Carga el Excel enviado por el cliente, revisa el
+                                mapeo contra campos de Bitacora y confirma solo
+                                los tramos validados.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="resetImportacionExcel()"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                            <i
+                                data-lucide="rotate-ccw"
+                                class="app-icon button-icon"
+                                aria-hidden="true"
+                            ></i>
+                            Limpiar carga
+                        </button>
+                    </div>
+
+                    <div
+                        class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+                    >
+                        <div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
+                            <div>
+                                <label
+                                    for="import-cliente-select"
+                                    class="block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                    >Cliente</label
+                                >
+                                <select
+                                    id="import-cliente-select"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                    onchange="handleImportClienteChange()"
+                                >
+                                    <option value="">Selecciona cliente</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    for="import-excel-file"
+                                    class="block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                    >Archivo Excel</label
+                                >
+                                <input
+                                    id="import-excel-file"
+                                    type="file"
+                                    accept=".xlsx,.xls,.csv"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 file:mr-3 file:rounded-md file:border-0 file:bg-gray-900 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
+                                    onchange="handleImportExcelFile(event)"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    for="import-sheet-select"
+                                    class="block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                    >Hoja</label
+                                >
+                                <select
+                                    id="import-sheet-select"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                    onchange="handleImportSheetChange()"
+                                >
+                                    <option value="">Sin archivo</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    for="import-template-select"
+                                    class="block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                    >Plantilla</label
+                                >
+                                <select
+                                    id="import-template-select"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                    onchange="handleImportTemplateChange()"
+                                >
+                                    <option value="">Sin plantilla</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div
+                            id="import-status"
+                            class="mt-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            Selecciona cliente y archivo para iniciar.
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(280px,360px),1fr]">
+                        <section
+                            class="rounded-lg border border-gray-200 bg-white p-4"
+                            aria-labelledby="import-map-title"
+                        >
+                            <div class="mb-3 flex items-start justify-between gap-3">
+                                <div>
+                                    <h3
+                                        id="import-map-title"
+                                        class="text-base font-bold text-gray-900"
+                                    >
+                                        Mapeo de columnas
+                                    </h3>
+                                    <p class="mt-0.5 text-xs text-gray-500">
+                                        Asocia cada campo de Bitacora con una
+                                        columna del Excel.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onclick="guardarPlantillaImportacion()"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-800"
+                                >
+                                    <i
+                                        data-lucide="save"
+                                        class="app-icon h-4 w-4"
+                                        aria-hidden="true"
+                                    ></i>
+                                    Guardar
+                                </button>
+                            </div>
+                            <div
+                                id="import-mapping-fields"
+                                class="space-y-3"
+                            >
+                                <p class="text-sm text-gray-500">
+                                    Carga un archivo para ver columnas.
+                                </p>
+                            </div>
+                        </section>
+
+                        <section
+                            class="rounded-lg border border-gray-200 bg-white p-4"
+                            aria-labelledby="import-preview-title"
+                        >
+                            <div class="mb-3 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                <div>
+                                    <h3
+                                        id="import-preview-title"
+                                        class="text-base font-bold text-gray-900"
+                                    >
+                                        Vista previa
+                                    </h3>
+                                    <p class="mt-0.5 text-xs text-gray-500">
+                                        Revisa filas validas, errores y
+                                        duplicados antes de confirmar.
+                                    </p>
+                                </div>
+                                <div class="flex flex-col gap-2 sm:flex-row">
+                                    <button
+                                        type="button"
+                                        onclick="previewImportacionExcel()"
+                                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+                                    >
+                                        <i
+                                            data-lucide="search-check"
+                                            class="app-icon button-icon"
+                                            aria-hidden="true"
+                                        ></i>
+                                        Validar
+                                    </button>
+                                    <button
+                                        id="import-commit-btn"
+                                        type="button"
+                                        onclick="commitImportacionExcel()"
+                                        disabled
+                                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                                    >
+                                        <i
+                                            data-lucide="database-zap"
+                                            class="app-icon button-icon"
+                                            aria-hidden="true"
+                                        ></i>
+                                        Confirmar importacion
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                id="import-preview-summary"
+                                class="grid grid-cols-2 gap-3 lg:grid-cols-4"
+                            ></div>
+
+                            <div
+                                id="import-preview-container"
+                                class="mt-4 overflow-x-auto rounded-lg border border-gray-200"
+                            >
+                                <div class="p-6 text-center text-sm text-gray-500">
+                                    Valida el archivo para ver la vista previa.
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
 
@@ -7937,7 +8172,7 @@
             if (cleanRole === "admin") {
                 return Array.isArray(tabs) && tabs.length
                     ? tabs
-                    : [0, 1, 2, 3, 4, 5];
+                    : [0, 1, 2, 3, 4, 5, 6];
             }
             if (cleanRole === "lector") {
                 return [0, 1, 2, 3, 4];
@@ -7984,6 +8219,7 @@
 
             updateClienteDisplay();
             populateEmergencyClientSelector();
+            populateImportClienteSelector();
             updateTabVisibility();
         }
 
@@ -8164,6 +8400,798 @@
                 ),
             },
         };
+
+        const IMPORT_FIELDS = [
+            {
+                key: "folio",
+                label: "Folio",
+                aliases: ["folio", "pedido", "referencia", "embarque"],
+            },
+            {
+                key: "unidad",
+                label: "Unidad",
+                required: true,
+                aliases: ["unidad", "economico", "eco", "tracto"],
+            },
+            {
+                key: "placas",
+                label: "Placas",
+                aliases: ["placas", "placa"],
+            },
+            {
+                key: "id_equipos",
+                label: "ID equipos",
+                aliases: ["id equipos", "id equipo", "equipos", "gps", "imei"],
+            },
+            {
+                key: "operador",
+                label: "Operador",
+                aliases: ["operador", "chofer", "conductor"],
+            },
+            {
+                key: "telefono",
+                label: "Telefono",
+                aliases: ["telefono", "telefonos", "celular", "contacto"],
+            },
+            {
+                key: "fecha_inicio",
+                label: "Fecha inicio",
+                required: true,
+                aliases: ["fecha", "fecha inicio", "fecha despacho", "programacion"],
+            },
+            {
+                key: "fecha_fin",
+                label: "Fecha fin",
+                aliases: ["fecha fin", "fecha final", "fin"],
+            },
+            {
+                key: "tramo_numero",
+                label: "Tramo",
+                aliases: ["tramo", "tramo numero", "numero tramo", "secuencia"],
+            },
+            {
+                key: "ruta",
+                label: "Ruta",
+                aliases: ["ruta", "carril", "recorrido"],
+            },
+            {
+                key: "origen",
+                label: "Origen",
+                required: true,
+                aliases: ["origen", "salida", "base"],
+            },
+            {
+                key: "lugar_carga",
+                label: "Lugar de carga",
+                aliases: ["lugar carga", "lugar de carga", "carga", "planta"],
+            },
+            {
+                key: "destino",
+                label: "Destino",
+                required: true,
+                aliases: ["destino", "entrega", "descarga"],
+            },
+            {
+                key: "salida_patio",
+                label: "Salida patio",
+                aliases: ["salida patio", "salida programada", "salida"],
+            },
+            {
+                key: "cita_carga",
+                label: "Cita carga",
+                aliases: ["cita carga", "carga programada", "entrada carga"],
+            },
+            {
+                key: "salida_carga",
+                label: "Salida carga",
+                aliases: ["salida carga", "salida de carga"],
+            },
+            {
+                key: "descarga_programada",
+                label: "Descarga programada",
+                aliases: ["descarga programada", "descarga", "cita descarga"],
+            },
+            {
+                key: "requiere_regreso_origen",
+                label: "Regreso requerido",
+                aliases: ["requiere regreso", "regreso origen", "retorno"],
+            },
+            {
+                key: "regreso_origen_programado",
+                label: "Regreso programado",
+                aliases: ["regreso programado", "retorno programado"],
+            },
+            {
+                key: "instrucciones",
+                label: "Instrucciones",
+                aliases: ["instrucciones", "observaciones", "notas"],
+            },
+        ];
+
+        const IMPORT_POSITIONAL_HEADERS = [
+            "Fecha",
+            "Unidad",
+            "Placas",
+            "Id equipos",
+            "Operador",
+            "Telefono",
+            "Ruta",
+            "Origen",
+            "Destino",
+            "Salida Programada",
+            "Carga Programada",
+            "Salida Carga Programada",
+            "Descarga Programada",
+            "Cliente",
+            "Lector Responsable",
+        ];
+
+        const importacionExcelState = {
+            workbook: null,
+            fileName: "",
+            sheetName: "",
+            headers: [],
+            rows: [],
+            templates: [],
+            mapping: {},
+            preview: null,
+            initialized: false,
+        };
+
+        function normalizeImportHeader(value) {
+            return String(value ?? "")
+                .trim()
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]+/g, " ")
+                .trim();
+        }
+
+        function getImportHeaderMatchScore(row = []) {
+            const aliases = IMPORT_FIELDS.flatMap((field) => [
+                field.key,
+                field.label,
+                ...(field.aliases || []),
+            ]).map(normalizeImportHeader);
+            return (row || []).reduce((score, cell) => {
+                const normalized = normalizeImportHeader(cell);
+                if (!normalized) return score;
+                return (
+                    score +
+                    (aliases.some(
+                        (alias) =>
+                            normalized === alias ||
+                            normalized.includes(alias) ||
+                            alias.includes(normalized),
+                    )
+                        ? 1
+                        : 0)
+                );
+            }, 0);
+        }
+
+        function setImportStatus(message, variant = "neutral") {
+            const el = document.getElementById("import-status");
+            if (!el) return;
+            const styles = {
+                neutral: "border-gray-200 bg-white text-gray-600",
+                info: "border-blue-200 bg-blue-50 text-blue-800",
+                ok: "border-green-200 bg-green-50 text-green-800",
+                warn: "border-amber-200 bg-amber-50 text-amber-800",
+                error: "border-red-200 bg-red-50 text-red-800",
+            };
+            el.className = `mt-3 rounded-lg border px-3 py-2 text-sm ${styles[variant] || styles.neutral}`;
+            el.textContent = message;
+        }
+
+        function initImportacionExcelTab() {
+            if (!isAdminRole()) return;
+            populateImportClienteSelector();
+            if (!importacionExcelState.initialized) {
+                renderImportMappingFields();
+                renderImportPreviewEmpty();
+                importacionExcelState.initialized = true;
+            }
+            scheduleAppIconRender();
+        }
+
+        function populateImportClienteSelector() {
+            const select = document.getElementById("import-cliente-select");
+            if (!select) return;
+            const current = select.value || activeClienteId || "";
+            const clientes = getHeaderClientes().filter((c) => c.id);
+            select.innerHTML =
+                '<option value="">Selecciona cliente</option>' +
+                clientes
+                    .map(
+                        (cliente) =>
+                            `<option value="${escapeHtml(cliente.id)}">${escapeHtml(cliente.nombre || `Cliente ${cliente.id}`)}</option>`,
+                    )
+                    .join("");
+            if (
+                current &&
+                Array.from(select.options).some((opt) => opt.value === current)
+            ) {
+                select.value = current;
+            }
+            if (select.value) loadImportTemplates();
+        }
+
+        function getImportClienteId() {
+            return parseInt(
+                document.getElementById("import-cliente-select")?.value || "0",
+                10,
+            );
+        }
+
+        async function handleImportClienteChange() {
+            importacionExcelState.templates = [];
+            importacionExcelState.preview = null;
+            document.getElementById("import-commit-btn")?.setAttribute("disabled", "");
+            await loadImportTemplates();
+        }
+
+        async function loadImportTemplates() {
+            const clienteId = getImportClienteId();
+            const select = document.getElementById("import-template-select");
+            if (!select) return;
+            select.innerHTML = '<option value="">Sin plantilla</option>';
+            if (!clienteId) return;
+            try {
+                const res = await authFetch(
+                    phpApiPath("importaciones/importar_viajes.php?action=plantillas_listar"),
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({ cliente_id: clienteId }),
+                    },
+                );
+                const data = await readImportApiResponse(res);
+                if (!res.ok || !data?.success) {
+                    throw new Error(data?.message || `HTTP ${res.status}`);
+                }
+                importacionExcelState.templates = data.data || [];
+                select.innerHTML =
+                    '<option value="">Sin plantilla</option>' +
+                    importacionExcelState.templates
+                        .map(
+                            (tpl) =>
+                                `<option value="${escapeHtml(tpl.id)}">${escapeHtml(tpl.nombre || "Plantilla")}</option>`,
+                        )
+                        .join("");
+                if (importacionExcelState.templates.length === 1) {
+                    select.value = String(importacionExcelState.templates[0].id);
+                    applyImportTemplate(importacionExcelState.templates[0]);
+                }
+            } catch (error) {
+                setImportStatus(`No se pudieron cargar plantillas: ${error.message}`, "warn");
+            }
+        }
+
+        function handleImportTemplateChange() {
+            const id = parseInt(
+                document.getElementById("import-template-select")?.value || "0",
+                10,
+            );
+            const template = importacionExcelState.templates.find(
+                (tpl) => parseInt(tpl.id, 10) === id,
+            );
+            if (template) applyImportTemplate(template);
+        }
+
+        function applyImportTemplate(template) {
+            importacionExcelState.mapping = { ...(template?.mapeo || {}) };
+            renderImportMappingFields();
+            setImportStatus("Plantilla aplicada. Valida el archivo antes de confirmar.", "info");
+        }
+
+        async function handleImportExcelFile(event) {
+            const file = event?.target?.files?.[0];
+            if (!file) return;
+            if (!window.XLSX) {
+                setImportStatus("La libreria XLSX no esta disponible.", "error");
+                return;
+            }
+            try {
+                const buffer = await file.arrayBuffer();
+                const workbook = XLSX.read(buffer, {
+                    type: "array",
+                    cellDates: false,
+                    raw: true,
+                });
+                importacionExcelState.workbook = workbook;
+                importacionExcelState.fileName = file.name;
+                const sheetSelect = document.getElementById("import-sheet-select");
+                sheetSelect.innerHTML = workbook.SheetNames.map(
+                    (name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`,
+                ).join("");
+                importacionExcelState.sheetName = workbook.SheetNames[0] || "";
+                sheetSelect.value = importacionExcelState.sheetName;
+                readImportSheet();
+                setImportStatus(`Archivo cargado: ${file.name}`, "ok");
+            } catch (error) {
+                setImportStatus(`No se pudo leer el archivo: ${error.message}`, "error");
+            }
+        }
+
+        function handleImportSheetChange() {
+            importacionExcelState.sheetName =
+                document.getElementById("import-sheet-select")?.value || "";
+            readImportSheet();
+        }
+
+        function readImportSheet() {
+            const workbook = importacionExcelState.workbook;
+            const sheetName =
+                document.getElementById("import-sheet-select")?.value ||
+                importacionExcelState.sheetName;
+            if (!workbook || !sheetName) return;
+            const sheet = workbook.Sheets[sheetName];
+            const matrix = XLSX.utils.sheet_to_json(sheet, {
+                header: 1,
+                defval: "",
+                raw: true,
+            });
+            const candidates = matrix
+                .map((row, index) => ({
+                    index,
+                    score: getImportHeaderMatchScore(row),
+                    nonEmpty: (row || []).filter((cell) =>
+                        String(cell ?? "").trim(),
+                    ).length,
+                    row,
+                }))
+                .filter((candidate) => candidate.nonEmpty > 0);
+            const bestHeader = candidates.reduce(
+                (best, candidate) =>
+                    candidate.score > best.score ? candidate : best,
+                { index: -1, score: 0, nonEmpty: 0, row: [] },
+            );
+            const firstData = candidates[0] || { index: 0, row: [] };
+            const hasHeader = bestHeader.score >= 3;
+            const headerIndex = hasHeader ? bestHeader.index : firstData.index - 1;
+            const headerRow = hasHeader
+                ? bestHeader.row
+                : IMPORT_POSITIONAL_HEADERS.slice(
+                      0,
+                      Math.max(firstData.row?.length || 0, 13),
+                  );
+            const dataStartIndex = hasHeader ? headerIndex + 1 : firstData.index;
+            const headers = (headerRow || []).map((h, idx) => ({
+                index: idx,
+                label: String(h || `Columna ${idx + 1}`).trim(),
+            }));
+            const rows = matrix
+                .slice(dataStartIndex)
+                .map((row, idx) => ({
+                    source_row: dataStartIndex + idx + 1,
+                    values: headers.reduce((acc, header) => {
+                        acc[header.label] = row[header.index] ?? "";
+                        return acc;
+                    }, {}),
+                }))
+                .filter((row) =>
+                    Object.values(row.values).some(
+                        (value) => String(value ?? "").trim() !== "",
+                    ),
+                );
+            importacionExcelState.sheetName = sheetName;
+            importacionExcelState.headers = headers;
+            importacionExcelState.rows = rows;
+            importacionExcelState.preview = null;
+            document.getElementById("import-commit-btn")?.setAttribute("disabled", "");
+            autoMapImportHeaders();
+            renderImportMappingFields();
+            renderImportPreviewEmpty();
+        }
+
+        function autoMapImportHeaders() {
+            const normalizedHeaders = importacionExcelState.headers.map((h) => ({
+                ...h,
+                normalized: normalizeImportHeader(h.label),
+            }));
+            const next = { ...importacionExcelState.mapping };
+            IMPORT_FIELDS.forEach((field) => {
+                if (next[field.key]) return;
+                const aliases = [field.label, field.key, ...(field.aliases || [])].map(
+                    normalizeImportHeader,
+                );
+                const match = normalizedHeaders.find((h) =>
+                    aliases.some(
+                        (alias) => h.normalized === alias || h.normalized.includes(alias),
+                    ),
+                );
+                if (match) next[field.key] = match.label;
+            });
+            importacionExcelState.mapping = next;
+        }
+
+        function renderImportMappingFields() {
+            const container = document.getElementById("import-mapping-fields");
+            if (!container) return;
+            const headers = importacionExcelState.headers || [];
+            if (!headers.length) {
+                container.innerHTML =
+                    '<p class="text-sm text-gray-500">Carga un archivo para ver columnas.</p>';
+                return;
+            }
+            const options = [
+                '<option value="">No importar</option>',
+                ...headers.map(
+                    (h) =>
+                        `<option value="${escapeHtml(h.label)}">${escapeHtml(h.label)}</option>`,
+                ),
+            ].join("");
+            container.innerHTML = IMPORT_FIELDS.map((field) => {
+                const value = importacionExcelState.mapping[field.key] || "";
+                return `
+                    <label class="block">
+                        <span class="mb-1 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <span>${escapeHtml(field.label)}</span>
+                            ${field.required ? '<span class="rounded-full bg-red-50 px-2 py-0.5 text-[0.68rem] font-bold text-red-700">Requerido</span>' : ""}
+                        </span>
+                        <select
+                            data-import-field="${escapeHtml(field.key)}"
+                            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                            onchange="handleImportMappingChange(this)"
+                        >
+                            ${options}
+                        </select>
+                    </label>`;
+            }).join("");
+            container.querySelectorAll("[data-import-field]").forEach((select) => {
+                const key = select.getAttribute("data-import-field");
+                select.value = importacionExcelState.mapping[key] || "";
+            });
+        }
+
+        function handleImportMappingChange(select) {
+            const key = select?.getAttribute("data-import-field");
+            if (!key) return;
+            importacionExcelState.mapping[key] = select.value;
+            importacionExcelState.preview = null;
+            document.getElementById("import-commit-btn")?.setAttribute("disabled", "");
+        }
+
+        function buildImportRowsFromMapping() {
+            const mapping = importacionExcelState.mapping || {};
+            return (importacionExcelState.rows || []).map((row) => {
+                const out = { source_row: row.source_row };
+                IMPORT_FIELDS.forEach((field) => {
+                    const header = mapping[field.key];
+                    out[field.key] = header ? row.values[header] ?? "" : "";
+                });
+                return out;
+            });
+        }
+
+        function getImportPayload() {
+            return {
+                cliente_id: getImportClienteId(),
+                plantilla_id: parseInt(
+                    document.getElementById("import-template-select")?.value || "0",
+                    10,
+                ),
+                archivo_nombre: importacionExcelState.fileName,
+                hoja_nombre: importacionExcelState.sheetName,
+                rows: buildImportRowsFromMapping(),
+            };
+        }
+
+        async function readImportApiResponse(response) {
+            const text = await response.text();
+            if (!text.trim()) {
+                throw new Error(`Respuesta vacia del servidor (HTTP ${response.status})`);
+            }
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                throw new Error(
+                    `Respuesta no JSON del servidor (HTTP ${response.status}): ${text.substring(0, 180)}`,
+                );
+            }
+        }
+
+        function importDateToYYYYMMDD(value) {
+            if (typeof value === "number" && Number.isFinite(value)) {
+                const millis = Math.round((value - 25569) * 86400 * 1000);
+                const parsed = dayjs(new Date(millis));
+                return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
+            }
+            return excelDateToYYYYMMDD(value);
+        }
+
+        function getImportPayloadDateRange(payload) {
+            const fechas = [];
+            (payload?.rows || []).forEach((row) => {
+                const inicio = importDateToYYYYMMDD(row.fecha_inicio);
+                const fin = importDateToYYYYMMDD(row.fecha_fin) || inicio;
+                if (inicio) fechas.push(inicio);
+                if (fin) fechas.push(fin);
+            });
+            if (!fechas.length) return null;
+            fechas.sort();
+            return { desde: fechas[0], hasta: fechas[fechas.length - 1] };
+        }
+
+        function applyImportDateRangeToViajes(payload) {
+            const range = getImportPayloadDateRange(payload);
+            const clienteId = payload?.cliente_id ? String(payload.cliente_id) : "";
+            if (clienteId) {
+                activeClienteId = clienteId;
+                const headerSelect = document.getElementById(
+                    "cliente-header-selector",
+                );
+                if (headerSelect) headerSelect.value = clienteId;
+                updateClienteDisplay();
+            }
+            if (range) {
+                const desdeEl = document.getElementById("viajes-fecha-desde");
+                const hastaEl = document.getElementById("viajes-fecha-hasta");
+                if (desdeEl) desdeEl.value = range.desde;
+                if (hastaEl) hastaEl.value = range.hasta;
+            }
+            return range;
+        }
+
+        async function guardarPlantillaImportacion() {
+            const clienteId = getImportClienteId();
+            if (!clienteId) {
+                setImportStatus("Selecciona un cliente antes de guardar plantilla.", "warn");
+                return;
+            }
+            if (!Object.values(importacionExcelState.mapping || {}).some(Boolean)) {
+                setImportStatus("Mapea al menos una columna.", "warn");
+                return;
+            }
+            try {
+                const res = await authFetch(
+                    phpApiPath("importaciones/importar_viajes.php?action=plantilla_guardar"),
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({
+                            cliente_id: clienteId,
+                            nombre: "Plantilla principal",
+                            mapeo: importacionExcelState.mapping,
+                            encabezados: importacionExcelState.headers.map((h) => h.label),
+                        }),
+                    },
+                );
+                const data = await readImportApiResponse(res);
+                if (!res.ok || !data?.success) {
+                    throw new Error(data?.message || `HTTP ${res.status}`);
+                }
+                setImportStatus("Plantilla guardada para este cliente.", "ok");
+                await loadImportTemplates();
+            } catch (error) {
+                setImportStatus(`No se pudo guardar plantilla: ${error.message}`, "error");
+            }
+        }
+
+        function renderImportPreviewEmpty() {
+            const summary = document.getElementById("import-preview-summary");
+            const container = document.getElementById("import-preview-container");
+            if (summary) summary.innerHTML = "";
+            if (container) {
+                container.innerHTML =
+                    '<div class="p-6 text-center text-sm text-gray-500">Valida el archivo para ver la vista previa.</div>';
+            }
+        }
+
+        function renderImportMetric(label, value, cls = "text-gray-900") {
+            return `
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                    <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">${escapeHtml(label)}</div>
+                    <div class="mt-1 text-xl font-bold ${cls}">${escapeHtml(value)}</div>
+                </div>`;
+        }
+
+        function renderImportPreview(data) {
+            const summary = data?.summary || {};
+            const summaryEl = document.getElementById("import-preview-summary");
+            const container = document.getElementById("import-preview-container");
+            if (summaryEl) {
+                summaryEl.innerHTML = [
+                    renderImportMetric("Filas", summary.total_rows || 0),
+                    renderImportMetric("Validas", summary.valid_rows || 0, "text-green-700"),
+                    renderImportMetric("Errores", summary.error_rows || 0, "text-red-700"),
+                    renderImportMetric("Duplicados", summary.duplicate_rows || 0, "text-amber-700"),
+                ].join("");
+            }
+            const errors = data?.errors || [];
+            const warnings = data?.warnings || [];
+            const rows = (data?.valid_rows || []).slice(0, 80);
+            if (!container) return;
+            const errorHtml = errors.length
+                ? `<div class="border-b border-red-100 bg-red-50 p-3 text-sm text-red-800">
+                    <strong>${errors.length} error(es):</strong>
+                    ${errors
+                        .slice(0, 8)
+                        .map((e) => `Fila ${escapeHtml(e.row)}: ${escapeHtml(e.message)}`)
+                        .join(" | ")}
+                    ${errors.length > 8 ? " ..." : ""}
+                   </div>`
+                : "";
+            const warningHtml = warnings.length
+                ? `<div class="border-b border-amber-100 bg-amber-50 p-3 text-sm text-amber-800">
+                    <strong>${warnings.length} advertencia(s):</strong>
+                    ${warnings
+                        .slice(0, 8)
+                        .map((w) => `Fila ${escapeHtml(w.row)}: ${escapeHtml(w.message)}`)
+                        .join(" | ")}
+                    ${warnings.length > 8 ? " ..." : ""}
+                   </div>`
+                : "";
+            const tableRows = rows
+                .map(
+                    (r) => `
+                    <tr class="border-t border-gray-100 hover:bg-gray-50">
+                        <td class="px-3 py-2 text-xs text-gray-500">${escapeHtml(r.source_row)}</td>
+                        <td class="px-3 py-2 font-semibold text-gray-900">${escapeHtml(r.folio)}</td>
+                        <td class="px-3 py-2">${escapeHtml(r.unidad)}</td>
+                        <td class="px-3 py-2">${escapeHtml(r.fecha_inicio)}</td>
+                        <td class="px-3 py-2">${escapeHtml(r.tramo_numero)}</td>
+                        <td class="px-3 py-2">${escapeHtml(r.origen || r.lugar_carga)}</td>
+                        <td class="px-3 py-2">${escapeHtml(r.destino)}</td>
+                        <td class="px-3 py-2">${r._existing_tramo_id ? '<span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">Duplicado</span>' : '<span class="rounded-full bg-green-100 px-2 py-1 text-xs font-bold text-green-800">Nuevo</span>'}</td>
+                    </tr>`,
+                )
+                .join("");
+            container.innerHTML = `
+                ${errorHtml}
+                ${warningHtml}
+                <table class="min-w-full text-left text-sm">
+                    <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        <tr>
+                            <th class="px-3 py-2">Fila</th>
+                            <th class="px-3 py-2">Folio</th>
+                            <th class="px-3 py-2">Unidad</th>
+                            <th class="px-3 py-2">Fecha</th>
+                            <th class="px-3 py-2">Tramo</th>
+                            <th class="px-3 py-2">Origen/Carga</th>
+                            <th class="px-3 py-2">Destino</th>
+                            <th class="px-3 py-2">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRows || '<tr><td colspan="8" class="px-3 py-6 text-center text-gray-500">No hay filas validas.</td></tr>'}</tbody>
+                </table>`;
+            scheduleAppIconRender();
+        }
+
+        async function previewImportacionExcel() {
+            if (!isAdminRole()) {
+                setImportStatus("Solo admin puede importar programacion.", "error");
+                return;
+            }
+            const payload = getImportPayload();
+            if (!payload.cliente_id) {
+                setImportStatus("Selecciona el cliente dueno del archivo.", "warn");
+                return;
+            }
+            if (!payload.rows.length) {
+                setImportStatus("Carga un archivo Excel con filas de programacion.", "warn");
+                return;
+            }
+            setImportStatus("Validando archivo contra Bitacora...", "info");
+            try {
+                const res = await authFetch(
+                    phpApiPath("importaciones/importar_viajes.php?action=preview"),
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify(payload),
+                    },
+                );
+                const data = await readImportApiResponse(res);
+                if (!res.ok || !data?.success) {
+                    throw new Error(data?.message || `HTTP ${res.status}`);
+                }
+                importacionExcelState.preview = data.data;
+                renderImportPreview(data.data);
+                const newRows = (data.data?.valid_rows || []).filter(
+                    (row) => !row._existing_tramo_id,
+                ).length;
+                const duplicateRows = data.data?.summary?.duplicate_rows || 0;
+                const btn = document.getElementById("import-commit-btn");
+                if (btn) btn.disabled = newRows <= 0;
+                let appliedRange = null;
+                if (newRows <= 0 && duplicateRows > 0) {
+                    appliedRange = applyImportDateRangeToViajes(payload);
+                    await loadViajesFromDb();
+                }
+                setImportStatus(
+                    newRows > 0
+                        ? `Vista previa lista. ${newRows} tramo(s) nuevo(s) pueden importarse.`
+                        : `No hay tramos nuevos para importar.${appliedRange ? ` Rango aplicado en Viajes: ${appliedRange.desde} a ${appliedRange.hasta}.` : ""}`,
+                    newRows > 0 ? "ok" : "warn",
+                );
+            } catch (error) {
+                setImportStatus(`Error en vista previa: ${error.message}`, "error");
+            }
+        }
+
+        async function commitImportacionExcel() {
+            const payload = getImportPayload();
+            if (!importacionExcelState.preview) {
+                setImportStatus("Primero valida el archivo.", "warn");
+                return;
+            }
+            const valid = importacionExcelState.preview?.summary?.valid_rows || 0;
+            const dup = importacionExcelState.preview?.summary?.duplicate_rows || 0;
+            const confirmed = confirm(
+                `Se importaran filas validas nuevas. Validas: ${valid}. Duplicados detectados: ${dup}. Confirmar importacion?`,
+            );
+            if (!confirmed) return;
+            const btn = document.getElementById("import-commit-btn");
+            const oldHtml = btn?.innerHTML;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `${appIcon("loader-circle", "app-icon button-icon animate-spin")} Importando...`;
+                scheduleAppIconRender();
+            }
+            setImportStatus("Guardando viajes y tramos en Bitacora...", "info");
+            try {
+                const res = await authFetch(
+                    phpApiPath("importaciones/importar_viajes.php?action=commit"),
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify(payload),
+                    },
+                );
+                const data = await readImportApiResponse(res);
+                if (!res.ok || !data?.success) {
+                    throw new Error(data?.message || `HTTP ${res.status}`);
+                }
+                const s = data.data?.summary || {};
+                const range = applyImportDateRangeToViajes(payload);
+                setImportStatus(
+                    `Importacion lista. Viajes creados: ${s.viajes_creados || 0}. Tramos creados: ${s.tramos_creados || 0}.${range ? ` Rango aplicado: ${range.desde} a ${range.hasta}.` : ""}`,
+                    "ok",
+                );
+                await loadViajesFromDb();
+                importacionExcelState.preview = null;
+            } catch (error) {
+                setImportStatus(`No se pudo importar: ${error.message}`, "error");
+                if (btn) btn.disabled = false;
+            } finally {
+                if (btn) {
+                    btn.innerHTML =
+                        oldHtml ||
+                        `${appIcon("database-zap", "app-icon button-icon")} Confirmar importacion`;
+                    scheduleAppIconRender();
+                }
+            }
+        }
+
+        function resetImportacionExcel() {
+            importacionExcelState.workbook = null;
+            importacionExcelState.fileName = "";
+            importacionExcelState.sheetName = "";
+            importacionExcelState.headers = [];
+            importacionExcelState.rows = [];
+            importacionExcelState.mapping = {};
+            importacionExcelState.preview = null;
+            const file = document.getElementById("import-excel-file");
+            if (file) file.value = "";
+            const sheet = document.getElementById("import-sheet-select");
+            if (sheet) sheet.innerHTML = '<option value="">Sin archivo</option>';
+            const btn = document.getElementById("import-commit-btn");
+            if (btn) btn.disabled = true;
+            renderImportMappingFields();
+            renderImportPreviewEmpty();
+            setImportStatus("Carga limpia. Selecciona cliente y archivo para iniciar.");
+        }
 
         function updateClienteDisplay() {
             const nameEl = document.getElementById("cliente-display-name");
@@ -8362,7 +9390,7 @@
                     body: JSON.stringify({
                         titulo: datosIncidencia.titulo,
                         descripcion: datosIncidencia.cuerpo,
-                        fecha: new Date().toISOString(),
+                        fecha: formatLocalDateTimeInput(),
                         direccion: datosIncidencia.direccion || "",
                     }),
                 });
@@ -8933,6 +9961,11 @@
             return d.isValid() ? d.format("YYYY-MM-DDTHH:mm:ss") : "";
         }
 
+        function formatLocalDateTimeInput(date = new Date()) {
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
         function checkTimeDeviation(prog, real) {
             if (!prog || !real) return "task-cell";
             const p = dayjs(prog),
@@ -9160,7 +10193,7 @@
 
         function updateTabVisibility() {
             const OPERATIVAS = 5;
-            const TAB_COUNT = 6;
+            const TAB_COUNT = 7;
             const esAdmin = String(userRole || "").toLowerCase() === "admin";
             const tabsPermitidas = normalizeTabsForRole(userRole, userTabs);
 
@@ -9175,7 +10208,7 @@
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
 
-                const permitida = i === 5 ? esAdmin : allowed.includes(i);
+                const permitida = i >= 5 ? esAdmin : allowed.includes(i);
                 if (btn) {
                     btn.classList.toggle("hidden", !permitida);
                     btn.setAttribute(
@@ -9195,7 +10228,7 @@
         }
 
         function resetTabsToHidden() {
-            const TAB_COUNT = 6;
+            const TAB_COUNT = 7;
             for (let i = 0; i < TAB_COUNT; i++) {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
@@ -9217,7 +10250,7 @@
                 openModal("login-modal");
                 return;
             }
-            const TAB_COUNT = 6;
+            const TAB_COUNT = 7;
             for (let i = 0; i < TAB_COUNT; i++) {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
@@ -9263,6 +10296,7 @@
             }
             if (index === 4) cargarInformesGuardados();
             if (index === 5) cargarPapelera();
+            if (index === 6) initImportacionExcelTab();
         }
 
         function openModal(id) {
@@ -11552,7 +12586,7 @@
 
             const incObj = {
                 tipo,
-                fecha: new Date().toISOString(),
+                fecha: formatLocalDateTimeInput(),
                 severidad,
                 direccion,
             };
@@ -14655,6 +15689,10 @@
                 if (!restoredSession || !userRole) {
                     openModal("login-modal");
                 } else {
+                    await loadDataFromMySQL(false);
+                    if (getActiveTabIndex() === 0) {
+                        loadViajesFromDb();
+                    }
                 }
             } catch (outerErr) {}
         })();
@@ -19481,12 +20519,12 @@
                                         <option value="baja">Baja</option>
                                     </select>
                                 </div>
-                                 <div>
-                                     <label for="${formId}-fecha" class="block text-sm font-semibold text-gray-700 mb-1">Fecha y hora de la incidencia*</label>
-                                     <input type="datetime-local" id="${formId}-fecha"
-                                            value="${new Date().toISOString().slice(0, 16)}"
-                                            class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
-                                 </div>
+                                  <div>
+                                      <label for="${formId}-fecha" class="block text-sm font-semibold text-gray-700 mb-1">Fecha y hora de la incidencia*</label>
+                                      <input type="datetime-local" id="${formId}-fecha"
+                                             value="${formatLocalDateTimeInput()}"
+                                             class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
+                                  </div>
                                  <div id="${formId}-otro-wrap" class="hidden">
                                      <label for="${formId}-otro" class="block text-sm font-semibold text-gray-700 mb-1">Describe la incidencia *</label>
                                      <input type="text" id="${formId}-otro" placeholder="Ej. Retén de seguridad, espera por documentación"
