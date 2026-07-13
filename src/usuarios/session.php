@@ -54,7 +54,7 @@ $response = [
 
 function default_tabs_for_role_session($role) {
   $role = strtolower(trim((string)$role));
-  return $role === 'admin' ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4];
+  return $role === 'admin' ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4];
 }
 
 function fetch_user_tabs_session($conn, $usuario_id, $role) {
@@ -79,6 +79,14 @@ function fetch_user_tabs_session($conn, $usuario_id, $role) {
     $tabs[] = intval($row['tab_index']);
   }
   $stmt->close();
+  if ($role === 'admin') {
+    foreach ([5, 6] as $admin_tab) {
+      if (!in_array($admin_tab, $tabs, true)) {
+        $tabs[] = $admin_tab;
+      }
+    }
+    sort($tabs);
+  }
   return count($tabs) ? $tabs : default_tabs_for_role_session($role);
 }
 
