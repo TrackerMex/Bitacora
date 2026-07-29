@@ -409,20 +409,40 @@ function build_solicitud_response($row, $despacho = null) {
 }
 
 function listar_solicitudes_edicion_admin($conn, $data) {
+  $grupo = trim((string)($data['grupo'] ?? 'pendientes'));
   $estado = trim((string)($data['estado'] ?? ''));
   $cliente_id = intval($data['cliente_id'] ?? 0);
+  $pagina = max(1, intval($data['pagina'] ?? 1));
+  $por_pagina = min(50, max(5, intval($data['por_pagina'] ?? 10)));
   $estados = ['pendiente', 'en_revision', 'aplicada', 'rechazada', 'cancelada'];
+  $grupos = [
+    'pendientes' => ['pendiente', 'en_revision'],
+    'atendidas' => ['aplicada', 'rechazada', 'cancelada'],
+  ];
+  if (!isset($grupos[$grupo])) {
+    resp_err('Grupo de solicitudes invalido.', 400);
+  }
   if ($estado !== '' && !in_array($estado, $estados, true)) {
-    resp_err('Estado de solicitud inválido.', 400);
+    resp_err('Estado de solicitud invalido.', 400);
+  }
+  if ($estado !== '' && !in_array($estado, $grupos[$grupo], true)) {
+    resp_err('El estado no corresponde al grupo seleccionado.', 400);
   }
 
-  $where = ['1=1'];
+  $where = [];
   $types = '';
   $params = [];
   if ($estado !== '') {
     $where[] = 's.estado = ?';
     $types .= 's';
     $params[] = $estado;
+  } else {
+    $placeholders = implode(',', array_fill(0, count($grupos[$grupo]), '?'));
+    $where[] = "s.estado IN ($placeholders)";
+    foreach ($grupos[$grupo] as $estado_grupo) {
+      $types .= 's';
+      $params[] = $estado_grupo;
+    }
   }
   if ($cliente_id > 0) {
     $where[] = 's.cliente_id = ?';
@@ -430,20 +450,40 @@ function listar_solicitudes_edicion_admin($conn, $data) {
     $params[] = $cliente_id;
   }
 
+  $where_sql = implode(' AND ', $where);
+  $count_stmt = $conn->prepare(
+    "SELECT COUNT(*) AS total FROM solicitudes_edicion_tramo s WHERE $where_sql"
+  );
+  if (!$count_stmt) {
+    resp_err('Error preparando total de solicitudes: ' . $conn->error, 500);
+  }
+  bind_stmt_params($count_stmt, $types, $params);
+  $count_stmt->execute();
+  $total = (int)($count_stmt->get_result()->fetch_assoc()['total'] ?? 0);
+  $count_stmt->close();
+
+  $total_paginas = max(1, (int)ceil($total / $por_pagina));
+  $pagina = min($pagina, $total_paginas);
+  $offset = ($pagina - 1) * $por_pagina;
+  $order_sql = $grupo === 'pendientes'
+    ? "FIELD(s.estado, 'pendiente', 'en_revision'), s.created_at ASC"
+    : "COALESCE(s.applied_at, s.reviewed_at, s.created_at) DESC";
+
   $sql =
     "SELECT s.*, us.nombre AS solicitado_por, ur.nombre AS revisado_por
        FROM solicitudes_edicion_tramo s
        LEFT JOIN usuarios us ON us.id = s.solicitado_por_usuario_id
        LEFT JOIN usuarios ur ON ur.id = s.revisado_por_usuario_id
-      WHERE " . implode(' AND ', $where) . "
-      ORDER BY FIELD(s.estado, 'pendiente', 'en_revision', 'aplicada', 'rechazada', 'cancelada'),
-               s.created_at DESC
-      LIMIT 250";
+      WHERE $where_sql
+      ORDER BY $order_sql
+      LIMIT ? OFFSET ?";
   $stmt = $conn->prepare($sql);
   if (!$stmt) {
     resp_err('Error preparando solicitudes: ' . $conn->error, 500);
   }
-  bind_stmt_params($stmt, $types, $params);
+  $list_types = $types . 'ii';
+  $list_params = array_merge($params, [$por_pagina, $offset]);
+  bind_stmt_params($stmt, $list_types, $list_params);
   $stmt->execute();
   $res = $stmt->get_result();
   $rows = [];
@@ -452,7 +492,37 @@ function listar_solicitudes_edicion_admin($conn, $data) {
     $rows[] = build_solicitud_response($row, $despacho);
   }
   $stmt->close();
-  resp_ok(['solicitudes' => $rows]);
+  $summary_where = $cliente_id > 0 ? 'WHERE cliente_id = ?' : '';
+  $summary_stmt = $conn->prepare(
+    "SELECT
+       SUM(estado IN ('pendiente', 'en_revision')) AS por_atender,
+       SUM(estado IN ('aplicada', 'rechazada', 'cancelada')) AS atendidas
+     FROM solicitudes_edicion_tramo
+     $summary_where"
+  );
+  if (!$summary_stmt) {
+    resp_err('Error preparando resumen de solicitudes: ' . $conn->error, 500);
+  }
+  if ($cliente_id > 0) {
+    $summary_stmt->bind_param('i', $cliente_id);
+  }
+  $summary_stmt->execute();
+  $summary = $summary_stmt->get_result()->fetch_assoc() ?: [];
+  $summary_stmt->close();
+
+  resp_ok([
+    'solicitudes' => $rows,
+    'paginacion' => [
+      'pagina' => $pagina,
+      'por_pagina' => $por_pagina,
+      'total' => $total,
+      'total_paginas' => $total_paginas,
+    ],
+    'resumen' => [
+      'por_atender' => (int)($summary['por_atender'] ?? 0),
+      'atendidas' => (int)($summary['atendidas'] ?? 0),
+    ],
+  ]);
 }
 
 function aplicar_solicitud_edicion_admin($conn, $user, $data) {

@@ -6644,7 +6644,41 @@
                         </button>
                     </div>
                     <div
-                        class="mb-4 grid grid-cols-1 gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 md:grid-cols-2"
+                        class="mb-4 inline-flex w-full rounded-xl bg-gray-100 p-1 sm:w-auto"
+                        role="group"
+                        aria-label="Vista de solicitudes"
+                    >
+                        <button
+                            id="solicitudes-grupo-pendientes"
+                            type="button"
+                            onclick="cambiarGrupoSolicitudesEdicion('pendientes')"
+                            class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm sm:flex-none"
+                            aria-pressed="true"
+                        >
+                            Por atender
+                            <span
+                                id="solicitudes-resumen-pendientes"
+                                class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800"
+                                >0</span
+                            >
+                        </button>
+                        <button
+                            id="solicitudes-grupo-atendidas"
+                            type="button"
+                            onclick="cambiarGrupoSolicitudesEdicion('atendidas')"
+                            class="flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-600 sm:flex-none"
+                            aria-pressed="false"
+                        >
+                            Atendidas
+                            <span
+                                id="solicitudes-resumen-atendidas"
+                                class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-bold text-gray-700"
+                                >0</span
+                            >
+                        </button>
+                    </div>
+                    <div
+                        class="mb-4 grid grid-cols-1 gap-3 border-y border-gray-200 bg-gray-50 px-4 py-3 md:grid-cols-2"
                     >
                         <div>
                             <label
@@ -6654,7 +6688,7 @@
                             >
                             <select
                                 id="solicitudes-filtro-estado"
-                                onchange="cargarSolicitudesEdicion()"
+                                onchange="reiniciarPaginaSolicitudesEdicion()"
                                 class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2"
                             >
                                 <option value="">Todos</option>
@@ -6673,7 +6707,7 @@
                             >
                             <select
                                 id="solicitudes-filtro-cliente"
-                                onchange="cargarSolicitudesEdicion()"
+                                onchange="reiniciarPaginaSolicitudesEdicion()"
                                 class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2"
                             >
                                 <option value="">Todos los clientes</option>
@@ -7857,6 +7891,14 @@
         let solicitudesEdicionCache = [];
         let solicitudesEdicionPollTimer = null;
         let solicitudesPopupLastTotal = -1;
+        let solicitudesEdicionGrupo = "pendientes";
+        let solicitudesEdicionPagina = 1;
+        let solicitudesEdicionPaginacion = {
+            pagina: 1,
+            por_pagina: 10,
+            total: 0,
+            total_paginas: 1,
+        };
 
         function getAuthHeaders(extra = {}) {
             return bitacoraAuthToken
@@ -14014,6 +14056,7 @@
                         )
                         .join("");
             }
+            actualizarControlesGrupoSolicitudesEdicion();
             consultarContadorSolicitudes(true);
             if (solicitudesEdicionPollTimer) {
                 clearInterval(solicitudesEdicionPollTimer);
@@ -14022,6 +14065,94 @@
                 () => consultarContadorSolicitudes(true),
                 90000,
             );
+        }
+
+        function actualizarControlesGrupoSolicitudesEdicion() {
+            const pendientes =
+                solicitudesEdicionGrupo === "pendientes";
+            const buttonPendientes = document.getElementById(
+                "solicitudes-grupo-pendientes",
+            );
+            const buttonAtendidas = document.getElementById(
+                "solicitudes-grupo-atendidas",
+            );
+            if (buttonPendientes) {
+                buttonPendientes.className = pendientes
+                    ? "flex flex-1 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm sm:flex-none"
+                    : "flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-600 sm:flex-none";
+                buttonPendientes.setAttribute(
+                    "aria-pressed",
+                    String(pendientes),
+                );
+            }
+            if (buttonAtendidas) {
+                buttonAtendidas.className = !pendientes
+                    ? "flex flex-1 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm sm:flex-none"
+                    : "flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-600 sm:flex-none";
+                buttonAtendidas.setAttribute(
+                    "aria-pressed",
+                    String(!pendientes),
+                );
+            }
+
+            const estadoSelect = document.getElementById(
+                "solicitudes-filtro-estado",
+            );
+            if (estadoSelect) {
+                estadoSelect.innerHTML = pendientes
+                    ? `<option value="">Todos por atender</option>
+                       <option value="pendiente">Pendientes</option>
+                       <option value="en_revision">En revisión</option>`
+                    : `<option value="">Todas las atendidas</option>
+                       <option value="aplicada">Aplicadas</option>
+                       <option value="rechazada">Rechazadas</option>
+                       <option value="cancelada">Canceladas</option>`;
+            }
+        }
+
+        function cambiarGrupoSolicitudesEdicion(grupo) {
+            if (!["pendientes", "atendidas"].includes(grupo)) return;
+            if (solicitudesEdicionGrupo === grupo) return;
+            solicitudesEdicionGrupo = grupo;
+            solicitudesEdicionPagina = 1;
+            actualizarControlesGrupoSolicitudesEdicion();
+            cargarSolicitudesEdicion();
+        }
+
+        function reiniciarPaginaSolicitudesEdicion() {
+            solicitudesEdicionPagina = 1;
+            cargarSolicitudesEdicion();
+        }
+
+        function irPaginaSolicitudesEdicion(pagina) {
+            const totalPaginas =
+                Number(solicitudesEdicionPaginacion.total_paginas) || 1;
+            const destino = Math.min(
+                totalPaginas,
+                Math.max(1, Number(pagina) || 1),
+            );
+            if (destino === solicitudesEdicionPagina) return;
+            solicitudesEdicionPagina = destino;
+            cargarSolicitudesEdicion();
+        }
+
+        function actualizarResumenSolicitudesEdicion(resumen = {}) {
+            const pendientes = document.getElementById(
+                "solicitudes-resumen-pendientes",
+            );
+            const atendidas = document.getElementById(
+                "solicitudes-resumen-atendidas",
+            );
+            if (pendientes) {
+                pendientes.textContent = String(
+                    Number(resumen.por_atender) || 0,
+                );
+            }
+            if (atendidas) {
+                atendidas.textContent = String(
+                    Number(resumen.atendidas) || 0,
+                );
+            }
         }
 
         function abrirSolicitudesEdicion() {
@@ -14053,16 +14184,32 @@
             );
             if (!container) return;
             if (!solicitudesEdicionCache.length) {
+                const esHistorial =
+                    solicitudesEdicionGrupo === "atendidas";
                 container.innerHTML = renderStateCard(
-                    "No hay solicitudes con estos filtros",
+                    esHistorial
+                        ? "Todavía no hay solicitudes atendidas"
+                        : "No hay solicitudes por atender",
                     {
-                        description:
-                            "Las nuevas solicitudes de los clientes aparecerán aquí.",
+                        description: esHistorial
+                            ? "Las solicitudes aplicadas, rechazadas o canceladas aparecerán en este historial."
+                            : "La cola está al día. Las nuevas solicitudes aparecerán aquí.",
                         tone: "plain",
                     },
                 );
                 return;
             }
+
+            const pagina =
+                Number(solicitudesEdicionPaginacion.pagina) || 1;
+            const porPagina =
+                Number(solicitudesEdicionPaginacion.por_pagina) || 10;
+            const total =
+                Number(solicitudesEdicionPaginacion.total) || 0;
+            const totalPaginas =
+                Number(solicitudesEdicionPaginacion.total_paginas) || 1;
+            const desde = (pagina - 1) * porPagina + 1;
+            const hasta = Math.min(total, desde + solicitudesEdicionCache.length - 1);
 
             container.innerHTML = `
                 <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
@@ -14118,6 +14265,33 @@
                                 .join("")}
                         </tbody>
                     </table>
+                    <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-sm text-gray-600">
+                            Mostrando <strong class="text-gray-900">${desde}-${hasta}</strong> de
+                            <strong class="text-gray-900">${total}</strong>
+                        </p>
+                        <div class="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onclick="irPaginaSolicitudesEdicion(${pagina - 1})"
+                                ${pagina <= 1 ? "disabled" : ""}
+                                class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                Anterior
+                            </button>
+                            <span class="min-w-24 text-center text-sm text-gray-600">
+                                Página ${pagina} de ${totalPaginas}
+                            </span>
+                            <button
+                                type="button"
+                                onclick="irPaginaSolicitudesEdicion(${pagina + 1})"
+                                ${pagina >= totalPaginas ? "disabled" : ""}
+                                class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                    </div>
                 </div>`;
         }
 
@@ -14142,11 +14316,28 @@
                 );
                 const data = await solicitudesApi(
                     "listar_solicitudes_edicion",
-                    { estado, cliente_id: clienteId },
+                    {
+                        grupo: solicitudesEdicionGrupo,
+                        estado,
+                        cliente_id: clienteId,
+                        pagina: solicitudesEdicionPagina,
+                        por_pagina: 10,
+                    },
                 );
                 solicitudesEdicionCache = Array.isArray(data.solicitudes)
                     ? data.solicitudes
                     : [];
+                solicitudesEdicionPaginacion = {
+                    pagina: Number(data.paginacion?.pagina) || 1,
+                    por_pagina:
+                        Number(data.paginacion?.por_pagina) || 10,
+                    total: Number(data.paginacion?.total) || 0,
+                    total_paginas:
+                        Number(data.paginacion?.total_paginas) || 1,
+                };
+                solicitudesEdicionPagina =
+                    solicitudesEdicionPaginacion.pagina;
+                actualizarResumenSolicitudesEdicion(data.resumen);
                 renderSolicitudesEdicion();
                 consultarContadorSolicitudes(false);
                 scheduleAppIconRender();
