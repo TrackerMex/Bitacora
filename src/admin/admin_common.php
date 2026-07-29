@@ -166,7 +166,7 @@ function upsert_admin_user($conn, $email, $password, $nombre, $role, $activo, $t
   $email = strtolower(clean_string($email));
   $nombre = clean_string($nombre);
   $role = strtolower(clean_string($role ?: 'lector'));
-  if (!in_array($role, ['admin', 'lector'], true)) {
+  if (!in_array($role, ['admin', 'editor', 'lector'], true)) {
     throw new Exception('Rol invalido', 400);
   }
   if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {

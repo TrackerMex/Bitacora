@@ -76,8 +76,8 @@ try {
   if ($clienteNombre === '') {
     throw new Exception('Cliente requerido.');
   }
-  if (!in_array($role, ['admin', 'lector'], true)) {
-    throw new Exception('Role inválido. Use admin o lector.');
+  if (!in_array($role, ['admin', 'editor', 'lector'], true)) {
+    throw new Exception('Role inválido. Use admin, editor o lector.');
   }
 
   require_once __DIR__ . '/../db/db.php';

@@ -5606,6 +5606,25 @@
                     id="user-info"
                     class="absolute top-4 right-4 flex items-center gap-3 hidden"
                 >
+                    <button
+                        id="solicitudes-alert-button"
+                        type="button"
+                        onclick="abrirSolicitudesEdicion()"
+                        class="relative hidden rounded-lg border border-amber-200 bg-amber-50 p-2 text-amber-800 hover:bg-amber-100"
+                        aria-label="Solicitudes de corrección pendientes"
+                        title="Solicitudes de corrección"
+                    >
+                        <i
+                            data-lucide="bell"
+                            class="app-icon"
+                            aria-hidden="true"
+                        ></i>
+                        <span
+                            id="solicitudes-alert-count"
+                            class="absolute -right-2 -top-2 hidden min-w-5 rounded-full bg-red-600 px-1.5 py-0.5 text-center text-xs font-bold text-white"
+                            >0</span
+                        >
+                    </button>
                     <span
                         id="username-display"
                         class="text-sm font-medium text-gray-700"
@@ -5872,6 +5891,30 @@
                             aria-hidden="true"
                         ></i
                         >Papelera</span
+                    >
+                </button>
+                <button
+                    id="tab-btn-6"
+                    class="tab-btn text-gray-500 hidden"
+                    onclick="changeTab(6)"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-6"
+                    tabindex="-1"
+                    type="button"
+                >
+                    <span class="icon-label"
+                        ><i
+                            data-lucide="message-square-warning"
+                            class="app-icon"
+                            aria-hidden="true"
+                        ></i
+                        >Solicitudes
+                        <span
+                            id="solicitudes-tab-count"
+                            class="ml-1 hidden rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white"
+                            >0</span
+                        ></span
                     >
                 </button>
             </div>
@@ -6569,6 +6612,78 @@
                 </div>
 
                 <div
+                    id="tab-6"
+                    class="tab-content-item hidden panel-stack"
+                    role="tabpanel"
+                    aria-labelledby="tab-btn-6"
+                    tabindex="0"
+                >
+                    <div
+                        class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"
+                    >
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800">
+                                Solicitudes de corrección
+                            </h2>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Cambios solicitados después del periodo de
+                                edición directa.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="cargarSolicitudesEdicion()"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                        >
+                            <i
+                                data-lucide="refresh-cw"
+                                class="app-icon button-icon"
+                                aria-hidden="true"
+                            ></i>
+                            Actualizar
+                        </button>
+                    </div>
+                    <div
+                        class="mb-4 grid grid-cols-1 gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 md:grid-cols-2"
+                    >
+                        <div>
+                            <label
+                                for="solicitudes-filtro-estado"
+                                class="block text-sm font-semibold text-gray-700"
+                                >Estado</label
+                            >
+                            <select
+                                id="solicitudes-filtro-estado"
+                                onchange="cargarSolicitudesEdicion()"
+                                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2"
+                            >
+                                <option value="">Todos</option>
+                                <option value="pendiente">Pendientes</option>
+                                <option value="en_revision">En revisión</option>
+                                <option value="aplicada">Aplicadas</option>
+                                <option value="rechazada">Rechazadas</option>
+                                <option value="cancelada">Canceladas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                for="solicitudes-filtro-cliente"
+                                class="block text-sm font-semibold text-gray-700"
+                                >Cliente</label
+                            >
+                            <select
+                                id="solicitudes-filtro-cliente"
+                                onchange="cargarSolicitudesEdicion()"
+                                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2"
+                            >
+                                <option value="">Todos los clientes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="solicitudes-edicion-container"></div>
+                </div>
+
+                <div
                     id="tab-1"
                     class="tab-content-item hidden panel-stack"
                     role="tabpanel"
@@ -7099,6 +7214,87 @@
                         Completar tramo
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <div
+            id="solicitudes-alert-modal"
+            class="hidden modal fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+            <div class="w-full max-w-md overflow-hidden rounded-xl bg-white">
+                <div class="border-b border-amber-200 bg-amber-50 px-6 py-5">
+                    <div class="flex items-center gap-3">
+                        <i
+                            data-lucide="bell-ring"
+                            class="app-icon h-6 w-6 text-amber-700"
+                            aria-hidden="true"
+                        ></i>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">
+                                Cambios por revisar
+                            </h3>
+                            <p
+                                id="solicitudes-alert-message"
+                                class="mt-1 text-sm text-amber-900"
+                            ></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2 p-6 sm:flex-row sm:justify-end">
+                    <button
+                        type="button"
+                        onclick="closeModal('solicitudes-alert-modal')"
+                        class="rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50"
+                    >
+                        Recordarme después
+                    </button>
+                    <button
+                        type="button"
+                        onclick="abrirSolicitudesEdicion()"
+                        class="rounded-lg bg-amber-600 px-4 py-2 font-semibold text-white hover:bg-amber-700"
+                    >
+                        Revisar solicitudes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div
+            id="solicitud-edicion-modal"
+            class="hidden modal fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+            <div
+                class="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white"
+            >
+                <div
+                    class="flex items-start justify-between gap-4 border-b bg-gray-50 px-6 py-5"
+                >
+                    <div>
+                        <p
+                            id="solicitud-edicion-kicker"
+                            class="text-xs font-semibold uppercase tracking-wide text-indigo-700"
+                        ></p>
+                        <h3 class="mt-1 text-xl font-bold text-gray-900">
+                            Revisar solicitud
+                        </h3>
+                    </div>
+                    <button
+                        type="button"
+                        onclick="closeModal('solicitud-edicion-modal')"
+                        class="rounded-lg p-2 text-gray-500 hover:bg-gray-200"
+                        aria-label="Cerrar solicitud"
+                    >
+                        <i
+                            data-lucide="x"
+                            class="app-icon"
+                            aria-hidden="true"
+                        ></i>
+                    </button>
+                </div>
+                <div
+                    id="solicitud-edicion-modal-body"
+                    class="min-h-0 flex-1 overflow-y-auto p-6"
+                ></div>
             </div>
         </div>
 
@@ -7658,6 +7854,9 @@
         let bitacoraAuthToken = "";
         let bitacoraTokenExpiresAt = 0;
         let tokenRefreshTimer = null;
+        let solicitudesEdicionCache = [];
+        let solicitudesEdicionPollTimer = null;
+        let solicitudesPopupLastTotal = -1;
 
         function getAuthHeaders(extra = {}) {
             return bitacoraAuthToken
@@ -7935,9 +8134,14 @@
         function normalizeTabsForRole(role, tabs = []) {
             const cleanRole = String(role || "").toLowerCase();
             if (cleanRole === "admin") {
-                return Array.isArray(tabs) && tabs.length
-                    ? tabs
-                    : [0, 1, 2, 3, 4, 5];
+                return Array.from(
+                    new Set([
+                        ...(Array.isArray(tabs) && tabs.length
+                            ? tabs.map(Number)
+                            : [0, 1, 2, 3, 4, 5]),
+                        6,
+                    ]),
+                );
             }
             if (cleanRole === "lector") {
                 return [0, 1, 2, 3, 4];
@@ -7985,9 +8189,16 @@
             updateClienteDisplay();
             populateEmergencyClientSelector();
             updateTabVisibility();
+            if (isAdminRole()) {
+                setTimeout(inicializarSolicitudesEdicionAdmin, 0);
+            }
         }
 
         function handleLogout() {
+            if (solicitudesEdicionPollTimer) {
+                clearInterval(solicitudesEdicionPollTimer);
+                solicitudesEdicionPollTimer = null;
+            }
             userRole = null;
             userUnidades = [];
             userClientes = [];
@@ -9160,7 +9371,7 @@
 
         function updateTabVisibility() {
             const OPERATIVAS = 5;
-            const TAB_COUNT = 6;
+            const TAB_COUNT = 7;
             const esAdmin = String(userRole || "").toLowerCase() === "admin";
             const tabsPermitidas = normalizeTabsForRole(userRole, userTabs);
 
@@ -9175,7 +9386,7 @@
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
 
-                const permitida = i === 5 ? esAdmin : allowed.includes(i);
+                const permitida = i >= 5 ? esAdmin : allowed.includes(i);
                 if (btn) {
                     btn.classList.toggle("hidden", !permitida);
                     btn.setAttribute(
@@ -9195,7 +9406,7 @@
         }
 
         function resetTabsToHidden() {
-            const TAB_COUNT = 6;
+            const TAB_COUNT = 7;
             for (let i = 0; i < TAB_COUNT; i++) {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
@@ -9217,7 +9428,7 @@
                 openModal("login-modal");
                 return;
             }
-            const TAB_COUNT = 6;
+            const TAB_COUNT = 7;
             for (let i = 0; i < TAB_COUNT; i++) {
                 const btn = document.getElementById(`tab-btn-${i}`);
                 const tab = document.getElementById(`tab-${i}`);
@@ -9263,6 +9474,7 @@
             }
             if (index === 4) cargarInformesGuardados();
             if (index === 5) cargarPapelera();
+            if (index === 6) cargarSolicitudesEdicion();
         }
 
         function openModal(id) {
@@ -13719,6 +13931,394 @@
             });
 
             sel.value = unidadesArray.includes(current) ? current : "";
+        }
+
+        async function solicitudesApi(action, payload = {}) {
+            const response = await authFetch(trackerViajesApiUrl(action), {
+                method: "POST",
+                cache: "no-store",
+                headers: getAuthHeaders({
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                }),
+                body: JSON.stringify(payload),
+            });
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (error) {
+                throw new Error("El servidor no devolvió JSON válido");
+            }
+            if (!response.ok || !data?.ok) {
+                throw new Error(data?.error || `Error HTTP ${response.status}`);
+            }
+            return data;
+        }
+
+        function actualizarContadoresSolicitudes(total) {
+            const safeTotal = Math.max(0, Number(total) || 0);
+            const button = document.getElementById("solicitudes-alert-button");
+            const headerCount = document.getElementById(
+                "solicitudes-alert-count",
+            );
+            const tabCount = document.getElementById("solicitudes-tab-count");
+            if (button) button.classList.toggle("hidden", !isAdminRole());
+            [headerCount, tabCount].forEach((badge) => {
+                if (!badge) return;
+                badge.textContent = safeTotal > 99 ? "99+" : String(safeTotal);
+                badge.classList.toggle("hidden", safeTotal === 0);
+            });
+        }
+
+        async function consultarContadorSolicitudes(mostrarPopup = false) {
+            if (!isAdminRole() || !bitacoraAuthToken) return;
+            try {
+                const data = await solicitudesApi(
+                    "contar_solicitudes_edicion",
+                    {},
+                );
+                const total = Number(data.total) || 0;
+                actualizarContadoresSolicitudes(total);
+                if (
+                    mostrarPopup &&
+                    total > 0 &&
+                    total > solicitudesPopupLastTotal
+                ) {
+                    const message = document.getElementById(
+                        "solicitudes-alert-message",
+                    );
+                    if (message) {
+                        message.textContent = `Hay ${total} solicitud${total === 1 ? "" : "es"} pendiente${total === 1 ? "" : "s"} de revisión.`;
+                    }
+                    openModal("solicitudes-alert-modal");
+                }
+                solicitudesPopupLastTotal = total;
+            } catch (error) {
+                console.error("No se pudo consultar solicitudes:", error);
+            }
+        }
+
+        function inicializarSolicitudesEdicionAdmin() {
+            if (!isAdminRole()) return;
+            const clienteSelect = document.getElementById(
+                "solicitudes-filtro-cliente",
+            );
+            if (clienteSelect) {
+                clienteSelect.innerHTML =
+                    '<option value="">Todos los clientes</option>' +
+                    userClientes
+                        .map(
+                            (cliente) =>
+                                `<option value="${Number(cliente.id) || 0}">${escapeHtml(cliente.nombre || "Cliente")}</option>`,
+                        )
+                        .join("");
+            }
+            consultarContadorSolicitudes(true);
+            if (solicitudesEdicionPollTimer) {
+                clearInterval(solicitudesEdicionPollTimer);
+            }
+            solicitudesEdicionPollTimer = setInterval(
+                () => consultarContadorSolicitudes(true),
+                90000,
+            );
+        }
+
+        function abrirSolicitudesEdicion() {
+            closeModal("solicitudes-alert-modal");
+            if (!isAdminRole()) return;
+            changeTab(6);
+        }
+
+        function solicitudEstadoMeta(estado) {
+            const estados = {
+                pendiente: ["Pendiente", "bg-amber-100 text-amber-800"],
+                en_revision: ["En revisión", "bg-blue-100 text-blue-800"],
+                aplicada: ["Aplicada", "bg-green-100 text-green-800"],
+                rechazada: ["Rechazada", "bg-red-100 text-red-800"],
+                cancelada: ["Cancelada", "bg-gray-200 text-gray-700"],
+            };
+            return estados[estado] || [estado || "Sin estado", "bg-gray-100 text-gray-700"];
+        }
+
+        function formatSolicitudDate(value) {
+            if (!value) return "—";
+            const parsed = dayjs(value);
+            return parsed.isValid() ? parsed.format("DD/MM/YYYY HH:mm") : value;
+        }
+
+        function renderSolicitudesEdicion() {
+            const container = document.getElementById(
+                "solicitudes-edicion-container",
+            );
+            if (!container) return;
+            if (!solicitudesEdicionCache.length) {
+                container.innerHTML = renderStateCard(
+                    "No hay solicitudes con estos filtros",
+                    {
+                        description:
+                            "Las nuevas solicitudes de los clientes aparecerán aquí.",
+                        tone: "plain",
+                    },
+                );
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                            <tr>
+                                <th class="px-4 py-3">Solicitud</th>
+                                <th class="px-4 py-3">Cliente y unidad</th>
+                                <th class="px-4 py-3">Campos</th>
+                                <th class="px-4 py-3">Estado</th>
+                                <th class="px-4 py-3 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${solicitudesEdicionCache
+                                .map((solicitud) => {
+                                    const [estadoLabel, estadoClass] =
+                                        solicitudEstadoMeta(solicitud.estado);
+                                    return `
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 align-top">
+                                                <div class="font-bold text-gray-900">#${solicitud.id}</div>
+                                                <div class="mt-1 text-xs text-gray-500">${escapeHtml(formatSolicitudDate(solicitud.created_at))}</div>
+                                                <div class="mt-1 text-xs text-gray-500">${escapeHtml(solicitud.solicitado_por || "")}</div>
+                                            </td>
+                                            <td class="px-4 py-3 align-top">
+                                                <div class="font-semibold text-gray-900">${escapeHtml(solicitud.cliente || "Cliente")}</div>
+                                                <div class="text-gray-600">${escapeHtml(solicitud.unidad || "Unidad")} · Folio ${escapeHtml(solicitud.folio || "—")} · T${solicitud.tramo_numero || "—"}</div>
+                                            </td>
+                                            <td class="px-4 py-3 align-top text-gray-600">
+                                                ${solicitud.campos
+                                                    .map(
+                                                        (campo) =>
+                                                            `<span class="mr-1 mb-1 inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs">${escapeHtml(campo.label)}</span>`,
+                                                    )
+                                                    .join("")}
+                                                ${
+                                                    solicitud.tiene_conflicto
+                                                        ? '<div class="mt-2 text-xs font-semibold text-red-700">Requiere revisar conflictos</div>'
+                                                        : ""
+                                                }
+                                            </td>
+                                            <td class="px-4 py-3 align-top">
+                                                <span class="inline-flex rounded-full px-2 py-1 text-xs font-bold ${estadoClass}">${escapeHtml(estadoLabel)}</span>
+                                            </td>
+                                            <td class="px-4 py-3 text-right align-top">
+                                                <button type="button" onclick="abrirSolicitudEdicion(${solicitud.id})" class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 font-semibold text-blue-700 hover:bg-blue-100">
+                                                    ${solicitud.estado === "pendiente" || solicitud.estado === "en_revision" ? "Revisar" : "Ver detalle"}
+                                                </button>
+                                            </td>
+                                        </tr>`;
+                                })
+                                .join("")}
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+
+        async function cargarSolicitudesEdicion() {
+            if (!isAdminRole()) return;
+            const container = document.getElementById(
+                "solicitudes-edicion-container",
+            );
+            if (container) {
+                container.innerHTML = renderStateCard(
+                    "Cargando solicitudes...",
+                    { compact: true, loading: true, tone: "plain" },
+                );
+            }
+            try {
+                const estado =
+                    document.getElementById("solicitudes-filtro-estado")
+                        ?.value || "";
+                const clienteId = Number(
+                    document.getElementById("solicitudes-filtro-cliente")
+                        ?.value || 0,
+                );
+                const data = await solicitudesApi(
+                    "listar_solicitudes_edicion",
+                    { estado, cliente_id: clienteId },
+                );
+                solicitudesEdicionCache = Array.isArray(data.solicitudes)
+                    ? data.solicitudes
+                    : [];
+                renderSolicitudesEdicion();
+                consultarContadorSolicitudes(false);
+                scheduleAppIconRender();
+            } catch (error) {
+                if (container) {
+                    container.innerHTML = renderStateCard(
+                        "No se pudieron cargar las solicitudes",
+                        {
+                            description: error.message,
+                            tone: "warning",
+                        },
+                    );
+                }
+            }
+        }
+
+        function solicitudInputValue(campo) {
+            const value = campo.valor_solicitado ?? "";
+            const datetimeFields = new Set([
+                "salida_patio_programada",
+                "cita_carga",
+                "salida_carga_programada",
+                "descarga_programada",
+            ]);
+            if (!datetimeFields.has(campo.campo) || !value) return value;
+            const parsed = dayjs(value);
+            return parsed.isValid() ? parsed.format("YYYY-MM-DDTHH:mm") : value;
+        }
+
+        function abrirSolicitudEdicion(solicitudId) {
+            const solicitud = solicitudesEdicionCache.find(
+                (item) => Number(item.id) === Number(solicitudId),
+            );
+            if (!solicitud) return;
+            const editable = ["pendiente", "en_revision"].includes(
+                solicitud.estado,
+            );
+            const kicker = document.getElementById(
+                "solicitud-edicion-kicker",
+            );
+            if (kicker) {
+                kicker.textContent = `Solicitud #${solicitud.id} · ${solicitud.cliente || ""} · ${solicitud.unidad || ""}`;
+            }
+            const body = document.getElementById(
+                "solicitud-edicion-modal-body",
+            );
+            if (!body) return;
+            body.innerHTML = `
+                <div class="mb-5 grid gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 md:grid-cols-3">
+                    <div><span class="block text-xs font-semibold uppercase text-gray-500">Folio y tramo</span><span class="font-semibold text-gray-900">${escapeHtml(solicitud.folio || "—")} · T${solicitud.tramo_numero || "—"}</span></div>
+                    <div><span class="block text-xs font-semibold uppercase text-gray-500">Solicitado por</span><span class="font-semibold text-gray-900">${escapeHtml(solicitud.solicitado_por || "—")}</span></div>
+                    <div><span class="block text-xs font-semibold uppercase text-gray-500">Fecha</span><span class="font-semibold text-gray-900">${escapeHtml(formatSolicitudDate(solicitud.created_at))}</span></div>
+                </div>
+                <div class="mb-5">
+                    <h4 class="text-sm font-bold text-gray-900">Motivo del cliente</h4>
+                    <p class="mt-1 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">${escapeHtml(solicitud.motivo || "Sin motivo")}</p>
+                </div>
+                ${
+                    solicitud.tiene_conflicto
+                        ? '<div class="mb-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800">Uno o más valores cambiaron después de enviarse la solicitud. Revisa las filas marcadas antes de aplicar.</div>'
+                        : ""
+                }
+                <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-50 text-left text-xs font-semibold uppercase text-gray-600">
+                            <tr><th class="px-3 py-2">Campo</th><th class="px-3 py-2">Al solicitar</th><th class="px-3 py-2">Actual</th><th class="px-3 py-2">Valor a aplicar</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${solicitud.campos
+                                .map(
+                                    (campo) => `
+                                    <tr class="${campo.conflicto ? "bg-red-50" : ""}">
+                                        <td class="px-3 py-3 font-semibold text-gray-900">${escapeHtml(campo.label)}</td>
+                                        <td class="px-3 py-3 text-gray-600">${escapeHtml(campo.valor_al_solicitar ?? "—")}</td>
+                                        <td class="px-3 py-3 ${campo.conflicto ? "font-semibold text-red-800" : "text-gray-600"}">${escapeHtml(campo.valor_actual ?? "—")}</td>
+                                        <td class="px-3 py-3">
+                                            ${
+                                                editable
+                                                    ? `<input data-solicitud-field="${escapeHtml(campo.campo)}" type="${["salida_patio_programada", "cita_carga", "salida_carga_programada", "descarga_programada"].includes(campo.campo) ? "datetime-local" : "text"}" value="${escapeHtml(solicitudInputValue(campo))}" class="w-full min-w-48 rounded-lg border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100">`
+                                                    : `<span class="font-semibold text-gray-900">${escapeHtml(campo.valor_aplicado ?? campo.valor_solicitado ?? "—")}</span>`
+                                            }
+                                        </td>
+                                    </tr>`,
+                                )
+                                .join("")}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-5">
+                    <label for="solicitud-admin-comment" class="block text-sm font-semibold text-gray-700">Comentario administrativo</label>
+                    <textarea id="solicitud-admin-comment" rows="3" maxlength="500" ${editable ? "" : "disabled"} class="mt-1 w-full rounded-lg border border-gray-300 p-3" placeholder="Obligatorio si se rechaza">${escapeHtml(solicitud.comentario_admin || "")}</textarea>
+                </div>
+                <div class="mt-5 flex flex-col gap-2 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end">
+                    <button type="button" onclick="closeModal('solicitud-edicion-modal')" class="rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50">Cerrar</button>
+                    ${
+                        editable && solicitud.estado === "pendiente"
+                            ? `<button type="button" onclick="cambiarEstadoSolicitudEdicion(${solicitud.id}, 'en_revision')" class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 font-semibold text-blue-700 hover:bg-blue-100">Marcar en revisión</button>`
+                            : ""
+                    }
+                    ${
+                        editable
+                            ? `<button type="button" onclick="cambiarEstadoSolicitudEdicion(${solicitud.id}, 'rechazada')" class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 font-semibold text-red-700 hover:bg-red-100">Rechazar</button>
+                               <button type="button" onclick="aplicarSolicitudEdicion(${solicitud.id})" class="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700">Aplicar cambios</button>`
+                            : ""
+                    }
+                </div>`;
+            openModal("solicitud-edicion-modal");
+            scheduleAppIconRender();
+        }
+
+        async function cambiarEstadoSolicitudEdicion(solicitudId, estado) {
+            const comentario =
+                document.getElementById("solicitud-admin-comment")?.value.trim() ||
+                "";
+            if (estado === "rechazada" && !comentario) {
+                alert("Escribe el motivo del rechazo.");
+                return;
+            }
+            try {
+                await solicitudesApi("cambiar_estado_solicitud_edicion", {
+                    solicitud_id: solicitudId,
+                    estado,
+                    comentario_admin: comentario,
+                });
+                closeModal("solicitud-edicion-modal");
+                await cargarSolicitudesEdicion();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function aplicarSolicitudEdicion(solicitudId) {
+            const solicitud = solicitudesEdicionCache.find(
+                (item) => Number(item.id) === Number(solicitudId),
+            );
+            if (!solicitud) return;
+            const valores = {};
+            document
+                .querySelectorAll("[data-solicitud-field]")
+                .forEach((input) => {
+                    valores[input.dataset.solicitudField] = input.value.trim();
+                });
+            const comentario =
+                document.getElementById("solicitud-admin-comment")?.value.trim() ||
+                "";
+            let confirmarConflicto = false;
+            if (solicitud.tiene_conflicto) {
+                confirmarConflicto = confirm(
+                    "Hay valores que cambiaron después de la solicitud. ¿Confirmas que revisaste el conflicto y deseas aplicar estos valores?",
+                );
+                if (!confirmarConflicto) return;
+            }
+            if (
+                !confirm(
+                    `¿Aplicar los cambios de la solicitud #${solicitudId}? Esta acción actualizará el planificador y la bitácora.`,
+                )
+            ) {
+                return;
+            }
+            try {
+                await solicitudesApi("aplicar_solicitud_edicion", {
+                    solicitud_id: solicitudId,
+                    valores,
+                    comentario_admin: comentario,
+                    confirmar_conflicto: confirmarConflicto,
+                });
+                closeModal("solicitud-edicion-modal");
+                await cargarSolicitudesEdicion();
+                await loadViajesFromDb();
+            } catch (error) {
+                alert(error.message);
+            }
         }
 
         async function cargarPapelera() {

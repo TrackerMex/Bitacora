@@ -291,6 +291,426 @@ function format_tramo_response($tramo) {
   ];
 }
 
+function assert_admin_user($user) {
+  if (($user['role'] ?? '') !== 'admin') {
+    resp_err('Esta acción requiere rol administrador.', 403);
+  }
+}
+
+function assert_solicitudes_edicion_table_bitacora($conn) {
+  $res = $conn->query("SHOW TABLES LIKE 'solicitudes_edicion_tramo'");
+  if (!$res || $res->num_rows === 0) {
+    resp_err(
+      'El módulo de solicitudes aún no está instalado. Aplica la migración 2026-07-28_solicitudes_edicion_tramo.sql.',
+      503
+    );
+  }
+}
+
+function solicitud_edicion_campos_config() {
+  return [
+    'folio' => ['despacho' => 'folio', 'tramo' => null, 'datetime' => false, 'label' => 'Folio'],
+    'ruta' => ['despacho' => 'ruta', 'tramo' => 'ruta', 'datetime' => false, 'label' => 'Ruta'],
+    'origen' => ['despacho' => 'origen', 'tramo' => 'origen', 'datetime' => false, 'label' => 'Origen'],
+    'lugar_carga' => ['despacho' => 'lugar_carga', 'tramo' => 'lugar_carga', 'datetime' => false, 'label' => 'Lugar de carga'],
+    'destino' => ['despacho' => 'destino', 'tramo' => 'destino', 'datetime' => false, 'label' => 'Destino'],
+    'instrucciones' => ['despacho' => 'instrucciones', 'tramo' => 'instrucciones', 'datetime' => false, 'label' => 'Instrucciones'],
+    'salida_patio_programada' => ['despacho' => 'salida_patio_programada', 'tramo' => 'salida_patio', 'datetime' => true, 'label' => 'Inicio de ruta'],
+    'cita_carga' => ['despacho' => 'cita_carga', 'tramo' => 'cita_carga', 'datetime' => true, 'label' => 'Cita de carga'],
+    'salida_carga_programada' => ['despacho' => 'salida_carga_programada', 'tramo' => 'salida_carga', 'datetime' => true, 'label' => 'Salida de carga'],
+    'descarga_programada' => ['despacho' => 'descarga_programada', 'tramo' => 'descarga_programada', 'datetime' => true, 'label' => 'Cita de descarga'],
+  ];
+}
+
+function decode_json_array_or_empty($value) {
+  $decoded = json_decode((string)($value ?? ''), true);
+  return is_array($decoded) ? $decoded : [];
+}
+
+function normalize_solicitud_value($value, $datetime) {
+  if ($datetime) {
+    return to_mysql_datetime_or_null($value);
+  }
+  return str_or_null($value);
+}
+
+function fetch_solicitud_despacho($conn, $despacho_id, $for_update = false) {
+  $sql =
+    'SELECT d.id, d.cliente_id, d.unidad_id, d.folio, d.fecha_programada,
+            d.tramo_numero, d.ruta, d.origen, d.lugar_carga, d.destino,
+            d.instrucciones, d.salida_patio_programada, d.cita_carga,
+            d.salida_carga_programada, d.descarga_programada,
+            u.economico AS unidad, c.nombre AS cliente
+       FROM despachos d
+       JOIN unidades u ON u.id = d.unidad_id
+       JOIN clientes c ON c.id = d.cliente_id
+      WHERE d.id = ? AND d.eliminado_at IS NULL
+      LIMIT 1' . ($for_update ? ' FOR UPDATE' : '');
+  $stmt = $conn->prepare($sql);
+  if (!$stmt) {
+    throw new Exception('Error preparando despacho: ' . $conn->error, 500);
+  }
+  $stmt->bind_param('i', $despacho_id);
+  $stmt->execute();
+  $despacho = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
+  return $despacho ?: null;
+}
+
+function build_solicitud_response($row, $despacho = null) {
+  $solicitados = decode_json_array_or_empty($row['campos_solicitados'] ?? null);
+  $actuales = decode_json_array_or_empty($row['valores_actuales'] ?? null);
+  $aplicados = decode_json_array_or_empty($row['valores_aplicados'] ?? null);
+  $config = solicitud_edicion_campos_config();
+  $campos = [];
+  $tiene_conflicto = false;
+
+  foreach ($solicitados as $campo => $valor_solicitado) {
+    if (!isset($config[$campo])) {
+      continue;
+    }
+    $valor_actual = $despacho
+      ? ($despacho[$config[$campo]['despacho']] ?? null)
+      : null;
+    $valor_original = $actuales[$campo] ?? null;
+    $conflicto = $despacho &&
+      trim((string)$valor_actual) !== trim((string)$valor_original);
+    $tiene_conflicto = $tiene_conflicto || $conflicto;
+    $campos[] = [
+      'campo' => $campo,
+      'label' => $config[$campo]['label'],
+      'valor_al_solicitar' => $valor_original,
+      'valor_actual' => $valor_actual,
+      'valor_solicitado' => $valor_solicitado,
+      'valor_aplicado' => $aplicados[$campo] ?? null,
+      'conflicto' => $conflicto,
+    ];
+  }
+
+  return [
+    'id' => (int)$row['id'],
+    'despacho_id' => (int)$row['despacho_id'],
+    'cliente_id' => (int)$row['cliente_id'],
+    'estado' => (string)$row['estado'],
+    'motivo' => (string)$row['motivo'],
+    'comentario_admin' => $row['comentario_admin'] ?? null,
+    'created_at' => $row['created_at'] ?? null,
+    'reviewed_at' => $row['reviewed_at'] ?? null,
+    'applied_at' => $row['applied_at'] ?? null,
+    'solicitado_por' => $row['solicitado_por'] ?? 'Usuario eliminado',
+    'revisado_por' => $row['revisado_por'] ?? null,
+    'folio' => $despacho['folio'] ?? ($row['folio'] ?? null),
+    'tramo_numero' => (int)($despacho['tramo_numero'] ?? ($row['tramo_numero'] ?? 0)),
+    'unidad' => $despacho['unidad'] ?? ($row['unidad'] ?? null),
+    'cliente' => $despacho['cliente'] ?? ($row['cliente'] ?? null),
+    'campos' => $campos,
+    'tiene_conflicto' => $tiene_conflicto,
+  ];
+}
+
+function listar_solicitudes_edicion_admin($conn, $data) {
+  $estado = trim((string)($data['estado'] ?? ''));
+  $cliente_id = intval($data['cliente_id'] ?? 0);
+  $estados = ['pendiente', 'en_revision', 'aplicada', 'rechazada', 'cancelada'];
+  if ($estado !== '' && !in_array($estado, $estados, true)) {
+    resp_err('Estado de solicitud inválido.', 400);
+  }
+
+  $where = ['1=1'];
+  $types = '';
+  $params = [];
+  if ($estado !== '') {
+    $where[] = 's.estado = ?';
+    $types .= 's';
+    $params[] = $estado;
+  }
+  if ($cliente_id > 0) {
+    $where[] = 's.cliente_id = ?';
+    $types .= 'i';
+    $params[] = $cliente_id;
+  }
+
+  $sql =
+    "SELECT s.*, us.nombre AS solicitado_por, ur.nombre AS revisado_por
+       FROM solicitudes_edicion_tramo s
+       LEFT JOIN usuarios us ON us.id = s.solicitado_por_usuario_id
+       LEFT JOIN usuarios ur ON ur.id = s.revisado_por_usuario_id
+      WHERE " . implode(' AND ', $where) . "
+      ORDER BY FIELD(s.estado, 'pendiente', 'en_revision', 'aplicada', 'rechazada', 'cancelada'),
+               s.created_at DESC
+      LIMIT 250";
+  $stmt = $conn->prepare($sql);
+  if (!$stmt) {
+    resp_err('Error preparando solicitudes: ' . $conn->error, 500);
+  }
+  bind_stmt_params($stmt, $types, $params);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  $rows = [];
+  while ($row = $res->fetch_assoc()) {
+    $despacho = fetch_solicitud_despacho($conn, (int)$row['despacho_id']);
+    $rows[] = build_solicitud_response($row, $despacho);
+  }
+  $stmt->close();
+  resp_ok(['solicitudes' => $rows]);
+}
+
+function aplicar_solicitud_edicion_admin($conn, $user, $data) {
+  $solicitud_id = intval($data['solicitud_id'] ?? 0);
+  $comentario = str_or_null($data['comentario_admin'] ?? '');
+  $confirmar_conflicto = !empty($data['confirmar_conflicto']);
+  $valores_admin = $data['valores'] ?? [];
+  if ($solicitud_id <= 0) {
+    resp_err('solicitud_id requerido.', 400);
+  }
+  if (!is_array($valores_admin)) {
+    resp_err('Los valores de aplicación son inválidos.', 400);
+  }
+
+  $conn->begin_transaction();
+  try {
+    $stmt = $conn->prepare(
+      "SELECT * FROM solicitudes_edicion_tramo WHERE id = ? LIMIT 1 FOR UPDATE"
+    );
+    $stmt->bind_param('i', $solicitud_id);
+    $stmt->execute();
+    $solicitud = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    if (!$solicitud) {
+      throw new Exception('Solicitud no encontrada.', 404);
+    }
+    if (!in_array($solicitud['estado'], ['pendiente', 'en_revision'], true)) {
+      throw new Exception('La solicitud ya fue resuelta.', 409);
+    }
+
+    $despacho = fetch_solicitud_despacho(
+      $conn,
+      (int)$solicitud['despacho_id'],
+      true
+    );
+    if (!$despacho) {
+      throw new Exception('El tramo solicitado ya no está disponible.', 409);
+    }
+
+    $config = solicitud_edicion_campos_config();
+    $solicitados = decode_json_array_or_empty($solicitud['campos_solicitados']);
+    $originales = decode_json_array_or_empty($solicitud['valores_actuales']);
+    $aplicar = [];
+    $conflictos = [];
+    foreach ($solicitados as $campo => $valor_solicitado) {
+      if (!isset($config[$campo])) {
+        continue;
+      }
+      $valor_actual = $despacho[$config[$campo]['despacho']] ?? null;
+      if (trim((string)$valor_actual) !== trim((string)($originales[$campo] ?? null))) {
+        $conflictos[] = $config[$campo]['label'];
+      }
+      $valor_final = array_key_exists($campo, $valores_admin)
+        ? $valores_admin[$campo]
+        : $valor_solicitado;
+      $valor_final = normalize_solicitud_value(
+        $valor_final,
+        $config[$campo]['datetime']
+      );
+      if ($campo === 'folio' && $valor_final === null) {
+        throw new Exception('El folio no puede quedar vacío.', 400);
+      }
+      $aplicar[$campo] = $valor_final;
+    }
+    if (!count($aplicar)) {
+      throw new Exception('La solicitud no contiene campos aplicables.', 400);
+    }
+    if (count($conflictos) && !$confirmar_conflicto) {
+      throw new Exception(
+        'Hay cambios posteriores en: ' . implode(', ', $conflictos) .
+        '. Revisa los valores y confirma el conflicto.',
+        409
+      );
+    }
+
+    $folio_viejo = (string)$despacho['folio'];
+    $folio_nuevo = array_key_exists('folio', $aplicar)
+      ? (string)$aplicar['folio']
+      : $folio_viejo;
+    if ($folio_nuevo !== $folio_viejo) {
+      $stmt = $conn->prepare(
+        'SELECT id FROM despachos
+          WHERE cliente_id = ? AND unidad_id = ? AND folio = ?
+            AND eliminado_at IS NULL AND id <> ?
+          LIMIT 1'
+      );
+      $cliente_id = (int)$despacho['cliente_id'];
+      $unidad_id = (int)$despacho['unidad_id'];
+      $despacho_id = (int)$despacho['id'];
+      $stmt->bind_param('iisi', $cliente_id, $unidad_id, $folio_nuevo, $despacho_id);
+      $stmt->execute();
+      $duplicado = $stmt->get_result()->fetch_assoc();
+      $stmt->close();
+      if ($duplicado) {
+        throw new Exception("El folio '$folio_nuevo' ya existe para esta unidad.", 409);
+      }
+    }
+
+    $sets_despacho = [];
+    $params_despacho = [];
+    $types_despacho = '';
+    $sets_tramo = [];
+    $params_tramo = [];
+    $types_tramo = '';
+    foreach ($aplicar as $campo => $valor) {
+      if ($campo === 'folio') {
+        continue;
+      }
+      $sets_despacho[] = $config[$campo]['despacho'] . ' = ?';
+      $params_despacho[] = $valor;
+      $types_despacho .= 's';
+      if ($config[$campo]['tramo']) {
+        $sets_tramo[] = $config[$campo]['tramo'] . ' = ?';
+        $params_tramo[] = $valor;
+        $types_tramo .= 's';
+      }
+    }
+
+    if (count($sets_despacho)) {
+      $params_despacho[] = (int)$despacho['id'];
+      $types_despacho .= 'i';
+      $stmt = $conn->prepare(
+        'UPDATE despachos SET ' . implode(', ', $sets_despacho) . ' WHERE id = ?'
+      );
+      bind_stmt_params($stmt, $types_despacho, $params_despacho);
+      if (!$stmt->execute()) {
+        throw new Exception('Error actualizando despacho: ' . $stmt->error, 500);
+      }
+      $stmt->close();
+    }
+
+    $stmt = $conn->prepare(
+      "SELECT vt.id
+         FROM viaje_tramos vt
+         JOIN viajes v ON v.id = vt.viaje_id
+        WHERE v.cliente_id = ? AND v.unidad_id = ? AND v.folio = ?
+          AND vt.tramo_numero = ? AND v.estado <> 'cancelado'"
+    );
+    $cliente_id = (int)$despacho['cliente_id'];
+    $unidad_id = (int)$despacho['unidad_id'];
+    $tramo_numero = (int)$despacho['tramo_numero'];
+    $stmt->bind_param('iisi', $cliente_id, $unidad_id, $folio_viejo, $tramo_numero);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $tramo_ids = [];
+    while ($row = $res->fetch_assoc()) {
+      $tramo_ids[] = (int)$row['id'];
+    }
+    $stmt->close();
+
+    if (count($sets_tramo)) {
+      foreach ($tramo_ids as $tramo_id) {
+        $params = $params_tramo;
+        $params[] = $tramo_id;
+        $stmt = $conn->prepare(
+          'UPDATE viaje_tramos SET ' . implode(', ', $sets_tramo) . ' WHERE id = ?'
+        );
+        bind_stmt_params($stmt, $types_tramo . 'i', $params);
+        if (!$stmt->execute()) {
+          throw new Exception('Error sincronizando tramo: ' . $stmt->error, 500);
+        }
+        $stmt->close();
+      }
+    }
+
+    if ($folio_nuevo !== $folio_viejo) {
+      $stmt = $conn->prepare(
+        'UPDATE despachos SET folio = ?
+          WHERE cliente_id = ? AND unidad_id = ? AND folio = ?
+            AND eliminado_at IS NULL'
+      );
+      $stmt->bind_param('siis', $folio_nuevo, $cliente_id, $unidad_id, $folio_viejo);
+      if (!$stmt->execute()) {
+        throw new Exception('Error actualizando folio en despachos: ' . $stmt->error, 500);
+      }
+      $stmt->close();
+
+      $stmt = $conn->prepare(
+        "UPDATE viajes SET folio = ?
+          WHERE cliente_id = ? AND unidad_id = ? AND folio = ?
+            AND estado <> 'cancelado'"
+      );
+      $stmt->bind_param('siis', $folio_nuevo, $cliente_id, $unidad_id, $folio_viejo);
+      if (!$stmt->execute()) {
+        throw new Exception('Error actualizando folio en viajes: ' . $stmt->error, 500);
+      }
+      $stmt->close();
+    }
+
+    $aplicados_json = json_encode($aplicar, JSON_UNESCAPED_UNICODE);
+    if ($aplicados_json === false) {
+      throw new Exception('No se pudo registrar la auditoría de cambios.', 500);
+    }
+    $revisor_id = (int)$user['id'];
+    $stmt = $conn->prepare(
+      "UPDATE solicitudes_edicion_tramo
+          SET estado = 'aplicada', valores_aplicados = ?,
+              comentario_admin = ?, revisado_por_usuario_id = ?,
+              reviewed_at = NOW(), applied_at = NOW()
+        WHERE id = ?"
+    );
+    $stmt->bind_param(
+      'ssii',
+      $aplicados_json,
+      $comentario,
+      $revisor_id,
+      $solicitud_id
+    );
+    if (!$stmt->execute()) {
+      throw new Exception('Error cerrando solicitud: ' . $stmt->error, 500);
+    }
+    $stmt->close();
+    $conn->commit();
+    resp_ok([
+      'solicitud_id' => $solicitud_id,
+      'estado' => 'aplicada',
+      'tramos_sincronizados' => count($tramo_ids),
+    ]);
+  } catch (Exception $e) {
+    $conn->rollback();
+    $code = (int)$e->getCode();
+    resp_err($e->getMessage(), $code >= 400 && $code <= 599 ? $code : 500);
+  }
+}
+
+function cambiar_estado_solicitud_edicion_admin($conn, $user, $data) {
+  $solicitud_id = intval($data['solicitud_id'] ?? 0);
+  $estado = trim((string)($data['estado'] ?? ''));
+  $comentario = str_or_null($data['comentario_admin'] ?? '');
+  if ($solicitud_id <= 0) {
+    resp_err('solicitud_id requerido.', 400);
+  }
+  if (!in_array($estado, ['en_revision', 'rechazada'], true)) {
+    resp_err('Estado administrativo inválido.', 400);
+  }
+  if ($estado === 'rechazada' && !$comentario) {
+    resp_err('Indica el motivo del rechazo.', 400);
+  }
+
+  $revisor_id = (int)$user['id'];
+  $stmt = $conn->prepare(
+    "UPDATE solicitudes_edicion_tramo
+        SET estado = ?, comentario_admin = ?, revisado_por_usuario_id = ?,
+            reviewed_at = NOW()
+      WHERE id = ? AND estado IN ('pendiente', 'en_revision')"
+  );
+  $stmt->bind_param('ssii', $estado, $comentario, $revisor_id, $solicitud_id);
+  if (!$stmt->execute()) {
+    resp_err('Error actualizando solicitud: ' . $stmt->error, 500);
+  }
+  if ($stmt->affected_rows === 0) {
+    $stmt->close();
+    resp_err('La solicitud ya fue resuelta o no existe.', 409);
+  }
+  $stmt->close();
+  resp_ok(['solicitud_id' => $solicitud_id, 'estado' => $estado]);
+}
+
 try {
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     resp_err('Método no permitido. Use POST.', 405);
@@ -305,6 +725,41 @@ try {
 
   $user = get_current_user_or_fail($conn);
   $data = read_json_body();
+
+  if (in_array($action, [
+    'contar_solicitudes_edicion',
+    'listar_solicitudes_edicion',
+    'aplicar_solicitud_edicion',
+    'cambiar_estado_solicitud_edicion',
+  ], true)) {
+    assert_admin_user($user);
+    assert_solicitudes_edicion_table_bitacora($conn);
+  }
+
+  if ($action === 'contar_solicitudes_edicion') {
+    $res = $conn->query(
+      "SELECT COUNT(*) AS total
+         FROM solicitudes_edicion_tramo
+        WHERE estado IN ('pendiente', 'en_revision')"
+    );
+    if (!$res) {
+      resp_err('Error contando solicitudes: ' . $conn->error, 500);
+    }
+    $row = $res->fetch_assoc();
+    resp_ok(['total' => (int)($row['total'] ?? 0)]);
+  }
+
+  if ($action === 'listar_solicitudes_edicion') {
+    listar_solicitudes_edicion_admin($conn, $data);
+  }
+
+  if ($action === 'aplicar_solicitud_edicion') {
+    aplicar_solicitud_edicion_admin($conn, $user, $data);
+  }
+
+  if ($action === 'cambiar_estado_solicitud_edicion') {
+    cambiar_estado_solicitud_edicion_admin($conn, $user, $data);
+  }
 
   if ($action === 'agregar_incidencia') {
     $tramo_id = intval($data['tramo_id'] ?? 0);

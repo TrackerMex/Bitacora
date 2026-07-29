@@ -145,6 +145,18 @@ try {
         $params[] = $estado_f;
     }
 
+    // Los cancelados operativos siguen disponibles al filtrar por ese estado.
+    // El listado normal solo muestra viajes con al menos un tramo activo.
+    if ($estado_f !== "cancelado") {
+        $where[] = "EXISTS (
+            SELECT 1
+              FROM viaje_tramos vt_activos
+             WHERE vt_activos.viaje_id = v.id
+               AND vt_activos.estado <> 'cancelado'
+               AND vt_activos.eliminado_at IS NULL
+        )";
+    }
+
     $where_sql = implode(" AND ", $where);
 
     $sql_viajes = "
@@ -181,7 +193,10 @@ try {
         FROM viajes v
         INNER JOIN clientes c ON c.id = v.cliente_id
         INNER JOIN unidades u ON u.id = v.unidad_id
-        LEFT JOIN viaje_tramos vt ON vt.viaje_id = v.id AND vt.estado != 'cancelado'
+        LEFT JOIN viaje_tramos vt
+          ON vt.viaje_id = v.id
+         AND vt.estado <> 'cancelado'
+         AND vt.eliminado_at IS NULL
         WHERE $where_sql
         GROUP BY v.id
         ORDER BY v.fecha_inicio DESC, v.created_at DESC
@@ -285,6 +300,8 @@ try {
                 vt.estado, vt.created_at, vt.updated_at
             FROM viaje_tramos vt
             WHERE vt.viaje_id IN ($ph_v)
+              AND vt.estado <> 'cancelado'
+              AND vt.eliminado_at IS NULL
             ORDER BY vt.viaje_id ASC, vt.tramo_numero ASC
         ";
 
