@@ -3353,14 +3353,133 @@
                 background: var(--dot-color, var(--color-line-strong));
             }
             .executive-table {
-                border: 1px solid var(--color-line);
-                border-radius: 0.75rem;
-                background: var(--color-card);
-                overflow: hidden;
+              border: 1px solid var(--color-line);
+              border-radius: 0.75rem;
+              background: var(--color-card);
+              overflow: hidden;
+            }
+            .executive-detail-table-wrap {
+              border: 1px solid var(--color-line);
+              border-radius: 0.75rem;
+              overflow: auto;
+              background: var(--color-card);
+              max-height: 56vh;
+            }
+            .executive-detail-table {
+              width: 100%;
+              min-width: 100%;
+              table-layout: fixed;
             }
             .executive-table table {
                 border-collapse: separate;
                 border-spacing: 0;
+            }
+            .executive-detail-table thead th,
+            .executive-detail-table tbody td {
+                white-space: normal;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+                vertical-align: top;
+                line-height: 1.35;
+            }
+            .executive-detail-table thead th {
+              position: sticky;
+              top: 0;
+              font-size: 0.72rem;
+              letter-spacing: 0.02em;
+              text-transform: uppercase;
+              text-align: left;
+              z-index: 2;
+            }
+            .executive-detail-table--tramos {
+                min-width: 1510px;
+            }
+            .executive-detail-table.executive-detail-table--tramos thead th,
+            .executive-detail-table.executive-detail-table--tramos tbody td {
+                overflow-wrap: normal;
+                word-break: normal;
+            }
+            .executive-detail-table--tramos th:nth-child(2),
+            .executive-detail-table--tramos td:nth-child(2) {
+                width: 70px;
+                white-space: nowrap;
+            }
+            .executive-detail-table--tramos th:nth-child(1),
+            .executive-detail-table--tramos td:nth-child(1) {
+                width: 100px;
+                white-space: nowrap;
+            }
+            .executive-detail-table--tramos th:nth-child(3),
+            .executive-detail-table--tramos td:nth-child(3) {
+                width: 210px;
+                overflow-wrap: break-word;
+            }
+            .executive-detail-table--tramos th:nth-child(4),
+            .executive-detail-table--tramos td:nth-child(4) {
+                width: 130px;
+            }
+            .executive-detail-table.executive-detail-table--tramos th:nth-child(5),
+            .executive-detail-table.executive-detail-table--tramos td:nth-child(5),
+            .executive-detail-table.executive-detail-table--tramos th:nth-child(6),
+            .executive-detail-table.executive-detail-table--tramos td:nth-child(6),
+            .executive-detail-table.executive-detail-table--tramos th:nth-child(7),
+            .executive-detail-table.executive-detail-table--tramos td:nth-child(7) {
+                width: 180px;
+                white-space: normal;
+                overflow: hidden;
+                overflow-wrap: break-word;
+                word-break: normal;
+                font-variant-numeric: tabular-nums;
+            }
+            .executive-date-time {
+                display: inline-grid;
+                gap: 0.1rem;
+                line-height: 1.3;
+                white-space: nowrap;
+            }
+            .executive-date-time > span {
+                display: block;
+            }
+            .executive-detail-table--tramos th:nth-child(8),
+            .executive-detail-table--tramos td:nth-child(8) {
+                width: 460px;
+                overflow-wrap: break-word;
+            }
+            .executive-detail-table--saved {
+              min-width: 720px;
+            }
+            .executive-detail-table--saved th:nth-child(1),
+            .executive-detail-table--saved td:nth-child(1) {
+              width: 11%;
+              min-width: 64px;
+            }
+            .executive-detail-table--saved th:nth-child(2),
+            .executive-detail-table--saved td:nth-child(2) {
+              width: 11%;
+              min-width: 64px;
+            }
+            .executive-detail-table--saved th:nth-child(3),
+            .executive-detail-table--saved td:nth-child(3) {
+              width: 46%;
+              min-width: 220px;
+            }
+            .executive-detail-table--saved th:nth-child(4),
+            .executive-detail-table--saved td:nth-child(4) {
+              width: 16%;
+              min-width: 96px;
+            }
+            .executive-detail-table--saved th:nth-child(5),
+            .executive-detail-table--saved td:nth-child(5) {
+              width: 16%;
+              min-width: 80px;
+              text-align: right;
+            }
+            .informe-detalle-route {
+              display: block;
+              min-width: 0;
+              max-width: 100%;
+              overflow-wrap: anywhere;
+              word-break: break-word;
             }
             .executive-table th {
                 background: var(--color-panel);
@@ -6349,6 +6468,10 @@
                                     ></tbody>
                                 </table>
                             </div>
+                            <div
+                                id="incidencias-exec-pagination"
+                                data-pdf-exclude="true"
+                            ></div>
                         </div>
                     </div>
 
@@ -6528,7 +6651,7 @@
                         class="modal hidden fixed inset-0 flex items-center justify-center z-50 p-4"
                     >
                         <div
-                            class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+                        class="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden"
                             role="document"
                         >
                             <div
@@ -6558,7 +6681,7 @@
                             </div>
                             <div
                                 id="modal-informe-body"
-                                class="p-6 overflow-y-auto max-h-[60vh]"
+                                class="p-6 overflow-y-auto max-h-[72vh]"
                             ></div>
                         </div>
                     </div>
@@ -7893,6 +8016,10 @@
         let solicitudesPopupLastTotal = -1;
         let solicitudesEdicionGrupo = "pendientes";
         let solicitudesEdicionPagina = 1;
+        let informeDetalleRows = [];
+        let informeDetalleResumenHtml = "";
+        let informeDetallePagina = 1;
+        let informeDetallePorPagina = 25;
         let solicitudesEdicionPaginacion = {
             pagina: 1,
             por_pagina: 10,
@@ -8275,6 +8402,8 @@
         let filteredDespachosData = [];
         let charts = {};
         let lastInformeData = [];
+        let informeEjecutivoPagina = 1;
+        let informeEjecutivoPorPagina = 15;
 
         let allViajesData = [];
         let activeClienteId = "";
@@ -12963,6 +13092,7 @@
                 btn.disabled = true;
                 if (saveBtn) saveBtn.disabled = true;
                 lastInformeData = [];
+                informeEjecutivoPagina = 1;
                 return;
             }
             lastInformeData = tramos;
@@ -12990,6 +13120,25 @@
             const incs = tramos.reduce(
                 (a, { t }) => a + (t.incidencias || []).length,
                 0,
+            );
+            const porPagina = Math.max(
+                10,
+                Math.min(50, Number(informeEjecutivoPorPagina) || 15),
+            );
+            const totalPaginas = Math.max(1, Math.ceil(total / porPagina));
+            informeEjecutivoPagina = Math.max(
+                1,
+                Math.min(totalPaginas, Number(informeEjecutivoPagina) || 1),
+            );
+            const inicioPagina =
+                (informeEjecutivoPagina - 1) * porPagina;
+            const tramosPagina = tramos.slice(
+                inicioPagina,
+                inicioPagina + porPagina,
+            );
+            const finPagina = Math.min(
+                total,
+                inicioPagina + tramosPagina.length,
             );
 
             const metricItems = [
@@ -13064,50 +13213,134 @@
                           </div>
                         </section>
 
-                        <section class="executive-table">
-                          <div class="flex items-start justify-between gap-3 border-b px-4 py-3">
-                            <div>
-                              <h3 class="font-semibold text-gray-800">Detalle</h3>
-                              <p class="mt-0.5 text-xs text-gray-500">Unidades, ruta, estatus y descarga.</p>
+                          <section class="executive-table">
+                            <div class="flex items-start justify-between gap-3 border-b px-4 py-3">
+                              <div>
+                                <h3 class="font-semibold text-gray-800">Detalle</h3>
+                                <p class="mt-0.5 text-xs text-gray-500">Unidades, ruta, estatus y descarga.</p>
+                              </div>
                             </div>
-                          </div>
-                          <div class="overflow-x-auto">
-                          <table class="min-w-full text-sm">
-                            <thead>
-                              <tr>
-                                <th scope="col" class="px-4 py-2 text-left">Unidad</th>
-                                <th scope="col" class="px-4 py-2 text-left">Tramo</th>
-                                <th scope="col" class="px-4 py-2 text-left">Ruta</th>
-                                <th scope="col" class="px-4 py-2 text-left">Estatus</th>
-                                <th scope="col" class="px-4 py-2 text-left">Prog. Descarga</th>
-                                <th scope="col" class="px-4 py-2 text-left">Arribo a Descarga</th>
-                                <th scope="col" class="px-4 py-2 text-left">Vacío</th>
-                                <th scope="col" class="px-4 py-2 text-left min-w-[200px]">Observaciones</th>
-                              </tr>
-                            </thead>
-                            <tbody class="divide-y bg-white">
-                              ${tramos
-                                  .map(
-                                      ({ v, t }) => `
+                            <div class="executive-detail-table-wrap">
+                              <table class="text-sm executive-detail-table executive-detail-table--tramos">
+                                <thead>
+                                  <tr>
+                                    <th scope="col" class="px-4 py-2 text-left">Unidad</th>
+                                    <th scope="col" class="px-4 py-2 text-left">Tramo</th>
+                                    <th scope="col" class="px-4 py-2 text-left">Ruta</th>
+                                    <th scope="col" class="px-4 py-2 text-left">Estatus</th>
+                                    <th scope="col" class="px-4 py-2 text-left">Prog. Descarga</th>
+                                    <th scope="col" class="px-4 py-2 text-left">Arribo a Descarga</th>
+                                    <th scope="col" class="px-4 py-2 text-left">Vacío</th>
+                                    <th scope="col" class="px-4 py-2 text-left min-w-[200px]">Observaciones</th>
+                                  </tr>
+                                </thead>
+                                <tbody class="divide-y bg-white">
+                                  ${tramosPagina
+                                      .map(
+                                          ({ v, t }) => `
                                 <tr>
-                                  <td class="px-4 py-2 font-semibold">${escapeHtml(v.unidad || "-")}</td>
-                                  <td class="px-4 py-2 text-gray-500">T${escapeHtml(String(t.tramo_numero || ""))}</td>
-                                  <td class="px-4 py-2">${renderGoogleMapsLink(t.ruta || t.origen || "-", "text-blue-600 hover:underline")}</td>
-                                  <td class="px-4 py-2">${escapeHtml(_viajeEstadoLabel(t.estado))}</td>
-                                  <td class="px-4 py-2">${formatDateTime(t.descarga_programada)}</td>
-                                  <td class="px-4 py-2 font-semibold">${formatDateTime(t.descarga_real)}</td>
-                                  <td class="px-4 py-2 font-semibold">${formatDateTime(t.vacio_real)}</td>
-                                  <td class="px-4 py-2 text-gray-600 text-xs">${escapeHtml(t.instrucciones || "-")}</td>
+                                   <td class="px-4 py-2 font-semibold">${escapeHtml(v.unidad || "-")}</td>
+                                   <td class="px-4 py-2 text-gray-500">T${escapeHtml(String(t.tramo_numero || ""))}</td>
+                                   <td class="px-4 py-2">${renderGoogleMapsLink(t.ruta || t.origen || "-", "text-blue-600 hover:underline")}</td>
+                                   <td class="px-4 py-2">${escapeHtml(_viajeEstadoLabel(t.estado))}</td>
+                                   <td class="px-4 py-2">${renderExecutiveDateTime(t.descarga_programada)}</td>
+                                   <td class="px-4 py-2 font-semibold">${renderExecutiveDateTime(t.descarga_real)}</td>
+                                   <td class="px-4 py-2 font-semibold">${renderExecutiveDateTime(t.vacio_real)}</td>
+                                   <td class="px-4 py-2 text-gray-600 text-xs">${escapeHtml(t.instrucciones || "-")}</td>
                                 </tr>
-                              `,
-                                  )
-                                  .join("")}
+                                `,
+                                      )
+                                      .join("")}
                             </tbody>
                           </table>
+                          </div>
+                          <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <p class="text-sm text-gray-600">
+                              Mostrando <strong class="text-gray-900">${inicioPagina + 1}-${finPagina}</strong> de
+                              <strong class="text-gray-900">${total}</strong> tramos
+                            </p>
+                            <div class="flex flex-wrap items-center gap-2">
+                              <label class="text-sm text-gray-700">
+                                <span class="mr-2">Filas:</span>
+                                <select
+                                  class="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                  onchange="establecerInformeEjecutivoPorPagina(this.value)"
+                                >
+                                  ${[10, 15, 25, 50]
+                                      .map(
+                                          (n) =>
+                                              `<option value="${n}" ${n === porPagina ? "selected" : ""}>${n}</option>`,
+                                      )
+                                      .join("")}
+                                </select>
+                              </label>
+                              <button
+                                type="button"
+                                onclick="establecerInformeEjecutivoPagina(${informeEjecutivoPagina - 1})"
+                                ${informeEjecutivoPagina <= 1 ? "disabled" : ""}
+                                class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-40"
+                              >Anterior</button>
+                              <span class="min-w-24 text-center text-sm text-gray-600">
+                                Página ${informeEjecutivoPagina} de ${totalPaginas}
+                              </span>
+                              <button
+                                type="button"
+                                onclick="establecerInformeEjecutivoPagina(${informeEjecutivoPagina + 1})"
+                                ${informeEjecutivoPagina >= totalPaginas ? "disabled" : ""}
+                                class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-40"
+                              >Siguiente</button>
+                            </div>
                           </div>
                         </section>
                       </div>
                     `;
+        }
+
+        function renderExecutiveDateTime(value) {
+            const formatted = String(formatDateTime(value) || "-").trim();
+            if (!formatted || formatted === "-") return "-";
+
+            const parts = formatted.match(
+                /^(\d{2}\/\d{2}\/\d{4})\s+(.+)$/,
+            );
+            if (!parts) return escapeHtml(formatted);
+
+            return `<span class="executive-date-time">
+                <span>${escapeHtml(parts[1])}</span>
+                <span>${escapeHtml(parts[2])}</span>
+            </span>`;
+        }
+
+        function establecerInformeEjecutivoPagina(pagina) {
+            const totalPaginas = Math.max(
+                1,
+                Math.ceil(
+                    (lastInformeData.length || 0) /
+                        Math.max(
+                            10,
+                            Math.min(
+                                50,
+                                Number(informeEjecutivoPorPagina) || 15,
+                            ),
+                        ),
+                ),
+            );
+            const destino = Math.min(
+                totalPaginas,
+                Math.max(1, Number(pagina) || 1),
+            );
+            if (destino === informeEjecutivoPagina) return;
+            informeEjecutivoPagina = destino;
+            renderInforme();
+        }
+
+        function establecerInformeEjecutivoPorPagina(valor) {
+            informeEjecutivoPorPagina = Math.max(
+                10,
+                Math.min(50, Number(valor) || 15),
+            );
+            informeEjecutivoPagina = 1;
+            renderInforme();
         }
 
         function downloadReportAsExcel() {
@@ -13525,9 +13758,12 @@
         }
         let incExecutiveFilterMode = "selected";
         let incExecutiveRange = { from: "", to: "" };
+        let incidenciasExecutivePagina = 1;
+        let incidenciasExecutivePorPagina = 15;
 
         function setIncExecutiveFilter(mode) {
             incExecutiveFilterMode = mode;
+            incidenciasExecutivePagina = 1;
             const all = ["selected", "today", "last7", "last30", "all"];
             all.forEach((m) => {
                 const id =
@@ -13548,6 +13784,7 @@
 
         function applyIncExecutiveRange() {
             incExecutiveFilterMode = "range";
+            incidenciasExecutivePagina = 1;
             incExecutiveRange.from =
                 document.getElementById("incf-from")?.value || "";
             incExecutiveRange.to =
@@ -13598,7 +13835,10 @@
 
         function renderIncidenciasExecutiveReport() {
             const tbody = document.getElementById("incidencias-exec-tbody");
-            if (!tbody) return;
+            const pagination = document.getElementById(
+                "incidencias-exec-pagination",
+            );
+            if (!tbody || !pagination) return;
 
             const window = getIncExecutiveDateWindow();
             const from = window.from || "";
@@ -13649,7 +13889,31 @@
                     String(a.unidad).localeCompare(String(b.unidad)),
             );
 
-            tbody.innerHTML = rows
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td class="px-4 py-6 text-center text-gray-500" colspan="5">Sin incidencias para el filtro seleccionado.</td></tr>`;
+                pagination.innerHTML = "";
+                incidenciasExecutivePagina = 1;
+                return;
+            }
+
+            const porPagina = Math.max(
+                10,
+                Math.min(50, Number(incidenciasExecutivePorPagina) || 15),
+            );
+            const total = rows.length;
+            const totalPaginas = Math.max(1, Math.ceil(total / porPagina));
+            incidenciasExecutivePagina = Math.max(
+                1,
+                Math.min(
+                    totalPaginas,
+                    Number(incidenciasExecutivePagina) || 1,
+                ),
+            );
+            const inicio = (incidenciasExecutivePagina - 1) * porPagina;
+            const filasPagina = rows.slice(inicio, inicio + porPagina);
+            const fin = Math.min(total, inicio + filasPagina.length);
+
+            tbody.innerHTML = filasPagina
                 .map((r) => {
                     const sevLower = String(r.sev).toLowerCase();
                     const severity =
@@ -13693,15 +13957,68 @@
                                 <div class="mt-0.5 text-xs text-gray-500">${renderGoogleMapsLink(r.ruta || "-", "text-blue-600 hover:underline")}</div>
                               </td>
                               <td class="px-4 py-3 font-medium">${escapeHtml(r.tipo)}</td>
-                              <td class="px-4 py-3">${escapeHtml(r.fecha)}</td>
+                              <td class="px-4 py-3">${renderExecutiveDateTime(r.fecha)}</td>
                               <td class="px-4 py-3">${renderGoogleMapsLink(r.direccion, "text-blue-600 hover:underline")}</td>
                             </tr>
                           `;
                 })
                 .join("");
-            if (rows.length === 0) {
-                tbody.innerHTML = `<tr><td class="px-4 py-6 text-center text-gray-500" colspan="5">Sin incidencias para el filtro seleccionado.</td></tr>`;
-            }
+
+            pagination.innerHTML = `
+                <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-sm text-gray-600">
+                        Mostrando <strong class="text-gray-900">${inicio + 1}-${fin}</strong> de
+                        <strong class="text-gray-900">${total}</strong> incidencias
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <label class="text-sm text-gray-700">
+                            <span class="mr-2">Filas:</span>
+                            <select
+                                class="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                onchange="establecerIncidenciasExecutivePorPagina(this.value)"
+                            >
+                                ${[10, 15, 25, 50]
+                                    .map(
+                                        (n) =>
+                                            `<option value="${n}" ${n === porPagina ? "selected" : ""}>${n}</option>`,
+                                    )
+                                    .join("")}
+                            </select>
+                        </label>
+                        <button
+                            type="button"
+                            onclick="establecerIncidenciasExecutivePagina(${incidenciasExecutivePagina - 1})"
+                            ${incidenciasExecutivePagina <= 1 ? "disabled" : ""}
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-40"
+                        >Anterior</button>
+                        <span class="min-w-24 text-center text-sm text-gray-600">
+                            Página ${incidenciasExecutivePagina} de ${totalPaginas}
+                        </span>
+                        <button
+                            type="button"
+                            onclick="establecerIncidenciasExecutivePagina(${incidenciasExecutivePagina + 1})"
+                            ${incidenciasExecutivePagina >= totalPaginas ? "disabled" : ""}
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-40"
+                        >Siguiente</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function establecerIncidenciasExecutivePagina(pagina) {
+            const destino = Math.max(1, Number(pagina) || 1);
+            if (destino === incidenciasExecutivePagina) return;
+            incidenciasExecutivePagina = destino;
+            renderIncidenciasExecutiveReport();
+        }
+
+        function establecerIncidenciasExecutivePorPagina(valor) {
+            incidenciasExecutivePorPagina = Math.max(
+                10,
+                Math.min(50, Number(valor) || 15),
+            );
+            incidenciasExecutivePagina = 1;
+            renderIncidenciasExecutiveReport();
         }
 
         async function guardarInformeEnBD() {
@@ -14892,18 +15209,6 @@
                     } catch (e) {}
                 }
 
-                const _detCancelados = Array.isArray(detalles)
-                    ? detalles.filter(
-                          (d) =>
-                              d.estatus === "Cancelado" ||
-                              d.estatus === "Despacho No realizado",
-                      ).length
-                    : null;
-                const _detCanceladosHtml =
-                    _detCancelados !== null
-                        ? String(_detCancelados)
-                        : escapeHtml(String(row.cancelados || "-"));
-
                 const resumenHtml = `
                           <div class="space-y-3">
                                 <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
@@ -14957,57 +15262,11 @@
 
                         `;
 
-                let detallesHtml = "";
-                if (Array.isArray(detalles) && detalles.length) {
-                    const head = `
-                            <div class="overflow-x-auto rounded-xl border border-gray-200 mt-4">
-                              <table class="min-w-full text-sm">
-                                <thead class="bg-gray-50 text-gray-700">
-                                  <tr>
-                                    <th scope="col" class="text-left p-3">Folio</th>
-                                    <th scope="col" class="text-left p-3">Unidad</th>
-                                    <th scope="col" class="text-left p-3">Ruta</th>
-                                    <th scope="col" class="text-left p-3">Estatus</th>
-                                    <th scope="col" class="text-left p-3">Incidencias</th>
-                                  </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100 bg-white">
-                          `;
-                    const rows = detalles
-                        .slice(0, 200)
-                        .map((d) => {
-                            const ruta =
-                                `${d.origen || ""} → ${d.destino || ""}`.trim();
-                            const inc = Array.isArray(d.incidencias)
-                                ? d.incidencias.length
-                                : 0;
-                            return `
-                                <tr>
-                                  <td class="p-3 whitespace-nowrap">${escapeHtml(
-                                      d.folio || "",
-                                  )}</td>
-                                  <td class="p-3 whitespace-nowrap font-semibold">${escapeHtml(
-                                      d.unidad || "",
-                                  )}</td>
-                                  <td class="p-3">${renderGoogleMapsLink(ruta, "text-blue-600 hover:underline")}</td>
-                                  <td class="p-3 whitespace-nowrap">${escapeHtml(
-                                      d.estatus || "",
-                                  )}</td>
-                                  <td class="p-3 whitespace-nowrap">${inc}</td>
-                                </tr>
-                              `;
-                        })
-                        .join("");
-                    const foot = `</tbody></table></div>`;
-                    detallesHtml = `
-                            <h4 class="text-lg font-semibold text-gray-800 mt-6 mb-2">Detalle (primeros 200)</h4>
-                            ${head}${rows}${foot}
-                          `;
-                }
-
-                if (body) {
-                    body.innerHTML = `${resumenHtml}${detallesHtml}`;
-                }
+                informeDetalleRows = Array.isArray(detalles) ? detalles : [];
+                informeDetalleResumenHtml = resumenHtml;
+                informeDetallePagina = 1;
+                informeDetallePorPagina = 25;
+                renderInformeDetalleTabla();
             } catch (err) {
                 if (title) title.textContent = "Error";
                 if (body)
@@ -15017,8 +15276,151 @@
                                   String(err?.message || err),
                               )}
                             </div>
-                          `;
+                        `;
             }
+        }
+
+        function renderInformeDetalleTabla() {
+            const body = document.getElementById("modal-informe-body");
+            if (!body) return;
+
+            if (!Array.isArray(informeDetalleRows) || informeDetalleRows.length === 0) {
+                body.innerHTML = `${informeDetalleResumenHtml}<div class="mt-6 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">No hay filas en detalle para este informe.</div>`;
+                return;
+            }
+
+            const porPagina = Math.max(
+                10,
+                Math.min(100, Number(informeDetallePorPagina) || 25),
+            );
+            const total = informeDetalleRows.length;
+            const totalPaginas = Math.max(1, Math.ceil(total / porPagina));
+            const paginaActual = Math.max(
+                1,
+                Math.min(totalPaginas, Number(informeDetallePagina) || 1),
+            );
+            informeDetallePagina = paginaActual;
+
+            const inicio = (paginaActual - 1) * porPagina;
+            const paginaFilas = informeDetalleRows.slice(
+                inicio,
+                inicio + porPagina,
+            );
+            const fin = Math.min(total, inicio + paginaFilas.length);
+            const rows = paginaFilas
+                .map((d) => {
+                    const ruta = `${d.origen || ""} → ${d.destino || ""}`.trim();
+                    const inc = Array.isArray(d.incidencias)
+                        ? d.incidencias.length
+                        : 0;
+                    return `
+                        <tr>
+                            <td class="p-2 align-top min-w-0">${escapeHtml(
+                                d.folio || "",
+                            )}</td>
+                            <td class="p-2 align-top min-w-0 font-semibold">${escapeHtml(
+                                d.unidad || "",
+                            )}</td>
+                            <td class="p-2 align-top min-w-0">
+                                ${renderGoogleMapsLink(
+                                    ruta,
+                                    "informe-detalle-route text-blue-600 hover:text-blue-800 hover:underline",
+                                )}
+                            </td>
+                            <td class="p-2 align-top min-w-0">${escapeHtml(
+                                d.estatus || "",
+                            )}</td>
+                            <td class="p-2 align-top min-w-0 text-right">${inc}</td>
+                        </tr>
+                    `;
+                })
+                .join("");
+
+            const table = `
+                <h4 class="text-lg font-semibold text-gray-800 mt-6 mb-2">Detalle</h4>
+                <div class="executive-detail-table-wrap">
+                    <table class="text-sm executive-detail-table executive-detail-table--saved">
+                        <thead class="bg-gray-50 text-gray-700">
+                            <tr>
+                                <th scope="col" class="px-2 py-2">Folio</th>
+                                <th scope="col" class="px-2 py-2">Unidad</th>
+                                <th scope="col" class="px-2 py-2">Ruta</th>
+                                <th scope="col" class="px-2 py-2">Estatus</th>
+                                <th scope="col" class="px-2 py-2">Incidencias</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 bg-white">
+                            ${rows}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-sm text-gray-600">
+                        Mostrando <strong class="text-gray-900">${inicio + 1}-${fin}</strong> de
+                        <strong class="text-gray-900">${total}</strong>
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <label class="text-sm text-gray-700">
+                            <span class="mr-2">Filas por página:</span>
+                            <select
+                                class="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
+                                onchange="establecerInformeDetallePorPagina(this.value)"
+                            >
+                                ${[10, 25, 50, 100]
+                                    .map(
+                                        (n) =>
+                                            `<option value="${n}" ${n === porPagina ? "selected" : ""}>${n}</option>`,
+                                    )
+                                    .join("")}
+                            </select>
+                        </label>
+                        <button
+                            type="button"
+                            onclick="establecerInformeDetallePagina(${paginaActual - 1})"
+                            ${paginaActual <= 1 ? "disabled" : ""}
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                            Anterior
+                        </button>
+                        <span class="min-w-24 text-center text-sm text-gray-600">
+                            Página ${paginaActual} de ${totalPaginas}
+                        </span>
+                        <button
+                            type="button"
+                            onclick="establecerInformeDetallePagina(${paginaActual + 1})"
+                            ${paginaActual >= totalPaginas ? "disabled" : ""}
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+            `;
+            body.innerHTML = `${informeDetalleResumenHtml}${table}`;
+        }
+
+        function establecerInformeDetallePagina(pagina) {
+            const porPagina = Math.max(
+                10,
+                Math.min(100, Number(informeDetallePorPagina) || 25),
+            );
+            const totalPaginas = Math.max(
+                1,
+                Math.ceil((informeDetalleRows.length || 0) / porPagina),
+            );
+            const destino = Math.min(
+                totalPaginas,
+                Math.max(1, Number(pagina) || 1),
+            );
+            if (destino === informeDetallePagina) return;
+            informeDetallePagina = destino;
+            renderInformeDetalleTabla();
+        }
+
+        function establecerInformeDetallePorPagina(valor) {
+            informeDetallePorPagina = Number(valor) || 25;
+            informeDetallePagina = 1;
+            renderInformeDetalleTabla();
         }
 
         async function eliminarInforme(id) {
