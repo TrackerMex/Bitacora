@@ -7364,6 +7364,7 @@
                         Revisar pendientes
                     </button>
                     <button
+                        id="tramo-validacion-completar-btn"
                         type="button"
                         onclick="confirmarCompletarTramoValidado()"
                         class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700"
@@ -7371,6 +7372,138 @@
                         Completar tramo
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <div
+            id="viaje-confirmar-completar-modal"
+            class="modal hidden fixed inset-0 flex items-center justify-center z-50 p-4"
+        >
+            <div
+                class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+                <div class="border-b border-amber-200 bg-amber-50 px-6 py-5">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex items-start gap-3">
+                            <span
+                                class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-800"
+                                aria-hidden="true"
+                            >
+                                <i data-lucide="triangle-alert" class="app-icon h-5 w-5"></i>
+                            </span>
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wide text-amber-800">
+                                    Confirmación requerida
+                                </p>
+                                <h3
+                                    id="viaje-confirmar-completar-modal-title"
+                                    class="mt-1 text-xl font-bold text-gray-900"
+                                >
+                                    ¿Completar este viaje?
+                                </h3>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="cancelarConfirmacionCompletarViaje()"
+                            class="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                            aria-label="Cerrar confirmación"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                <div id="viaje-confirmar-completar-modal-body" class="p-6"></div>
+                <div
+                    class="border-t border-gray-200 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3"
+                >
+                    <button
+                        id="viaje-confirmar-completar-cancel-btn"
+                        type="button"
+                        onclick="cancelarConfirmacionCompletarViaje()"
+                        class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                    >
+                        Seguir revisando
+                    </button>
+                    <button
+                        id="viaje-confirmar-completar-btn"
+                        type="button"
+                        onclick="confirmarCompletarViaje()"
+                        class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+                    >
+                        Sí, completar viaje
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div
+            id="viaje-reabrir-modal"
+            class="modal hidden fixed inset-0 flex items-center justify-center z-50 p-4"
+        >
+            <div
+                class="bg-white rounded-xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
+            >
+                <div class="border-b border-blue-200 bg-blue-50 px-6 py-5">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex items-start gap-3">
+                            <span
+                                class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-800"
+                                aria-hidden="true"
+                            >
+                                <i data-lucide="rotate-ccw" class="app-icon h-5 w-5"></i>
+                            </span>
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wide text-blue-800">
+                                    Acción de administrador
+                                </p>
+                                <h3
+                                    id="viaje-reabrir-modal-title"
+                                    class="mt-1 text-xl font-bold text-gray-900"
+                                >
+                                    Reabrir viaje
+                                </h3>
+                                <p class="mt-1 text-sm text-blue-900">
+                                    Reactiva únicamente los tramos que requieren corrección.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="cancelarReaperturaViaje()"
+                            class="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                            aria-label="Cerrar reapertura"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                <form id="viaje-reabrir-form" onsubmit="confirmarReaperturaViaje(event)">
+                    <div id="viaje-reabrir-modal-body" class="p-6"></div>
+                    <div
+                        id="viaje-reabrir-error"
+                        class="hidden mx-6 mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800"
+                        role="alert"
+                    ></div>
+                    <div
+                        class="border-t border-gray-200 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3"
+                    >
+                        <button
+                            type="button"
+                            onclick="cancelarReaperturaViaje()"
+                            class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            id="viaje-reabrir-submit"
+                            type="submit"
+                            class="px-4 py-2 rounded-lg bg-blue-700 text-white font-semibold hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400"
+                        >
+                            Reabrir viaje
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -8358,6 +8491,7 @@
             updateClienteDisplay();
             populateEmergencyClientSelector();
             updateTabVisibility();
+            configureReaderViajesAutoRefresh();
             if (isAdminRole()) {
                 setTimeout(inicializarSolicitudesEdicionAdmin, 0);
             }
@@ -8373,6 +8507,10 @@
             userClientes = [];
             userTabs = [];
             activeClienteId = "";
+            stopReaderViajesAutoRefresh();
+            viajesLoadRequestId += 1;
+            viajesLoadInFlight = false;
+            viajesLastLoadedAt = 0;
             username = "";
             bitacoraAuthToken = "";
             bitacoraTokenExpiresAt = 0;
@@ -8402,6 +8540,12 @@
         let filteredDespachosData = [];
         let charts = {};
         let lastInformeData = [];
+        const READER_VIAJES_REFRESH_MS = 30000;
+        const READER_VIAJES_FOCUS_GRACE_MS = 5000;
+        let readerViajesRefreshTimer = null;
+        let viajesLoadInFlight = false;
+        let viajesLoadRequestId = 0;
+        let viajesLastLoadedAt = 0;
         let informeEjecutivoPagina = 1;
         let informeEjecutivoPorPagina = 15;
 
@@ -8411,6 +8555,8 @@
         let viajeDetalleLastFocus = null;
         let viajesPanelActiveTab = "resumen";
         let tramoValidacionCompletarPendiente = null;
+        let viajeConfirmacionCompletarPendiente = null;
+        let viajeReaperturaPendiente = null;
         let viajesPanelTramosOperacionAbiertos = {};
         let viajesViewDensity = "comoda";
         let viajesMonitorMode = true;
@@ -9450,6 +9596,18 @@
             if (!activeModalId) return;
             if (activeModalId === "confirm-save-modal") {
                 closeConfirmSaveModal(false);
+                return;
+            }
+            if (activeModalId === "viaje-confirmar-completar-modal") {
+                cancelarConfirmacionCompletarViaje();
+                return;
+            }
+            if (activeModalId === "viaje-reabrir-modal") {
+                cancelarReaperturaViaje();
+                return;
+            }
+            if (activeModalId === "tramo-validacion-completar-modal") {
+                cancelarValidacionCompletarTramo();
                 return;
             }
             closeModal(activeModalId);
@@ -12145,8 +12303,15 @@
             ).trim()}|${String(fechaProgramada ?? "").trim()}`;
         }
 
+        function parseDatabaseId(value) {
+            const raw = String(value ?? "").trim();
+            if (!/^\d+$/.test(raw)) return 0;
+            const id = Number(raw);
+            return Number.isSafeInteger(id) && id > 0 ? id : 0;
+        }
+
         function makeSeguimientoDespachoKey(despachoId) {
-            const id = parseInt(despachoId, 10);
+            const id = parseDatabaseId(despachoId);
             return id > 0 ? `despacho:${id}` : "";
         }
 
@@ -12270,8 +12435,8 @@
             const despachoIds = [
                 ...new Set(
                     (allDespachosData || [])
-                        .map((d) => parseInt(d?.despachoId, 10))
-                        .filter((id) => Number.isInteger(id) && id > 0),
+                        .map((d) => parseDatabaseId(d?.despachoId))
+                        .filter((id) => id > 0),
                 ),
             ];
             if (despachoIds.length) {
@@ -12331,8 +12496,10 @@
 
         async function saveSeguimientoToDb(d) {
             const payload = {
-                despachoId: d.despachoId || "",
+                despachoId: parseDatabaseId(d.despachoId) || "",
                 clienteId: d.clienteId || "",
+                unidadId: d.unidadId || "",
+                tramoNumero: parseInt(d.tramoNumero, 10) || 0,
                 folio: d.folio,
                 unidad: d.unidad,
                 fechaProgramada: d.fechaProgramada,
@@ -15852,14 +16019,63 @@
             } catch (outerErr) {}
         })();
 
-        async function loadViajesFromDb() {
+        function stopReaderViajesAutoRefresh() {
+            if (readerViajesRefreshTimer) {
+                clearInterval(readerViajesRefreshTimer);
+                readerViajesRefreshTimer = null;
+            }
+        }
+
+        function refreshReaderViajesIfNeeded(force = false) {
+            if (
+                String(userRole || "").toLowerCase() !== "lector" ||
+                !bitacoraAuthToken ||
+                document.visibilityState === "hidden"
+            ) {
+                return;
+            }
+
+            const elapsed = Date.now() - viajesLastLoadedAt;
+            const minimumAge = force
+                ? READER_VIAJES_FOCUS_GRACE_MS
+                : READER_VIAJES_REFRESH_MS;
+            if (viajesLoadInFlight || elapsed < minimumAge) return;
+
+            loadViajesFromDb({ silent: true });
+        }
+
+        function configureReaderViajesAutoRefresh() {
+            stopReaderViajesAutoRefresh();
+            if (String(userRole || "").toLowerCase() !== "lector") return;
+
+            readerViajesRefreshTimer = setInterval(
+                () => refreshReaderViajesIfNeeded(false),
+                READER_VIAJES_REFRESH_MS,
+            );
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                refreshReaderViajesIfNeeded(true);
+            }
+        });
+        window.addEventListener("focus", () => {
+            refreshReaderViajesIfNeeded(true);
+        });
+
+        async function loadViajesFromDb(options = {}) {
             if (!userRole || !bitacoraAuthToken) return;
+
+            const silent = options?.silent === true;
+            if (silent && viajesLoadInFlight) return;
+            const requestId = ++viajesLoadRequestId;
+            viajesLoadInFlight = true;
 
             const viajesContainer = document.getElementById("viajes-container");
             const esLector = String(userRole || "").toLowerCase() === "lector";
-            if (esLector && viajesContainer) {
+            if (!silent && esLector && viajesContainer) {
                 viajesContainer.innerHTML = _renderLectorBoardLoading();
-            } else if (viajesContainer) {
+            } else if (!silent && viajesContainer) {
                 viajesContainer.innerHTML = _renderViajesEmptyState({
                     title: "Cargando viajes",
                     copy: "Consultando los despachos del rango seleccionado.",
@@ -15872,13 +16088,16 @@
                 : 0;
             const clienteIds = activeId ? [activeId] : getUserClienteIds();
             if (!clienteIds.length) {
-                if (viajesContainer) {
+                if (!silent && viajesContainer) {
                     viajesContainer.innerHTML = _renderViajesEmptyState({
                         title: "Sin clientes asignados",
                         copy: "Este usuario no tiene clientes disponibles para consultar viajes.",
                         icon: "alert",
                         tone: "warning",
                     });
+                }
+                if (requestId === viajesLoadRequestId) {
+                    viajesLoadInFlight = false;
                 }
                 return;
             }
@@ -15902,23 +16121,33 @@
                 fecha_hasta: fechaHasta,
                 con_tramos: "1",
                 limit: "200",
+                _: Date.now().toString(),
             });
             if (estadoF) params.set("estado", estadoF);
 
             try {
                 const res = await authFetch(
                     phpApiPath(`despachos/obtener_viajes.php?${params}`),
-                    { headers: getAuthHeaders({ Accept: "application/json" }) },
+                    {
+                        cache: "no-store",
+                        headers: getAuthHeaders({ Accept: "application/json" }),
+                    },
                 );
                 const json = await res.json();
                 if (!json.success)
                     throw new Error(json.message || "Error cargando viajes");
+                if (requestId !== viajesLoadRequestId) return;
                 allViajesData = json.data || [];
+                viajesLastLoadedAt = Date.now();
                 renderViajes();
                 buildDespachosDesdeViajes(allViajesData);
             } catch (e) {
                 console.error("No se pudieron cargar los viajes:", e);
-                if (viajesContainer) {
+                if (
+                    !silent &&
+                    requestId === viajesLoadRequestId &&
+                    viajesContainer
+                ) {
                     viajesContainer.innerHTML = esLector
                         ? _renderLectorBoardError(e?.message)
                         : _renderViajesEmptyState({
@@ -15928,6 +16157,10 @@
                               tone: "warning",
                               actionHtml: `<button type="button" class="viajes-card-action" onclick="loadViajesFromDb()">Reintentar</button>`,
                           });
+                }
+            } finally {
+                if (requestId === viajesLoadRequestId) {
+                    viajesLoadInFlight = false;
                 }
             }
         }
@@ -15975,7 +16208,7 @@
 
                     rows.push({
                         // Identificadores
-                        despachoId: `${v.id}-${t.tramo_numero}`,
+                        despachoId: t.despacho_id || "",
                         viajeId: v.viaje_id || v.id || "",
                         tramoId: t.id || "",
                         clienteId: v.cliente_id || "",
@@ -19853,6 +20086,7 @@
                                 <summary aria-label="Mas acciones">${appIcon("ellipsis", "app-icon h-4 w-4")}</summary>
                                 <div class="viajes-actions-menu-list">
                                     <button type="button" class="viajes-card-action" onclick="${actionClick("editar")}">${_viajesIcon("edit")} Editar</button>
+                                    ${isAdminRole() && estadoOperativo === "completado" ? `<button type="button" class="viajes-card-action" onclick="abrirReabrirViajeModal(${v.viaje_id}, event)" style="--action-color:oklch(0.43 0.16 255);--action-border:oklch(0.78 0.1 255);--action-bg:oklch(0.97 0.025 255);--action-hover:oklch(0.94 0.045 255)">${appIcon("rotate-ccw", "app-icon h-4 w-4")} Reabrir viaje</button>` : ""}
                                 </div>
                             </details>
                         </div>
@@ -19890,7 +20124,8 @@
                 : `
                     ${estadoOperativo !== "en_curso" && estadoOperativo !== "completado" && estadoOperativo !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'en_curso',this)">En curso</button>` : ""}
                     ${estadoOperativo !== "completado" && estadoOperativo !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'completado',this)">Completar</button>` : ""}
-                    ${estadoOperativo !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)" style="--action-color:oklch(0.42 0.17 27);--action-border:oklch(0.84 0.12 27);--action-bg:oklch(0.955 0.045 27)">Cancelar</button>` : ""}`;
+                    ${estadoOperativo !== "cancelado" ? `<button type="button" class="viajes-card-action" onclick="cambiarEstadoViaje(${v.viaje_id},'cancelado',this)" style="--action-color:oklch(0.42 0.17 27);--action-border:oklch(0.84 0.12 27);--action-bg:oklch(0.955 0.045 27)">Cancelar</button>` : ""}
+                    ${isAdminRole() && estadoOperativo === "completado" ? `<button type="button" class="viajes-card-action" onclick="abrirReabrirViajeModal(${v.viaje_id}, event)" style="--action-color:oklch(0.43 0.16 255);--action-border:oklch(0.78 0.1 255);--action-bg:oklch(0.97 0.025 255);--action-hover:oklch(0.94 0.045 255)">${appIcon("rotate-ccw", "app-icon h-4 w-4")} Reabrir viaje</button>` : ""}`;
             const activeTab = ["resumen", "tramos", "incidencias"].includes(
                 viajesPanelActiveTab,
             )
@@ -20004,6 +20239,7 @@
                                 <button type="button" class="viajes-card-action" onclick="setViajePanelTab('tramos')">${_viajesIcon("route")} Ver tramos</button>
                                 <button type="button" class="viajes-card-action" onclick="enfocarViajePanelSeccion('gps')">${_viajesIcon("gps")} Validar GPS</button>
                                 <button type="button" class="viajes-card-action" onclick="enfocarViajePanelSeccion('incidencia')">${_viajesIcon("incident")} Registrar incidencia</button>
+                                ${accionesEstado}
                             </div>
                         </section>
                     </div>
@@ -21262,22 +21498,321 @@
             return pendientes;
         }
 
-        function validarCompletarViaje(viajeId) {
+        function abrirConfirmacionCompletarViajeModal(viajeId, btn = null) {
             const viaje = allViajesData.find(
                 (v) => String(v.viaje_id) === String(viajeId),
             );
-            if (!viaje) return false;
+            if (!viaje) return;
 
             const pendientes = _getViajeCompletionPendientes(viaje);
-            if (!pendientes.length) return true;
-
-            const detalle = pendientes
-                .map((p) => `• ${p.label}: ${p.detail}`)
-                .join("\n");
-            alert(
-                `No se puede completar el viaje todavía.\n\nFaltan datos por validar:\n${detalle}`,
+            const listoParaCompletar = pendientes.length === 0;
+            viajeConfirmacionCompletarPendiente = {
+                viajeId,
+                btn,
+                listoParaCompletar,
+            };
+            const tramos = Array.isArray(viaje.tramos) ? viaje.tramos : [];
+            const activos = tramos.filter((tramo) =>
+                ["pendiente", "en_curso"].includes(
+                    String(tramo.estado || "").toLowerCase(),
+                ),
             );
-            return false;
+            const bodyEl = document.getElementById(
+                "viaje-confirmar-completar-modal-body",
+            );
+            const titleEl = document.getElementById(
+                "viaje-confirmar-completar-modal-title",
+            );
+            const confirmBtn = document.getElementById(
+                "viaje-confirmar-completar-btn",
+            );
+            const cancelBtn = document.getElementById(
+                "viaje-confirmar-completar-cancel-btn",
+            );
+            if (titleEl) {
+                titleEl.textContent = listoParaCompletar
+                    ? "¿Completar este viaje?"
+                    : "El viaje aún tiene pendientes";
+            }
+            if (confirmBtn) {
+                confirmBtn.disabled = !listoParaCompletar;
+                confirmBtn.textContent = listoParaCompletar
+                    ? "Sí, completar viaje"
+                    : "Completar no disponible";
+                confirmBtn.classList.toggle(
+                    "disabled:cursor-not-allowed",
+                    !listoParaCompletar,
+                );
+                confirmBtn.classList.toggle(
+                    "disabled:bg-gray-400",
+                    !listoParaCompletar,
+                );
+            }
+            if (cancelBtn) {
+                cancelBtn.textContent = listoParaCompletar
+                    ? "Seguir revisando"
+                    : "Cerrar y revisar pendientes";
+            }
+            if (bodyEl) {
+                const toneClass = {
+                    danger: "border-red-200 bg-red-50 text-red-800",
+                    warning: "border-amber-200 bg-amber-50 text-amber-800",
+                    info: "border-blue-200 bg-blue-50 text-blue-800",
+                };
+                const pendientesHtml = pendientes
+                    .map(
+                        (pendiente) => `
+                            <li class="rounded-lg border p-3 ${toneClass[pendiente.tone] || toneClass.warning}">
+                                <div class="text-sm font-bold">${escapeHtml(pendiente.label)}</div>
+                                <div class="mt-1 text-sm">${escapeHtml(pendiente.detail)}</div>
+                            </li>`,
+                    )
+                    .join("");
+                bodyEl.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Viaje</div>
+                            <div class="mt-1 text-base font-bold text-gray-900">${escapeHtml(viaje.folio || `TR-${viajeId}`)}</div>
+                            <div class="mt-1 text-sm text-gray-600">
+                                Unidad ${escapeHtml(viaje.unidad || "-")} · ${tramos.length} tramo${tramos.length === 1 ? "" : "s"}
+                            </div>
+                        </div>
+                        <div class="rounded-lg border ${listoParaCompletar ? "border-amber-200 bg-amber-50 text-amber-900" : "border-red-200 bg-red-50 text-red-900"} p-4">
+                            <div class="flex items-start gap-2">
+                                ${appIcon("triangle-alert", "app-icon mt-0.5 h-5 w-5 flex-shrink-0")}
+                                <div>
+                                    <div class="text-sm font-bold">${listoParaCompletar ? "Esta acción cierra la operación del viaje" : "No se puede completar el viaje todavía"}</div>
+                                    <p class="mt-1 text-sm">
+                                        ${listoParaCompletar ? "Después del cierre, los tramos quedarán en modo consulta. Solo un administrador podrá reabrirlos y deberá registrar el motivo." : "Corrige o valida los siguientes puntos antes de completar el viaje."}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        ${pendientesHtml ? `<ul class="space-y-2" aria-label="Pendientes para completar el viaje">${pendientesHtml}</ul>` : ""}
+                        ${listoParaCompletar ? `<p class="text-sm text-gray-600">Todos los tramos están listos para cerrar.</p>` : activos.length ? `<p class="text-sm font-semibold text-red-700">Quedan ${activos.length} tramo${activos.length === 1 ? " abierto" : "s abiertos"}.</p>` : ""}
+                    </div>`;
+            }
+            openModal("viaje-confirmar-completar-modal");
+            scheduleAppIconRender();
+        }
+
+        function cancelarConfirmacionCompletarViaje() {
+            viajeConfirmacionCompletarPendiente = null;
+            closeModal("viaje-confirmar-completar-modal");
+        }
+
+        function confirmarCompletarViaje() {
+            const pending = viajeConfirmacionCompletarPendiente;
+            if (!pending?.listoParaCompletar) return;
+            viajeConfirmacionCompletarPendiente = null;
+            closeModal("viaje-confirmar-completar-modal");
+            if (!pending?.viajeId) return;
+            cambiarEstadoViaje(
+                pending.viajeId,
+                "completado",
+                pending.btn || null,
+                { confirmed: true },
+            );
+        }
+
+        function mostrarErrorReaperturaViaje(message = "") {
+            const errorEl = document.getElementById("viaje-reabrir-error");
+            if (!errorEl) return;
+            errorEl.textContent = message;
+            errorEl.classList.toggle("hidden", !message);
+        }
+
+        function abrirReabrirViajeModal(viajeId, event = null) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            if (!isAdminRole()) return denyReadOnlyViajes();
+
+            const viaje = allViajesData.find(
+                (v) => String(v.viaje_id) === String(viajeId),
+            );
+            if (!viaje || String(viaje.estado) !== "completado") {
+                alert("Solo se pueden reabrir viajes completados.");
+                return;
+            }
+
+            const tramosCompletados = (viaje.tramos || []).filter(
+                (tramo) => String(tramo.estado) === "completado",
+            );
+            if (!tramosCompletados.length) {
+                alert("El viaje no tiene tramos completados para reabrir.");
+                return;
+            }
+
+            viajeReaperturaPendiente = { viajeId };
+            mostrarErrorReaperturaViaje("");
+            const titleEl = document.getElementById(
+                "viaje-reabrir-modal-title",
+            );
+            const bodyEl = document.getElementById("viaje-reabrir-modal-body");
+            if (titleEl) {
+                titleEl.textContent = `Reabrir viaje ${viaje.folio || `TR-${viajeId}`}`;
+            }
+            if (bodyEl) {
+                const ultimoTramoId = tramosCompletados[
+                    tramosCompletados.length - 1
+                ]?.id;
+                bodyEl.innerHTML = `
+                    <div class="space-y-5">
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <div class="text-sm font-bold text-gray-900">${escapeHtml(viaje.unidad || "Unidad sin asignar")}</div>
+                            <div class="mt-1 text-sm text-gray-600">Cliente ${escapeHtml(viaje.cliente || "-")} · ${tramosCompletados.length} tramo${tramosCompletados.length === 1 ? "" : "s"} cerrado${tramosCompletados.length === 1 ? "" : "s"}</div>
+                        </div>
+                        <fieldset>
+                            <legend class="text-sm font-bold text-gray-900">Tramos que volverán a estar en curso</legend>
+                            <p class="mt-1 text-sm text-gray-600">Selecciona solo los que todavía requieren seguimiento o corrección.</p>
+                            <div class="mt-3 space-y-2">
+                                ${tramosCompletados
+                                    .map(
+                                        (tramo) => `
+                                        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
+                                            <input
+                                                type="checkbox"
+                                                name="tramo_ids"
+                                                value="${Number(tramo.id)}"
+                                                ${String(tramo.id) === String(ultimoTramoId) ? "checked" : ""}
+                                                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-700 focus:ring-blue-600"
+                                            />
+                                            <span class="min-w-0">
+                                                <span class="block text-sm font-bold text-gray-900">Tramo ${escapeHtml(tramo.tramo_numero || "-")}</span>
+                                                <span class="mt-0.5 block text-sm text-gray-600">${escapeHtml(tramo.origen || "Origen")} → ${escapeHtml(tramo.destino || "Destino")}</span>
+                                            </span>
+                                        </label>`,
+                                    )
+                                    .join("")}
+                            </div>
+                        </fieldset>
+                        <div>
+                            <label for="viaje-reabrir-motivo" class="block text-sm font-bold text-gray-900">
+                                Motivo de la reapertura <span class="text-red-700">*</span>
+                            </label>
+                            <textarea
+                                id="viaje-reabrir-motivo"
+                                name="motivo"
+                                rows="3"
+                                minlength="10"
+                                maxlength="500"
+                                required
+                                placeholder="Ej. El cliente solicita continuar el seguimiento del tramo 2."
+                                class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            ></textarea>
+                            <p class="mt-1 text-xs text-gray-500">Mínimo 10 caracteres. Se guardará en el historial de auditoría.</p>
+                        </div>
+                    </div>`;
+            }
+            openModal("viaje-reabrir-modal");
+            scheduleAppIconRender();
+            setTimeout(
+                () => document.getElementById("viaje-reabrir-motivo")?.focus(),
+                80,
+            );
+        }
+
+        function cancelarReaperturaViaje() {
+            viajeReaperturaPendiente = null;
+            mostrarErrorReaperturaViaje("");
+            closeModal("viaje-reabrir-modal");
+        }
+
+        async function confirmarReaperturaViaje(event) {
+            event?.preventDefault?.();
+            const pending = viajeReaperturaPendiente;
+            if (!pending?.viajeId || !isAdminRole()) return;
+
+            const modal = document.getElementById("viaje-reabrir-modal");
+            const motivo = String(
+                document.getElementById("viaje-reabrir-motivo")?.value || "",
+            ).trim();
+            const tramoIds = Array.from(
+                modal?.querySelectorAll('input[name="tramo_ids"]:checked') || [],
+            )
+                .map((input) => parseInt(input.value, 10))
+                .filter((id) => Number.isInteger(id) && id > 0);
+
+            if (!tramoIds.length) {
+                mostrarErrorReaperturaViaje(
+                    "Selecciona al menos un tramo para reabrir.",
+                );
+                return;
+            }
+            if (motivo.length < 10) {
+                mostrarErrorReaperturaViaje(
+                    "Describe el motivo con al menos 10 caracteres.",
+                );
+                document.getElementById("viaje-reabrir-motivo")?.focus();
+                return;
+            }
+
+            mostrarErrorReaperturaViaje("");
+            const submitBtn = document.getElementById("viaje-reabrir-submit");
+            const originalHtml = submitBtn?.innerHTML || "Reabrir viaje";
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `${appIcon("loader-circle", "app-icon h-4 w-4 animate-spin")} Reabriendo...`;
+                scheduleAppIconRender();
+            }
+
+            try {
+                const res = await authFetch(
+                    phpApiPath("despachos/reabrir_viaje.php"),
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({
+                            viaje_id: pending.viajeId,
+                            tramo_ids: tramoIds,
+                            motivo,
+                        }),
+                    },
+                );
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || !json.ok) {
+                    throw new Error(json.error || `Error ${res.status}`);
+                }
+
+                const viaje = allViajesData.find(
+                    (item) =>
+                        String(item.viaje_id) === String(pending.viajeId),
+                );
+                if (viaje) {
+                    viaje.estado = "en_curso";
+                    viaje.tramos = (viaje.tramos || []).map((tramo) =>
+                        tramoIds.includes(Number(tramo.id))
+                            ? { ...tramo, estado: "en_curso" }
+                            : tramo,
+                    );
+                    viaje.tramos_completados = viaje.tramos.filter(
+                        (tramo) => tramo.estado === "completado",
+                    ).length;
+                }
+
+                viajeReaperturaPendiente = null;
+                closeModal("viaje-reabrir-modal");
+                renderViajes();
+                if (
+                    String(viajeDetalleActivoId) === String(pending.viajeId)
+                ) {
+                    abrirViajePanel(pending.viajeId, {
+                        action: "tramos",
+                        focus: false,
+                    });
+                }
+            } catch (error) {
+                mostrarErrorReaperturaViaje(
+                    error?.message || "No se pudo reabrir el viaje.",
+                );
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
+            }
         }
 
         function abrirTramoValidacionCompletarModal(viajeId, tramoId) {
@@ -21286,6 +21821,14 @@
 
             tramoValidacionCompletarPendiente = { viajeId, tramoId };
             const pendientes = _getTramoCompletionPendientes(tramo);
+            const tramosAbiertos = (viaje.tramos || []).filter((item) =>
+                !["completado", "cancelado"].includes(
+                    String(item.estado || "").toLowerCase(),
+                ),
+            );
+            const completaraViaje =
+                tramosAbiertos.length === 1 &&
+                String(tramosAbiertos[0]?.id) === String(tramoId);
             const titleEl = document.getElementById(
                 "tramo-validacion-completar-modal-title",
             );
@@ -21293,7 +21836,17 @@
                 "tramo-validacion-completar-modal-body",
             );
             if (titleEl) {
-                titleEl.textContent = `Validar tramo ${tramo.tramo_numero || ""}`;
+                titleEl.textContent = completaraViaje
+                    ? `Completar viaje ${viaje.folio || ""}`
+                    : `Validar tramo ${tramo.tramo_numero || ""}`;
+            }
+            const confirmBtn = document.getElementById(
+                "tramo-validacion-completar-btn",
+            );
+            if (confirmBtn) {
+                confirmBtn.textContent = completaraViaje
+                    ? "Sí, completar viaje"
+                    : "Completar tramo";
             }
             if (bodyEl) {
                 const toneClass = {
@@ -21330,10 +21883,20 @@
                         <p class="text-sm text-gray-600">
                             Ya se capturo el cierre operativo. Revisa estos puntos antes de marcar el tramo como completado.
                         </p>
+                        ${completaraViaje ? `<div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                            <div class="flex items-start gap-2">
+                                ${appIcon("triangle-alert", "app-icon mt-0.5 h-5 w-5 flex-shrink-0")}
+                                <div>
+                                    <div class="text-sm font-bold">Este es el último tramo abierto</div>
+                                    <p class="mt-1 text-sm">Al confirmarlo, el viaje completo quedará cerrado y en modo consulta. ¿Estás seguro de completar el viaje?</p>
+                                </div>
+                            </div>
+                        </div>` : ""}
                         <ul class="space-y-2">${pendientesHtml}</ul>
                     </div>`;
             }
             openModal("tramo-validacion-completar-modal");
+            scheduleAppIconRender();
         }
 
         function cancelarValidacionCompletarTramo() {
@@ -21910,14 +22473,17 @@
             }
         }
 
-        async function cambiarEstadoViaje(viajeId, nuevoEstado, btn) {
+        async function cambiarEstadoViaje(
+            viajeId,
+            nuevoEstado,
+            btn,
+            options = {},
+        ) {
             if (!canEditViajes()) return denyReadOnlyViajes();
 
             if (!viajeId || !nuevoEstado) return;
-            if (
-                nuevoEstado === "completado" &&
-                !validarCompletarViaje(viajeId)
-            ) {
+            if (nuevoEstado === "completado" && !options.confirmed) {
+                abrirConfirmacionCompletarViajeModal(viajeId, btn);
                 return;
             }
             let tramoCompletadoModalId = null;
@@ -21925,8 +22491,6 @@
             const confirmaciones = {
                 cancelado:
                     "¿Cancelar el viaje? También se cancelarán los tramos pendientes.",
-                completado:
-                    "¿Marcar viaje como Completado? También se completarán los tramos activos.",
             };
             const msg = confirmaciones[nuevoEstado];
             if (msg && !confirm(msg)) return;

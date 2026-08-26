@@ -1,0 +1,2 @@
+ALTER TABLE viaje_tramos
+  MODIFY gps_estado TEXT NULL DEFAULT NULL;

@@ -53,19 +53,34 @@ function to_mysql_datetime_or_null($value)
     }
 }
 
-function resolve_despacho($conn, $despachoId, $folio, $unidad, $fechaProgramada, $tramoNumero = 0)
+function resolve_despacho(
+    $conn,
+    $despachoId,
+    $clienteId,
+    $unidadId,
+    $folio,
+    $unidad,
+    $fechaProgramada,
+    $tramoNumero = 0
+)
 {
     $despachoId = intval($despachoId);
+    $clienteId = intval($clienteId);
+    $unidadId = intval($unidadId);
     $tramoNumero = intval($tramoNumero);
 
     if ($despachoId > 0) {
         $stmt = $conn->prepare(
-            "SELECT id, cliente_id FROM despachos WHERE id = ? LIMIT 1",
+            "SELECT id, cliente_id
+               FROM despachos
+              WHERE id = ?
+                AND (? = 0 OR cliente_id = ?)
+              LIMIT 1",
         );
         if (!$stmt) {
             throw new Exception("Error preparando despacho: " . $conn->error);
         }
-        $stmt->bind_param("i", $despachoId);
+        $stmt->bind_param("iii", $despachoId, $clienteId, $clienteId);
         if (!$stmt->execute()) {
             throw new Exception("Error consultando despacho: " . $stmt->error);
         }
@@ -85,31 +100,54 @@ function resolve_despacho($conn, $despachoId, $folio, $unidad, $fechaProgramada,
             "SELECT d.id, d.cliente_id
                FROM despachos d
               INNER JOIN unidades u ON u.id = d.unidad_id
-              WHERE d.folio = ?
-                AND u.economico = ?
-                AND d.fecha_programada = ?
-                AND d.tramo_numero = ?
-              LIMIT 1",
+               WHERE d.folio = ?
+                 AND u.economico = ?
+                 AND d.fecha_programada = ?
+                 AND d.tramo_numero = ?
+                 AND (? = 0 OR d.cliente_id = ?)
+                 AND (? = 0 OR d.unidad_id = ?)
+               LIMIT 1",
         );
         if (!$stmt) {
             throw new Exception("Error preparando búsqueda de despacho: " . $conn->error);
         }
-        $stmt->bind_param("sssi", $folio, $unidad, $fechaProgramada, $tramoNumero);
+        $stmt->bind_param(
+            "sssiiiii",
+            $folio,
+            $unidad,
+            $fechaProgramada,
+            $tramoNumero,
+            $clienteId,
+            $clienteId,
+            $unidadId,
+            $unidadId,
+        );
     } else {
         $stmt = $conn->prepare(
             "SELECT d.id, d.cliente_id
                FROM despachos d
               INNER JOIN unidades u ON u.id = d.unidad_id
-              WHERE d.folio = ?
-                AND u.economico = ?
-                AND d.fecha_programada = ?
-              ORDER BY d.tramo_numero ASC, d.id ASC
+               WHERE d.folio = ?
+                 AND u.economico = ?
+                 AND d.fecha_programada = ?
+                 AND (? = 0 OR d.cliente_id = ?)
+                 AND (? = 0 OR d.unidad_id = ?)
+               ORDER BY d.tramo_numero ASC, d.id ASC
               LIMIT 1",
         );
         if (!$stmt) {
             throw new Exception("Error preparando búsqueda de despacho: " . $conn->error);
         }
-        $stmt->bind_param("sss", $folio, $unidad, $fechaProgramada);
+        $stmt->bind_param(
+            "sssiiii",
+            $folio,
+            $unidad,
+            $fechaProgramada,
+            $clienteId,
+            $clienteId,
+            $unidadId,
+            $unidadId,
+        );
     }
     if (!$stmt->execute()) {
         throw new Exception("Error buscando despacho: " . $stmt->error);
@@ -173,7 +211,17 @@ try {
         ? (string) $data["fechaProgramada"]
         : "";
     $fechaProgramada = to_mysql_date($fechaProgramadaRaw);
-    $despachoInputId = $data["despachoId"] ?? ($data["despacho_id"] ?? 0);
+    $despachoInputRaw = $data["despachoId"] ?? ($data["despacho_id"] ?? 0);
+    $despachoInputId = filter_var(
+        $despachoInputRaw,
+        FILTER_VALIDATE_INT,
+        ["options" => ["min_range" => 1]],
+    );
+    if ($despachoInputId === false) {
+        $despachoInputId = 0;
+    }
+    $clienteInputId = intval($data["clienteId"] ?? ($data["cliente_id"] ?? 0));
+    $unidadInputId = intval($data["unidadId"] ?? ($data["unidad_id"] ?? 0));
     $tramoNumero = isset($data["tramoNumero"])
         ? intval($data["tramoNumero"])
         : 0;
@@ -228,6 +276,8 @@ try {
     $despacho = resolve_despacho(
         $conn,
         $despachoInputId,
+        $clienteInputId,
+        $unidadInputId,
         $folio,
         $unidad,
         $fechaProgramada,

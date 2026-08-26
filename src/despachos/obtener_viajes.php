@@ -9,6 +9,9 @@ header("Content-Type: application/json; charset=utf-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     http_response_code(200);
@@ -288,6 +291,7 @@ try {
         $sql_t = "
             SELECT
                 vt.id, vt.viaje_id, vt.tramo_numero,
+                d_match.id AS despacho_id,
                 vt.origen, vt.lugar_carga, vt.destino, vt.ruta,
                 vt.instrucciones,
                 vt.operador_monitoreo,
@@ -299,6 +303,16 @@ try {
                 $select_regreso_origen
                 vt.estado, vt.created_at, vt.updated_at
             FROM viaje_tramos vt
+            INNER JOIN viajes v_match
+              ON v_match.id = vt.viaje_id
+            LEFT JOIN despachos d_match
+              ON d_match.cliente_id = v_match.cliente_id
+             AND d_match.unidad_id = v_match.unidad_id
+             AND d_match.folio = v_match.folio
+             AND d_match.tramo_numero = vt.tramo_numero
+             AND d_match.fecha_programada = DATE(
+               COALESCE(vt.salida_patio, v_match.fecha_inicio)
+             )
             WHERE vt.viaje_id IN ($ph_v)
               AND vt.estado <> 'cancelado'
               AND vt.eliminado_at IS NULL
@@ -335,6 +349,9 @@ try {
                 "id" => (int) $t["id"],
                 "viaje_id" => $vid,
                 "tramo_numero" => (int) $t["tramo_numero"],
+                "despacho_id" => $t["despacho_id"] !== null
+                    ? (int) $t["despacho_id"]
+                    : null,
                 "origen" => (string) $t["origen"],
                 "lugar_carga" => (string) $t["lugar_carga"],
                 "destino" => (string) $t["destino"],
