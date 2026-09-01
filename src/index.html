@@ -2932,7 +2932,7 @@
             }
             .viajes-unit-badges {
                 display: grid;
-                grid-template-columns: max-content max-content;
+                grid-template-columns: repeat(3, max-content);
                 align-items: center;
                 gap: 0.4rem;
                 justify-self: start;
@@ -2944,6 +2944,10 @@
             }
             .viajes-unit-badge-slot .viajes-badge {
                 white-space: nowrap;
+            }
+            .viajes-unit-badge-placeholder {
+                visibility: hidden;
+                animation: none;
             }
             .tramo-gps-card {
                 margin-top: 0.75rem;
@@ -5372,8 +5376,11 @@
                 .viajes-unit-mainline {
                     grid-template-columns: minmax(0, 1fr);
                 }
+                .viajes-unit-plates:empty {
+                    display: none;
+                }
                 .viajes-unit-badges {
-                    grid-template-columns: max-content max-content;
+                    grid-template-columns: repeat(2, max-content);
                     justify-content: start;
                 }
                 .lector-status-section-head {
@@ -18480,6 +18487,177 @@
             );
         }
 
+        function _estatusRapidoDesdeValor(value) {
+            const estado = normalizeMatchText(value).replace(/_/g, " ");
+            if (!estado) return null;
+            if (estado.includes("cancelad")) return "cancelado";
+            if (
+                estado.includes("pension") ||
+                estado.includes("estacionamiento")
+            ) {
+                return "pension_estacionamiento";
+            }
+            if (estado.includes("taller")) return "taller";
+            if (estado.includes("terminad") || estado.includes("completad")) {
+                return "terminado";
+            }
+            if (estado.includes("descarg")) return "descargando";
+            if (estado.includes("cargand") || estado === "carga") {
+                return "cargando";
+            }
+            if (estado.includes("en ruta") || estado.includes("en curso")) {
+                return "en_ruta";
+            }
+            if (estado.includes("programad") || estado.includes("planificad")) {
+                return "programada";
+            }
+            return null;
+        }
+
+        function _viajeEstaEnPensionEstacionamiento(v) {
+            const texto = normalizeMatchText(
+                [
+                    v?.estatus_actual,
+                    v?.estatus_viaje,
+                    v?.estado_operativo,
+                    v?.notas,
+                ]
+                    .filter(Boolean)
+                    .join(" "),
+            );
+            return (
+                texto.includes("pension") ||
+                texto.includes("estacionamiento")
+            );
+        }
+
+        function _viajeEstaEnTaller(v) {
+            const textoExplicito = [
+                v?.estatus_actual,
+                v?.estatus_viaje,
+                v?.estado_operativo,
+                v?.notas,
+            ]
+                .filter(Boolean)
+                .map(normalizeMatchText)
+                .join(" ");
+            if (textoExplicito.includes("taller")) return true;
+
+            const tramos = Array.isArray(v?.tramos) ? v.tramos : [];
+            const incidenciasMecanicas = tramos
+                .flatMap((tramo) =>
+                    (Array.isArray(tramo?.incidencias)
+                        ? tramo.incidencias
+                        : []
+                    ).map((incidencia) => ({ incidencia, tramo })),
+                )
+                .filter(({ incidencia }) => {
+                    const texto = normalizeMatchText(
+                        `${incidencia?.tipo || ""} ${incidencia?.notas || ""}`,
+                    );
+                    return (
+                        texto.includes("falla mecanica") ||
+                        texto.includes("taller")
+                    );
+                });
+            if (!incidenciasMecanicas.length) return false;
+
+            const fechaMs = (value) => {
+                const fecha = value ? dayjs(value) : null;
+                return fecha?.isValid() ? fecha.valueOf() : 0;
+            };
+            const ultimaIncidencia = Math.max(
+                ...incidenciasMecanicas.map(({ incidencia }) =>
+                    fechaMs(incidencia?.fecha || incidencia?.created_at),
+                ),
+                0,
+            );
+            if (!ultimaIncidencia) return true;
+
+            const ultimoAvance = Math.max(
+                ...tramos.flatMap((tramo) =>
+                    [
+                        tramo?.salida_patio_real,
+                        tramo?.cita_carga_real,
+                        tramo?.salida_carga_real,
+                        tramo?.descarga_real,
+                        tramo?.vacio_real,
+                        tramo?.regreso_origen_real,
+                    ].map(fechaMs),
+                ),
+                0,
+            );
+            return ultimoAvance <= ultimaIncidencia;
+        }
+
+        function _viajeEstatusRapido(v) {
+            const estadoBase = String(v?.estado || "planificado").toLowerCase();
+            const tramos = Array.isArray(v?.tramos) ? v.tramos : [];
+            const todosCompletados =
+                tramos.length > 0 &&
+                tramos.every((tramo) => tramo?.estado === "completado");
+
+            if (estadoBase === "cancelado") return "cancelado";
+            if (estadoBase === "completado" || todosCompletados) {
+                return "terminado";
+            }
+
+            const estadoExplicito = [
+                v?.estatus_actual,
+                v?.estatus_viaje,
+                v?.estado_operativo,
+            ]
+                .map(_estatusRapidoDesdeValor)
+                .find(Boolean);
+            if (estadoExplicito) return estadoExplicito;
+            if (_viajeEstaEnPensionEstacionamiento(v)) {
+                return "pension_estacionamiento";
+            }
+            if (_viajeEstaEnTaller(v)) return "taller";
+
+            const tramoActual =
+                tramos.find((tramo) => tramo?.estado === "en_curso") ||
+                tramos.find((tramo) => tramo?.estado === "pendiente") ||
+                tramos[tramos.length - 1] ||
+                null;
+            if (!tramoActual) {
+                return estadoBase === "en_curso" ? "en_ruta" : "programada";
+            }
+            if (tramoActual.estado === "cancelado") return "cancelado";
+            if (
+                tramoActual.vacio_real ||
+                tramoActual.regreso_origen_real
+            ) {
+                return "terminado";
+            }
+            if (tramoActual.descarga_real) return "descargando";
+            if (
+                tramoActual.cita_carga_real &&
+                !tramoActual.salida_carga_real
+            ) {
+                return "cargando";
+            }
+            if (
+                tramoActual.salida_patio_real ||
+                tramoActual.salida_carga_real ||
+                tramoActual.estado === "en_curso" ||
+                estadoBase === "en_curso"
+            ) {
+                return "en_ruta";
+            }
+            return "programada";
+        }
+
+        function _unidadEstatusRapido(viajes) {
+            const ordenados = [...(Array.isArray(viajes) ? viajes : [])].sort(
+                (a, b) => _fechaOrdenViaje(b) - _fechaOrdenViaje(a),
+            );
+            const viajeActual =
+                ordenados.find((viaje) => _viajeEstaActivo(viaje)) ||
+                ordenados[0];
+            return viajeActual ? _viajeEstatusRapido(viajeActual) : "programada";
+        }
+
         function _textoBusquedaViaje(v) {
             const partes = [
                 v.folio,
@@ -18748,6 +18926,7 @@
                                 (t) => _calcRetrasoTramo(t) !== null,
                             ),
                     ).length;
+                    const estatusRapido = _unidadEstatusRapido(u.viajes);
 
                     const badgeActivos = activos
                         ? _renderBadge(
@@ -18756,16 +18935,15 @@
                               UI_BADGE_BASE,
                           )
                         : "";
-                    const badgeRetraso = conRetraso
-                        ? _renderBadge(
-                              VIAJE_UI_TOKENS.badge.retrasoActivo,
-                              `${appIcon("alert-triangle", "app-icon h-3.5 w-3.5")} con retraso`,
-                          )
-                        : "";
+                    const badgeRetraso = _renderBadge(
+                        VIAJE_UI_TOKENS.badge.retrasoActivo,
+                        `${appIcon("alert-triangle", "app-icon h-3.5 w-3.5")} con retraso`,
+                        conRetraso ? "" : "viajes-unit-badge-placeholder",
+                    );
+                    const badgeEstatus =
+                        _renderEstatusRapidoBadge(estatusRapido);
 
-                    const placasHtml = u.placas
-                        ? `<span class="viajes-unit-plates">${escapeHtml(u.placas)}</span>`
-                        : "";
+                    const placasHtml = `<span class="viajes-unit-plates"${u.placas ? "" : ' aria-hidden="true"'}>${u.placas ? escapeHtml(u.placas) : ""}</span>`;
 
                     return `
                             <div class="viajes-unit-shell">
@@ -18776,7 +18954,7 @@
                                     <div class="viajes-unit-mainline">
                                         <span class="viajes-unit-title">${appIcon("truck", "app-icon h-4 w-4")} ${escapeHtml(u.economico)}</span>
                                         ${placasHtml}
-                                        <span class="viajes-unit-badges"><span class="viajes-unit-badge-slot">${badgeRetraso}</span><span class="viajes-unit-badge-slot">${badgeActivos}</span></span>
+                                        <span class="viajes-unit-badges" aria-label="Estatus de la unidad"><span class="viajes-unit-badge-slot">${badgeRetraso}</span><span class="viajes-unit-badge-slot">${badgeEstatus}</span><span class="viajes-unit-badge-slot">${badgeActivos}</span></span>
                                     </div>
                                     ${appIcon("chevron-down", `app-icon h-3.5 w-3.5 text-blue-700 flex-shrink-0 transition-transform ${colapsada ? "-rotate-90" : ""}`)}
                                 </button>
@@ -18945,6 +19123,24 @@
                 cancelado: "bg-gray-100 text-gray-500",
                 default: "bg-gray-100 text-gray-600",
             },
+            estatusRapido: {
+                programada:
+                    "bg-gray-200 text-gray-800 ring-1 ring-inset ring-gray-300",
+                en_ruta:
+                    "bg-green-100 text-green-800 ring-1 ring-inset ring-green-200",
+                cargando:
+                    "bg-slate-900 text-slate-50 ring-1 ring-inset ring-slate-700",
+                descargando:
+                    "bg-purple-100 text-purple-800 ring-1 ring-inset ring-purple-200",
+                terminado:
+                    "bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-200",
+                taller:
+                    "bg-yellow-200 text-yellow-950 ring-1 ring-inset ring-yellow-300",
+                pension_estacionamiento:
+                    "bg-sky-100 text-sky-800 ring-1 ring-inset ring-sky-200",
+                cancelado:
+                    "bg-red-100 text-red-800 ring-1 ring-inset ring-red-200",
+            },
             badge: {
                 retraso: `${UI_BADGE_STRONG} bg-red-100 text-red-700`,
                 retrasoActivo: `${UI_BADGE_STRONG} bg-red-100 text-red-700 animate-pulse`,
@@ -19089,6 +19285,40 @@
 
         function _renderBadge(className, label, extraClass = "") {
             return `<span class="${className}${extraClass ? ` ${extraClass}` : ""}">${label}</span>`;
+        }
+
+        function _estatusRapidoLabel(estatus) {
+            const labels = {
+                programada: "Programada",
+                en_ruta: "En ruta",
+                cargando: "Cargando",
+                descargando: "Descargando",
+                terminado: "Terminado",
+                taller: "Taller",
+                pension_estacionamiento: "Pensión / Estacionamiento",
+                cancelado: "Cancelado",
+            };
+            const key = Object.prototype.hasOwnProperty.call(labels, estatus)
+                ? estatus
+                : "programada";
+            return labels[key];
+        }
+
+        function _renderEstatusRapidoBadge(estatus) {
+            const key = Object.prototype.hasOwnProperty.call(
+                VIAJE_UI_TOKENS.estatusRapido,
+                estatus,
+            )
+                ? estatus
+                : "programada";
+            const token =
+                VIAJE_UI_TOKENS.estatusRapido[key] ||
+                VIAJE_UI_TOKENS.estatusRapido.programada;
+            return _renderBadge(
+                `${UI_BADGE_BASE} ${token}`,
+                _estatusRapidoLabel(key),
+                "viajes-status-badge",
+            );
         }
 
         function _viajesIcon(name) {
@@ -19452,9 +19682,7 @@
             const includeRetraso = options.includeRetraso !== false;
             const chips = [];
             if (includeEstado) {
-                chips.push(
-                    `<span class="viajes-badge viajes-badge-state" style="--state-bg:${visual.bg};--state-border:${visual.border};--state-color:${visual.color}">${escapeHtml(_viajeEstadoLabel(resumen.estadoOperativo || v.estado))}</span>`,
-                );
+                chips.push(_renderEstatusRapidoBadge(_viajeEstatusRapido(v)));
             }
             if (
                 includeRetraso &&
@@ -19944,6 +20172,7 @@
             const prioridad = _getViajePrioridadOperativa(v, resumen);
             const derived = _viajeDerived(v, resumen);
             const estadoOperativo = resumen.estadoOperativo || v.estado;
+            const estatusRapido = _viajeEstatusRapido(v);
             const placas = v.placas ? ` · ${v.placas}` : "";
             const registroTexto = _viajeRegistroTexto(v);
             const registroRecienteTexto = _viajeRegistroRecienteTexto(v);
@@ -19951,10 +20180,7 @@
                 ? '<span class="viajes-today-entry-marker">Nuevo registro</span>'
                 : "";
             const styleVars = `--state-bg:${visual.bg};--state-border:${visual.border};--state-color:${visual.color};--progress-color:${visual.progress};--state-shadow:${visual.shadow};--state-shadow-strong:${visual.shadowStrong};--state-ring:${visual.ring};--priority-bg:${prioridad.bg};--priority-border:${prioridad.border};--priority-color:${prioridad.color}`;
-            const stateLabel =
-                resumen.tieneRetraso && estadoOperativo !== "cancelado"
-                    ? "Atencion"
-                    : _viajeEstadoLabel(estadoOperativo);
+            const stateLabel = _estatusRapidoLabel(estatusRapido);
             const enCurso = resumen.tramos.filter(
                 (t) => String(t.estado || "").toLowerCase() === "en_curso",
             ).length;
@@ -19984,7 +20210,7 @@
                         <div class="viajes-card-head">
                             <div class="viajes-folio">${escapeHtml(v.folio || `TR-${v.viaje_id}`)}</div>
                             <div class="viajes-card-status-line">
-                                <span class="viajes-badge viajes-badge-state">${escapeHtml(stateLabel)}</span>
+                                ${_renderEstatusRapidoBadge(estatusRapido)}
                                 ${resumen.tieneRetraso && estadoOperativo !== "cancelado" ? `<span class="viajes-badge" style="--badge-bg:oklch(0.955 0.045 27);--badge-border:oklch(0.84 0.12 27);--badge-color:oklch(0.42 0.17 27)">Con retraso en llegada a carga</span>` : ""}
                                 ${ingresoHoyMarker}
                             </div>
