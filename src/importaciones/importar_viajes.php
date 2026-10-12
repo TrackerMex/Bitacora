@@ -460,14 +460,18 @@ function import_normalize_rows($conn, $cliente_id, $rows) {
 
     $existing = import_existing_tramo($conn, $cliente_id, $normalized);
     if ($existing) {
+      $en_papelera = intval($existing['eliminado'] ?? 0) === 1;
       $warnings[] = [
         'row' => $source_row,
         'campo' => 'duplicado',
-        'message' => 'Ya existe un tramo similar en Bitacora',
+        'message' => $en_papelera
+          ? 'Ya importado antes y esta en la papelera (no se vuelve a importar)'
+          : 'Ya importado antes (se omite)',
         'viaje_id' => intval($existing['viaje_id'] ?? 0),
         'tramo_id' => intval($existing['tramo_id'] ?? 0)
       ];
       $normalized['_existing_tramo_id'] = intval($existing['tramo_id'] ?? 0);
+      $normalized['_en_papelera'] = $en_papelera;
     }
 
     $valid[] = $normalized;
@@ -486,12 +490,14 @@ function import_normalize_rows($conn, $cliente_id, $rows) {
   ];
 }
 
+// Un viaje en papelera cuenta como ya importado: si no, cada reimportacion del Sheet del dia
+// resucitaria los viajes que se borraron a proposito. Para recuperarlo se restaura desde la papelera.
 function import_existing_tramo($conn, $cliente_id, $row) {
-  $delete_filter = import_column_exists($conn, 'viajes', 'eliminado_at')
-    ? "AND COALESCE(v.eliminado_at, '') = ''"
-    : '';
+  $eliminado = import_column_exists($conn, 'viajes', 'eliminado_at')
+    ? '(v.eliminado_at IS NOT NULL)'
+    : '0';
   $stmt = $conn->prepare(
-    "SELECT v.id AS viaje_id, vt.id AS tramo_id
+    "SELECT v.id AS viaje_id, vt.id AS tramo_id, $eliminado AS eliminado
        FROM viajes v
        INNER JOIN unidades u ON u.id = v.unidad_id
        INNER JOIN viaje_tramos vt ON vt.viaje_id = v.id
@@ -500,7 +506,7 @@ function import_existing_tramo($conn, $cliente_id, $row) {
         AND u.economico = ?
         AND v.fecha_inicio = ?
         AND vt.tramo_numero = ?
-        $delete_filter
+      ORDER BY eliminado ASC, vt.id ASC
       LIMIT 1"
   );
   if (!$stmt) return null;

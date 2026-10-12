@@ -7409,10 +7409,10 @@
                                 onchange="renderViajes()"
                             >
                                 <optgroup label="Salidas">
-                                    <option value="salida_asc">
+                                    <option value="salida_asc" selected>
                                         Próxima salida
                                     </option>
-                                    <option value="salida_desc" selected>
+                                    <option value="salida_desc">
                                         Última salida
                                     </option>
                                 </optgroup>
@@ -9778,21 +9778,33 @@
                 </div>`;
         }
 
+        function getImportNewRowsCount(data) {
+            return (data?.valid_rows || []).filter((r) => !r._existing_tramo_id)
+                .length;
+        }
+
         function renderImportPreview(data) {
             const summary = data?.summary || {};
             const summaryEl = document.getElementById("import-preview-summary");
             const container = document.getElementById("import-preview-container");
             if (summaryEl) {
                 summaryEl.innerHTML = [
-                    renderImportMetric("Filas", summary.total_rows || 0),
-                    renderImportMetric("Validas", summary.valid_rows || 0, "text-green-700"),
+                    renderImportMetric("Filas del dia", summary.total_rows || 0),
+                    renderImportMetric("Nuevas", getImportNewRowsCount(data), "text-green-700"),
+                    renderImportMetric("Ya importadas", summary.duplicate_rows || 0, "text-amber-700"),
                     renderImportMetric("Errores", summary.error_rows || 0, "text-red-700"),
-                    renderImportMetric("Duplicados", summary.duplicate_rows || 0, "text-amber-700"),
                 ].join("");
             }
             const errors = data?.errors || [];
             const warnings = data?.warnings || [];
-            const rows = (data?.valid_rows || []).slice(0, 80);
+            // Las filas nuevas van primero: en un Sheet que crece, las agregadas quedan al final.
+            const rows = [...(data?.valid_rows || [])]
+                .sort(
+                    (a, b) =>
+                        Number(Boolean(a._existing_tramo_id)) -
+                        Number(Boolean(b._existing_tramo_id)),
+                )
+                .slice(0, 80);
             if (!container) return;
             const errorHtml = errors.length
                 ? `<div class="border-b border-red-100 bg-red-50 p-3 text-sm text-red-800">
@@ -9825,7 +9837,7 @@
                         <td class="px-3 py-2">${escapeHtml(r.tramo_numero)}</td>
                         <td class="px-3 py-2">${escapeHtml(r.origen || r.lugar_carga)}</td>
                         <td class="px-3 py-2">${escapeHtml(r.destino)}</td>
-                        <td class="px-3 py-2">${r._existing_tramo_id ? '<span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">Duplicado</span>' : '<span class="rounded-full bg-green-100 px-2 py-1 text-xs font-bold text-green-800">Nuevo</span>'}</td>
+                        <td class="px-3 py-2">${r._existing_tramo_id ? `<span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">${r._en_papelera ? "Ya importado (papelera)" : "Ya importado"}</span>` : '<span class="rounded-full bg-green-100 px-2 py-1 text-xs font-bold text-green-800">Nuevo</span>'}</td>
                     </tr>`,
                 )
                 .join("");
@@ -9905,8 +9917,8 @@
                 }
                 setImportStatus(
                     newRows > 0
-                        ? `Vista previa lista. ${newRows} tramo(s) nuevo(s) pueden importarse.`
-                        : `No hay tramos nuevos para importar.${appliedRange ? ` Rango aplicado en Viajes: ${appliedRange.desde} a ${appliedRange.hasta}.` : ""}`,
+                        ? `Vista previa lista. ${newRows} tramo(s) nuevo(s) por importar${duplicateRows ? `; ${duplicateRows} ya importado(s) se omiten` : ""}.`
+                        : `No hay tramos nuevos: todo lo de esta fecha ya fue importado.${appliedRange ? ` Rango aplicado en Viajes: ${appliedRange.desde} a ${appliedRange.hasta}.` : ""}`,
                     newRows > 0 ? "ok" : "warn",
                 );
             } catch (error) {
@@ -9920,10 +9932,10 @@
                 setImportStatus("Primero valida el archivo.", "warn");
                 return;
             }
-            const valid = importacionExcelState.preview?.summary?.valid_rows || 0;
+            const nuevas = getImportNewRowsCount(importacionExcelState.preview);
             const dup = importacionExcelState.preview?.summary?.duplicate_rows || 0;
             const confirmed = confirm(
-                `Se importaran filas validas nuevas. Validas: ${valid}. Duplicados detectados: ${dup}. Confirmar importacion?`,
+                `Se importaran ${nuevas} tramo(s) nuevo(s). ${dup} fila(s) ya importadas se omiten. Confirmar importacion?`,
             );
             if (!confirmed) return;
             const btn = document.getElementById("import-commit-btn");
@@ -19181,8 +19193,29 @@
             return map[estado] ?? 4;
         }
 
-        function _ordenarViajes(datos, criterio = "salida_desc") {
-            const normalizado = String(criterio || "salida_desc");
+        // Compara grupos de viajes (unidades o clientes): con "Proxima salida" van primero los que
+        // salen antes; con cualquier otro criterio, primero el registro mas reciente.
+        function _compararGruposViajesPorFecha(viajesA, viajesB) {
+            const asc =
+                (document.getElementById("viajes-ordenar")?.value ||
+                    "salida_asc") === "salida_asc";
+            if (asc) {
+                const primera = (viajes) =>
+                    Math.min(
+                        ...viajes.map(
+                            (v) =>
+                                _viajeOrdenSalida(v) || Number.MAX_SAFE_INTEGER,
+                        ),
+                    );
+                return primera(viajesA) - primera(viajesB);
+            }
+            const ultima = (viajes) =>
+                Math.max(...viajes.map(_fechaOrdenViaje), 0);
+            return ultima(viajesB) - ultima(viajesA);
+        }
+
+        function _ordenarViajes(datos, criterio = "salida_asc") {
+            const normalizado = String(criterio || "salida_asc");
             return [...datos].sort((a, b) => {
                 const salidaA = _viajeOrdenSalida(a);
                 const salidaB = _viajeOrdenSalida(b);
@@ -19196,7 +19229,13 @@
                 if (normalizado === "salida_asc") {
                     const ascA = salidaA || Number.MAX_SAFE_INTEGER;
                     const ascB = salidaB || Number.MAX_SAFE_INTEGER;
-                    return ascA - ascB || retrasoB - retrasoA || incB - incA;
+                    return (
+                        ascA - ascB ||
+                        retrasoB - retrasoA ||
+                        incB - incA ||
+                        _fechaOrdenViaje(a) - _fechaOrdenViaje(b) ||
+                        Number(a.viaje_id || 0) - Number(b.viaje_id || 0)
+                    );
                 }
                 if (normalizado === "riesgo") {
                     return (
@@ -19526,7 +19565,7 @@
             const listCount = document.getElementById("viajes-list-count");
             const ordenViajes =
                 document.getElementById("viajes-ordenar")?.value ||
-                "salida_desc";
+                "salida_asc";
             tabViajes?.classList.toggle("reader-matrix-mode", esLector);
             tabViajes?.classList.toggle(
                 "viajes-density-compact",
@@ -20073,9 +20112,8 @@
         function _renderListaViajes(viajes, scopeKey, opciones = {}) {
             const esHistorial = (v) =>
                 ["completado", "cancelado"].includes(_viajeEstadoOperativo(v));
-            const activos = viajes
-                .filter((v) => !esHistorial(v))
-                .sort((a, b) => _fechaOrdenViaje(b) - _fechaOrdenViaje(a));
+            // Se conserva el orden recibido (ya aplicado por _ordenarViajes segun el selector).
+            const activos = viajes.filter((v) => !esHistorial(v));
 
             // Historial: viajes completados y cancelados ordenados por recencia.
             const _fechaComplecion = (v) =>
@@ -20196,9 +20234,8 @@
                 );
 
             const unidades = [...mapa.values()].sort((a, b) => {
-                const fa = Math.max(...a.viajes.map(_fechaOrdenViaje), 0);
-                const fb = Math.max(...b.viajes.map(_fechaOrdenViaje), 0);
-                if (fa !== fb) return fb - fa;
+                const porFecha = _compararGruposViajesPorFecha(a.viajes, b.viajes);
+                if (porFecha !== 0) return porFecha;
                 const ra = _tieneRetraso(a.viajes) ? 0 : 1;
                 const rb = _tieneRetraso(b.viajes) ? 0 : 1;
                 if (ra !== rb) return ra - rb;
@@ -20299,9 +20336,11 @@
                     viajes: datos.filter((v) => v.cliente === cliente),
                 }))
                 .sort((a, b) => {
-                    const fa = Math.max(...a.viajes.map(_fechaOrdenViaje), 0);
-                    const fb = Math.max(...b.viajes.map(_fechaOrdenViaje), 0);
-                    if (fa !== fb) return fb - fa;
+                    const porFecha = _compararGruposViajesPorFecha(
+                        a.viajes,
+                        b.viajes,
+                    );
+                    if (porFecha !== 0) return porFecha;
                     const ra = _grupoTieneRetraso(a.viajes) ? 0 : 1;
                     const rb = _grupoTieneRetraso(b.viajes) ? 0 : 1;
                     return ra - rb;
