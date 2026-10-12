@@ -6861,6 +6861,67 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
+                            <div>
+                                <label
+                                    for="import-sheet-url"
+                                    class="block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                    >Link de Google Sheets (opcional, en lugar del archivo)</label
+                                >
+                                <div class="mt-1 flex flex-col gap-2 sm:flex-row">
+                                    <input
+                                        id="import-sheet-url"
+                                        type="url"
+                                        inputmode="url"
+                                        placeholder="https://docs.google.com/spreadsheets/d/..."
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                    />
+                                    <button
+                                        id="import-sheet-btn"
+                                        type="button"
+                                        onclick="handleImportSheetUrl()"
+                                        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400"
+                                    >
+                                        <i
+                                            data-lucide="cloud-download"
+                                            class="app-icon button-icon"
+                                            aria-hidden="true"
+                                        ></i>
+                                        Leer Sheet
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label
+                                    for="import-fecha-filtro"
+                                    class="block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                    >Fecha a importar</label
+                                >
+                                <div class="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
+                                    <input
+                                        id="import-fecha-filtro"
+                                        type="date"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                        onchange="handleImportDateFilterChange(true)"
+                                    />
+                                    <label class="inline-flex shrink-0 items-center gap-2 text-sm text-gray-700">
+                                        <input
+                                            id="import-fecha-filtro-activo"
+                                            type="checkbox"
+                                            checked
+                                            class="h-4 w-4 rounded border-gray-300"
+                                            onchange="handleImportDateFilterChange(false)"
+                                        />
+                                        Solo esta fecha
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <p
+                            id="import-filter-summary"
+                            class="mt-2 text-xs text-gray-500"
+                            aria-live="polite"
+                        ></p>
                         <div
                             id="import-status"
                             class="mt-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600"
@@ -9072,7 +9133,11 @@
             mapping: {},
             preview: null,
             initialized: false,
+            sourceUrl: "",
+            dateTouched: false,
         };
+
+        const IMPORT_SHEET_STORAGE_PREFIX = "bitacoraImportSheet:";
 
         function normalizeImportHeader(value) {
             return String(value ?? "")
@@ -9129,7 +9194,44 @@
                 renderImportPreviewEmpty();
                 importacionExcelState.initialized = true;
             }
+            const fechaEl = document.getElementById("import-fecha-filtro");
+            if (fechaEl && !importacionExcelState.dateTouched) {
+                fechaEl.value = dayjs().format("YYYY-MM-DD");
+                updateImportFilterSummary();
+            }
+            prefillImportSheetUrl();
             scheduleAppIconRender();
+        }
+
+        function readSavedImportSheet() {
+            try {
+                const raw = localStorage.getItem(
+                    IMPORT_SHEET_STORAGE_PREFIX + getImportClienteId(),
+                );
+                const saved = raw ? JSON.parse(raw) : null;
+                return saved && typeof saved === "object" ? saved : {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function saveImportSheet(patch) {
+            const clienteId = getImportClienteId();
+            if (!clienteId) return;
+            try {
+                localStorage.setItem(
+                    IMPORT_SHEET_STORAGE_PREFIX + clienteId,
+                    JSON.stringify({ ...readSavedImportSheet(), ...patch }),
+                );
+            } catch (error) {
+                console.error("No se pudo recordar el link del Sheet:", error);
+            }
+        }
+
+        function prefillImportSheetUrl() {
+            const input = document.getElementById("import-sheet-url");
+            if (!input || input.value.trim()) return;
+            input.value = readSavedImportSheet().url || "";
         }
 
         function populateImportClienteSelector() {
@@ -9165,6 +9267,9 @@
             importacionExcelState.templates = [];
             importacionExcelState.preview = null;
             document.getElementById("import-commit-btn")?.setAttribute("disabled", "");
+            const urlInput = document.getElementById("import-sheet-url");
+            if (urlInput) urlInput.value = "";
+            prefillImportSheetUrl();
             await loadImportTemplates();
         }
 
@@ -9221,6 +9326,7 @@
         function applyImportTemplate(template) {
             importacionExcelState.mapping = { ...(template?.mapeo || {}) };
             renderImportMappingFields();
+            updateImportFilterSummary();
             setImportStatus("Plantilla aplicada. Valida el archivo antes de confirmar.", "info");
         }
 
@@ -9238,25 +9344,159 @@
                     cellDates: false,
                     raw: true,
                 });
-                importacionExcelState.workbook = workbook;
-                importacionExcelState.fileName = file.name;
-                const sheetSelect = document.getElementById("import-sheet-select");
-                sheetSelect.innerHTML = workbook.SheetNames.map(
-                    (name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`,
-                ).join("");
-                importacionExcelState.sheetName = workbook.SheetNames[0] || "";
-                sheetSelect.value = importacionExcelState.sheetName;
-                readImportSheet();
-                setImportStatus(`Archivo cargado: ${file.name}`, "ok");
+                importacionExcelState.sourceUrl = "";
+                loadImportWorkbook(workbook, file.name);
+                setImportStatus(
+                    `Archivo cargado: ${file.name}. ${getImportLoadedRowsText()}`,
+                    "ok",
+                );
             } catch (error) {
                 setImportStatus(`No se pudo leer el archivo: ${error.message}`, "error");
+            }
+        }
+
+        function loadImportWorkbook(workbook, fileName, preferredSheet = "") {
+            importacionExcelState.workbook = workbook;
+            importacionExcelState.fileName = fileName;
+            const sheetSelect = document.getElementById("import-sheet-select");
+            sheetSelect.innerHTML = workbook.SheetNames.map(
+                (name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`,
+            ).join("");
+            importacionExcelState.sheetName = workbook.SheetNames.includes(
+                preferredSheet,
+            )
+                ? preferredSheet
+                : workbook.SheetNames[0] || "";
+            sheetSelect.value = importacionExcelState.sheetName;
+            readImportSheet();
+        }
+
+        function getImportLoadedRowsText() {
+            const stats = getImportRowStats();
+            const total = importacionExcelState.rows.length;
+            if (!stats.fecha) return `${total} fila(s) en la hoja.`;
+            if (!stats.mapped) {
+                return `${total} fila(s) en la hoja. Mapea la columna Fecha inicio para filtrar por dia.`;
+            }
+            return `${total} fila(s) en la hoja, ${stats.matching} con fecha ${stats.fecha}.`;
+        }
+
+        async function handleImportSheetUrl() {
+            if (!isAdminRole()) {
+                setImportStatus("Solo admin puede importar programacion.", "error");
+                return;
+            }
+            if (!getImportClienteId()) {
+                setImportStatus("Selecciona el cliente dueno del Sheet.", "warn");
+                return;
+            }
+            if (!window.XLSX) {
+                setImportStatus("La libreria XLSX no esta disponible.", "error");
+                return;
+            }
+            const url = document.getElementById("import-sheet-url")?.value.trim() || "";
+            if (!/^https:\/\/docs\.google\.com\/spreadsheets\/d\/[A-Za-z0-9_-]{20,}/.test(url)) {
+                setImportStatus(
+                    "Pega el link de un Google Sheet (https://docs.google.com/spreadsheets/d/...).",
+                    "warn",
+                );
+                return;
+            }
+            const btn = document.getElementById("import-sheet-btn");
+            const oldHtml = btn?.innerHTML;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `${appIcon("loader-circle", "app-icon button-icon animate-spin")} Leyendo...`;
+                scheduleAppIconRender();
+            }
+            setImportStatus("Leyendo Google Sheet...", "info");
+            try {
+                const res = await authFetch(
+                    phpApiPath("importaciones/importar_viajes.php?action=sheet_descargar"),
+                    {
+                        method: "POST",
+                        headers: getAuthHeaders({
+                            "Content-Type": "application/json",
+                        }),
+                        body: JSON.stringify({ url }),
+                    },
+                );
+                const data = await readImportApiResponse(res);
+                if (!res.ok || !data?.success) {
+                    throw new Error(data?.message || `HTTP ${res.status}`);
+                }
+                const workbook = XLSX.read(data.data.content_base64, {
+                    type: "base64",
+                    cellDates: false,
+                    raw: true,
+                });
+                const fileEl = document.getElementById("import-excel-file");
+                if (fileEl) fileEl.value = "";
+                loadImportWorkbook(
+                    workbook,
+                    data.data.file_name,
+                    readSavedImportSheet().sheet || "",
+                );
+                importacionExcelState.sourceUrl = url;
+                saveImportSheet({ url, sheet: importacionExcelState.sheetName });
+                setImportStatus(
+                    `Google Sheet leido (hoja "${importacionExcelState.sheetName}"). ${getImportLoadedRowsText()}`,
+                    "ok",
+                );
+            } catch (error) {
+                setImportStatus(`No se pudo leer el Sheet: ${error.message}`, "error");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = oldHtml;
+                    scheduleAppIconRender();
+                }
             }
         }
 
         function handleImportSheetChange() {
             importacionExcelState.sheetName =
                 document.getElementById("import-sheet-select")?.value || "";
+            if (importacionExcelState.sourceUrl) {
+                saveImportSheet({ sheet: importacionExcelState.sheetName });
+            }
             readImportSheet();
+        }
+
+        function getImportDateFilter() {
+            const active = document.getElementById("import-fecha-filtro-activo")?.checked;
+            const fecha = document.getElementById("import-fecha-filtro")?.value || "";
+            return active && fecha ? fecha : "";
+        }
+
+        function getImportRowStats() {
+            const fecha = getImportDateFilter();
+            const mapped = Boolean(importacionExcelState.mapping?.fecha_inicio);
+            const rows = buildAllImportRows();
+            const matching = fecha
+                ? rows.filter((row) => importDateToYYYYMMDD(row.fecha_inicio) === fecha)
+                : rows;
+            return { fecha, mapped, total: rows.length, matching: matching.length, rows: matching };
+        }
+
+        function updateImportFilterSummary() {
+            const el = document.getElementById("import-filter-summary");
+            if (!el) return;
+            if (!importacionExcelState.rows.length) {
+                el.textContent = getImportDateFilter()
+                    ? `Se importaran solo las filas con fecha ${getImportDateFilter()}.`
+                    : "Se importaran todas las filas del archivo.";
+                return;
+            }
+            el.textContent = getImportLoadedRowsText();
+        }
+
+        function handleImportDateFilterChange(touched) {
+            if (touched) importacionExcelState.dateTouched = true;
+            importacionExcelState.preview = null;
+            document.getElementById("import-commit-btn")?.setAttribute("disabled", "");
+            renderImportPreviewEmpty();
+            updateImportFilterSummary();
         }
 
         function readImportSheet() {
@@ -9322,6 +9562,7 @@
             autoMapImportHeaders();
             renderImportMappingFields();
             renderImportPreviewEmpty();
+            updateImportFilterSummary();
         }
 
         function autoMapImportHeaders() {
@@ -9390,9 +9631,10 @@
             importacionExcelState.mapping[key] = select.value;
             importacionExcelState.preview = null;
             document.getElementById("import-commit-btn")?.setAttribute("disabled", "");
+            if (key === "fecha_inicio") updateImportFilterSummary();
         }
 
-        function buildImportRowsFromMapping() {
+        function buildAllImportRows() {
             const mapping = importacionExcelState.mapping || {};
             return (importacionExcelState.rows || []).map((row) => {
                 const out = { source_row: row.source_row };
@@ -9402,6 +9644,13 @@
                 });
                 return out;
             });
+        }
+
+        // Con el filtro activo solo salen las filas cuya fecha_inicio es la fecha elegida (hoy por defecto).
+        function buildImportRowsFromMapping() {
+            const stats = getImportRowStats();
+            if (!stats.fecha) return stats.rows;
+            return stats.mapped ? stats.rows : [];
         }
 
         function getImportPayload() {
@@ -9433,9 +9682,10 @@
 
         function importDateToYYYYMMDD(value) {
             if (typeof value === "number" && Number.isFinite(value)) {
+                // El serial de Excel es hora de pared sin zona: se lee en UTC para no correr el dia.
                 const millis = Math.round((value - 25569) * 86400 * 1000);
-                const parsed = dayjs(new Date(millis));
-                return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
+                const parsed = new Date(millis);
+                return isNaN(parsed) ? "" : parsed.toISOString().slice(0, 10);
             }
             return excelDateToYYYYMMDD(value);
         }
@@ -9611,7 +9861,17 @@
                 return;
             }
             if (!payload.rows.length) {
-                setImportStatus("Carga un archivo Excel con filas de programacion.", "warn");
+                const stats = getImportRowStats();
+                if (stats.fecha && importacionExcelState.rows.length) {
+                    setImportStatus(
+                        stats.mapped
+                            ? `No hay filas con fecha ${stats.fecha} en la hoja (${stats.total} fila(s) en total). Revisa la fecha o desactiva "Solo esta fecha".`
+                            : "Mapea la columna Fecha inicio para poder filtrar por dia.",
+                        "warn",
+                    );
+                } else {
+                    setImportStatus("Carga un archivo Excel o un Google Sheet con filas de programacion.", "warn");
+                }
                 return;
             }
             setImportStatus("Validando archivo contra Bitacora...", "info");
@@ -9718,6 +9978,7 @@
             importacionExcelState.rows = [];
             importacionExcelState.mapping = {};
             importacionExcelState.preview = null;
+            importacionExcelState.sourceUrl = "";
             const file = document.getElementById("import-excel-file");
             if (file) file.value = "";
             const sheet = document.getElementById("import-sheet-select");
@@ -9726,7 +9987,8 @@
             if (btn) btn.disabled = true;
             renderImportMappingFields();
             renderImportPreviewEmpty();
-            setImportStatus("Carga limpia. Selecciona cliente y archivo para iniciar.");
+            updateImportFilterSummary();
+            setImportStatus("Carga limpia. Selecciona cliente y archivo o link de Sheet para iniciar.");
         }
 
         function updateClienteDisplay() {

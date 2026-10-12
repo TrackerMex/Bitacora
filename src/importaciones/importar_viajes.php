@@ -275,6 +275,99 @@ function import_firma_ruta($origen, $lugar_carga, $destino) {
   return $firma === '||' ? null : $firma;
 }
 
+function import_parse_sheet_url($url) {
+  $url = import_clean($url);
+  if (!preg_match('~^https://docs\.google\.com/spreadsheets/d/([A-Za-z0-9_-]{20,})~', $url, $m)) {
+    return null;
+  }
+  return $m[1];
+}
+
+function import_google_host_allowed($url) {
+  $parts = parse_url($url);
+  $scheme = strtolower($parts['scheme'] ?? '');
+  $host = strtolower($parts['host'] ?? '');
+  return $scheme === 'https'
+    && preg_match('/(^|\.)(google\.com|googleusercontent\.com)$/', $host) === 1;
+}
+
+function import_resolve_location($current, $location) {
+  if (preg_match('~^https?://~i', $location)) return $location;
+  $parts = parse_url($current);
+  $base = ($parts['scheme'] ?? 'https') . '://' . ($parts['host'] ?? '')
+    . (isset($parts['port']) ? ':' . $parts['port'] : '');
+  if (strpos($location, '/') === 0) return $base . $location;
+  return $base . '/' . $location;
+}
+
+// Descarga una URL de Google manualmente siguiendo redirects, solo hacia hosts de Google.
+function import_google_fetch($url, $max_bytes = 26214400) {
+  if (!function_exists('curl_init')) {
+    throw new Exception('El servidor no tiene cURL habilitado', 500);
+  }
+  $current = $url;
+  for ($hop = 0; $hop < 6; $hop++) {
+    if (!import_google_host_allowed($current)) {
+      throw new Exception('Redireccion no permitida al leer el Sheet', 502);
+    }
+    $headers = [];
+    $body = '';
+    $too_big = false;
+    $ch = curl_init($current);
+    curl_setopt_array($ch, [
+      CURLOPT_FOLLOWLOCATION => false,
+      CURLOPT_CONNECTTIMEOUT => 10,
+      CURLOPT_TIMEOUT => 90,
+      CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; BitacoraImport/1.0)',
+      CURLOPT_HEADERFUNCTION => function ($ch, $line) use (&$headers) {
+        $pair = explode(':', $line, 2);
+        if (count($pair) === 2) {
+          $headers[strtolower(trim($pair[0]))] = trim($pair[1]);
+        }
+        return strlen($line);
+      },
+      CURLOPT_WRITEFUNCTION => function ($ch, $chunk) use (&$body, &$too_big, $max_bytes) {
+        if (strlen($body) + strlen($chunk) > $max_bytes) {
+          $too_big = true;
+          return 0;
+        }
+        $body .= $chunk;
+        return strlen($chunk);
+      }
+    ]);
+    curl_exec($ch);
+    $errno = curl_errno($ch);
+    $error = curl_error($ch);
+    $status = intval(curl_getinfo($ch, CURLINFO_HTTP_CODE));
+    curl_close($ch);
+
+    if ($too_big) {
+      throw new Exception('El Sheet es demasiado grande (maximo 25 MB)', 413);
+    }
+    if ($errno) {
+      throw new Exception('No se pudo conectar con Google: ' . $error, 502);
+    }
+    if (in_array($status, [301, 302, 303, 307, 308], true) && !empty($headers['location'])) {
+      $current = import_resolve_location($current, $headers['location']);
+      continue;
+    }
+    return ['status' => $status, 'headers' => $headers, 'body' => $body];
+  }
+  throw new Exception('Demasiadas redirecciones al leer el Sheet', 502);
+}
+
+function import_sheet_file_name($headers, $sheet_id) {
+  $disposition = $headers['content-disposition'] ?? '';
+  if (preg_match("/filename\\*=UTF-8''([^;]+)/i", $disposition, $m)) {
+    $name = rawurldecode(trim($m[1], "\" "));
+  } elseif (preg_match('/filename="?([^";]+)"?/i', $disposition, $m)) {
+    $name = trim($m[1]);
+  } else {
+    $name = 'google-sheets-' . substr($sheet_id, 0, 8) . '.xlsx';
+  }
+  return 'Google Sheets: ' . $name;
+}
+
 function import_normalize_rows($conn, $cliente_id, $rows) {
   $valid = [];
   $errors = [];
@@ -742,6 +835,34 @@ try {
     $row = $stmt->get_result()->fetch_assoc();
     $stmt->close();
     import_json(['success' => true, 'message' => 'Plantilla guardada', 'data' => ['id' => intval($row['id'] ?? 0)]]);
+  }
+
+  if ($action === 'sheet_descargar') {
+    $sheet_id = import_parse_sheet_url($data['url'] ?? '');
+    if (!$sheet_id) {
+      import_error('Link de Google Sheets invalido. Usa el link de la forma https://docs.google.com/spreadsheets/d/.../edit', 400);
+    }
+    $export_url = 'https://docs.google.com/spreadsheets/d/' . $sheet_id . '/export?format=xlsx';
+    $result = import_google_fetch($export_url);
+    if (in_array($result['status'], [401, 403], true)) {
+      import_error('No hay acceso al Sheet. Compartelo como "Cualquier persona con el enlace" con permiso de lector.', 403);
+    }
+    if ($result['status'] === 404) {
+      import_error('No se encontro el Sheet. Revisa que el link sea correcto.', 404);
+    }
+    if ($result['status'] !== 200 || substr($result['body'], 0, 2) !== 'PK') {
+      import_error('No se pudo leer el Sheet como Excel. Verifica que sea un Google Sheet compartido con "Cualquier persona con el enlace" (lector).', 422);
+    }
+    import_json([
+      'success' => true,
+      'message' => 'Sheet descargado',
+      'data' => [
+        'sheet_id' => $sheet_id,
+        'file_name' => import_sheet_file_name($result['headers'], $sheet_id),
+        'size' => strlen($result['body']),
+        'content_base64' => base64_encode($result['body'])
+      ]
+    ]);
   }
 
   if ($action === 'preview' || $action === 'commit') {
