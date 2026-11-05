@@ -11188,7 +11188,9 @@
                 return;
             }
 
-            const response = await fetch(buildDespachosUrl());
+            const response = await authFetch(buildDespachosUrl(), {
+                headers: getAuthHeaders({ Accept: "application/json" }),
+            });
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -11261,7 +11263,9 @@
             }
 
             try {
-                const response = await fetch(url);
+                const response = await authFetch(url, {
+                    headers: getAuthHeaders(),
+                });
                 const apiResponse = await response.json();
                 if (!response.ok || !apiResponse.success) {
                     throw new Error(
@@ -12044,13 +12048,13 @@
                     submitBtn.textContent = "Guardando...";
 
                     try {
-                        const response = await fetch(
+                        const response = await authFetch(
                             phpApiPath(
                                 "origen_destino/actualizar_origen_destino.php",
                             ),
                             {
                                 method: "POST",
-                                headers: { "Content-Type": "application/json" },
+                                headers: getAuthHeaders({ "Content-Type": "application/json" }),
                                 body: JSON.stringify({
                                     folio,
                                     unidad,
@@ -12175,13 +12179,13 @@
 
                 try {
                     // 1. Actualizar MySQL
-                    const response = await fetch(
+                    const response = await authFetch(
                         phpApiPath(
                             "seguimiento/actualizar_fecha_programada.php",
                         ),
                         {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
+                            headers: getAuthHeaders({ "Content-Type": "application/json" }),
                             body: JSON.stringify({
                                 folio: folio,
                                 unidad: unidad,
@@ -12202,11 +12206,11 @@
                     }
 
                     // 2. Actualizar Google Sheets (en paralelo, no bloquea el flujo)
-                    const sheetsPromise = fetch(
+                    const sheetsPromise = authFetch(
                         phpApiPath("api/actualizar_fecha_sheets.php"),
                         {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
+                            headers: getAuthHeaders({ "Content-Type": "application/json" }),
                             body: JSON.stringify({
                                 unidad: unidad,
                                 fechaActual: fechaActual,
@@ -13575,11 +13579,11 @@
         }
 
         async function loadOrigenDestinoFromDb() {
-            const res = await fetch(
+            const res = await authFetch(
                 phpApiPath(
                     `origen_destino/obtener_origen_destino.php?_=${Date.now()}`,
                 ),
-                { cache: "no-store" },
+                { cache: "no-store", headers: getAuthHeaders() },
             );
             let json = null;
             try {
@@ -13772,8 +13776,9 @@
         }
 
         async function loadSeguimientosFromDb() {
-            const res = await fetch(buildSeguimientosUrl(), {
+            const res = await authFetch(buildSeguimientosUrl(), {
                 cache: "no-store",
+                headers: getAuthHeaders(),
             });
 
             let json = null;
@@ -13838,11 +13843,11 @@
                 incidencias: Array.isArray(d.incidencias) ? d.incidencias : [],
             };
 
-            const res = await fetch(
+            const res = await authFetch(
                 `${SEGUIMIENTO_SAVE_ENDPOINT}?_=${Date.now()}`,
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: getAuthHeaders({ "Content-Type": "application/json" }),
                     body: JSON.stringify(payload),
                 },
             );
@@ -14953,7 +14958,10 @@
 
         async function loadEmergency911RowsFromDb() {
             const url = `${EMERGENCY_911_ENDPOINT}?_=${Date.now()}`;
-            const res = await fetch(url, { cache: "no-store" });
+            const res = await authFetch(url, {
+                cache: "no-store",
+                headers: getAuthHeaders(),
+            });
 
             let json = null;
             try {

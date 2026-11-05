@@ -8,7 +8,7 @@ ini_set("max_execution_time", 30);
 header("Content-Type: application/json; charset=utf-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
@@ -17,6 +17,8 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     http_response_code(200);
     exit();
 }
+
+require_once __DIR__ . "/../informe/informe_auth.php";
 
 $response = [
     "success" => false,
@@ -97,7 +99,16 @@ try {
 
     require_once __DIR__ . "/../db/db.php";
 
+    $user = informes_get_auth_user($conn);
+    $es_admin = $user["role"] === "admin";
+
     $cliente_ids = parse_id_list_v($_GET["cliente_ids"] ?? "");
+    if (!$es_admin) {
+        $permitidos = informes_get_user_cliente_ids($conn, $user["id"], $user["role"]);
+        $cliente_ids = count($cliente_ids) > 0
+            ? array_values(array_intersect($cliente_ids, $permitidos))
+            : $permitidos;
+    }
     $fecha_desde = to_date_v($_GET["fecha_desde"] ?? "");
     $fecha_hasta = to_date_v($_GET["fecha_hasta"] ?? "");
     $unidad_id = isset($_GET["unidad_id"]) ? intval($_GET["unidad_id"]) : null;
@@ -119,7 +130,7 @@ try {
         foreach ($cliente_ids as $id) {
             $params[] = $id;
         }
-    } elseif (isset($_GET["cliente_ids"])) {
+    } elseif (isset($_GET["cliente_ids"]) || !$es_admin) {
         $where[] = "1 = 0";
     }
 
@@ -566,7 +577,7 @@ try {
     $response["limit"] = $limit;
     $response["offset"] = $offset;
 } catch (Exception $e) {
-    http_response_code(500);
+    http_response_code(informes_exception_code($e));
     $response["success"] = false;
     $response["message"] = "Error: " . $e->getMessage();
 } finally {

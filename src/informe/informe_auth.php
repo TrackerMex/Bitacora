@@ -95,6 +95,15 @@ function informes_get_user_cliente_ids($conn, $usuario_id, $role) {
     return array_values(array_unique($ids));
 }
 
+// Condición SQL que limita $columna a los clientes del usuario (admin: todos).
+function informes_sql_clientes($conn, $user, $columna) {
+    if ($user['role'] === 'admin') {
+        return '1 = 1';
+    }
+    $ids = informes_get_user_cliente_ids($conn, $user['id'], $user['role']);
+    return count($ids) > 0 ? "$columna IN (" . implode(',', $ids) . ")" : '1 = 0';
+}
+
 function informes_exception_code($e, $fallback = 500) {
     $code = intval($e->getCode());
     return ($code >= 400 && $code < 600) ? $code : $fallback;
