@@ -3396,7 +3396,7 @@
               z-index: 2;
             }
             .executive-detail-table--tramos {
-                min-width: 1510px;
+                min-width: 1660px;
             }
             .executive-detail-table.executive-detail-table--tramos thead th,
             .executive-detail-table.executive-detail-table--tramos tbody td {
@@ -3446,6 +3446,15 @@
             }
             .executive-detail-table--tramos th:nth-child(8),
             .executive-detail-table--tramos td:nth-child(8) {
+                width: 150px;
+            }
+            .executive-gps-date {
+                display: block;
+                margin-top: 0.25em;
+                color: #4b5563;
+            }
+            .executive-detail-table--tramos th:nth-child(9),
+            .executive-detail-table--tramos td:nth-child(9) {
                 width: 460px;
                 overflow-wrap: break-word;
             }
@@ -6117,6 +6126,26 @@
                         </div>
                     </div>
 
+                    <div class="mb-4 flex flex-wrap items-end gap-3" data-pdf-exclude="true">
+                        <label class="flex flex-col gap-1 text-sm font-semibold text-gray-700" for="kpi-filtro-unidad">
+                            Unidad
+                            <select id="kpi-filtro-unidad" class="rounded-lg border border-gray-300 bg-white px-3 py-2" onchange="renderKPIs()">
+                                <option value="">Todas las unidades</option>
+                            </select>
+                        </label>
+                        <label class="flex flex-col gap-1 text-sm font-semibold text-gray-700" for="kpi-filtro-estado">
+                            Estado del viaje
+                            <select id="kpi-filtro-estado" class="rounded-lg border border-gray-300 bg-white px-3 py-2" onchange="renderKPIs()">
+                                <option value="">Todos los estados</option>
+                                <option value="planificado">Planificado</option>
+                                <option value="en_curso">En curso</option>
+                                <option value="completado">Completado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </label>
+                    </div>
+                    <p id="kpi-periodo" class="mb-3 text-sm text-gray-600"></p>
+
                     <div
                         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 lg:gap-6 mb-8"
                     >
@@ -6231,6 +6260,22 @@
                         class="sr-only"
                         aria-live="polite"
                     ></div>
+                    <section class="surface-card mt-6 p-4" aria-labelledby="kpi-viajes-titulo" data-pdf-exclude="true">
+                        <h3 id="kpi-viajes-titulo" class="mb-3 text-lg font-semibold">Viajes por unidad</h3>
+                        <div class="max-h-96 overflow-auto" tabindex="0" role="region" aria-labelledby="kpi-viajes-titulo">
+                            <table class="w-full text-left text-sm">
+                                <thead class="sticky top-0 bg-gray-100 text-gray-700">
+                                    <tr>
+                                        <th scope="col" class="px-3 py-2">Unidad</th>
+                                        <th scope="col" class="px-3 py-2">Folio</th>
+                                        <th scope="col" class="px-3 py-2">Estado</th>
+                                        <th scope="col" class="px-3 py-2">Cliente</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kpi-viajes-resultados" class="divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
+                    </section>
                 </div>
 
                 <div
@@ -8832,6 +8877,11 @@
 
             filteredDespachosData = [];
             allViajesData = [];
+            solicitudKpis += 1;
+            viajesKpis = [];
+            mensajeKpis = "";
+            document.getElementById("kpi-filtro-estado").value = "";
+            actualizarUnidadesKpis();
             lectorTramoDetalleActivoKey = null;
             try {
                 renderAllTabs();
@@ -8853,6 +8903,9 @@
         let viajesLastLoadedAt = 0;
         let informeEjecutivoPagina = 1;
         let informeEjecutivoPorPagina = 15;
+        let viajesKpis = [];
+        let solicitudKpis = 0;
+        let mensajeKpis = "";
 
         let allViajesData = [];
         let activeClienteId = "";
@@ -10161,6 +10214,7 @@
             activeClienteId = select?.value || "";
             resetEmergencyContactsCache();
             syncClienteScopedControls();
+            if (getActiveTabIndex() === 2) cargarKPIs();
 
             if (Array.isArray(allViajesData) && allViajesData.length > 0) {
                 loadViajesFromDb();
@@ -11095,16 +11149,7 @@
             }
             if (index === 0) loadViajesFromDb();
             if (index === 1) renderValidacionesGPS();
-            if (index === 2) {
-                if (
-                    filteredDespachosData.length === 0 &&
-                    allViajesData.length === 0
-                ) {
-                    loadViajesFromDb(); // llenará filteredDespachosData vía adapter
-                } else {
-                    renderKPIs();
-                }
-            }
+            if (index === 2) cargarKPIs();
             if (index === 3) {
                 if (
                     filteredDespachosData.length === 0 &&
@@ -13905,7 +13950,6 @@
             seguimientosDbCache.loaded = true;
 
             renderRegistroDespacho();
-            renderKPIs();
             renderIncidenciasExecutiveReport();
 
             return json;
@@ -14414,9 +14458,119 @@
             container.appendChild(board);
         }
 
+        function getViajesFechaRango() {
+            return {
+                desde:
+                    document.getElementById("viajes-fecha-desde")?.value ||
+                    dayjs().subtract(30, "day").format("YYYY-MM-DD"),
+                hasta:
+                    document.getElementById("viajes-fecha-hasta")?.value ||
+                    dayjs().add(15, "day").format("YYYY-MM-DD"),
+            };
+        }
+
+        async function cargarKPIs() {
+            if (!userRole || !bitacoraAuthToken) return;
+
+            const solicitud = ++solicitudKpis;
+            const clienteIds = activeClienteId
+                ? [activeClienteId]
+                : getUserClienteIds();
+            const { desde, hasta } = getViajesFechaRango();
+            document.getElementById("kpi-periodo").textContent =
+                `Período del ${dayjs(desde).format("DD/MM/YYYY")} al ${dayjs(hasta).format("DD/MM/YYYY")}`;
+            viajesKpis = [];
+            mensajeKpis = "Cargando viajes…";
+            renderKPIs();
+
+            const params = new URLSearchParams({
+                vista: "kpis",
+                cliente_ids: clienteIds.join(","),
+                fecha_desde: desde,
+                fecha_hasta: hasta,
+                limit: "200",
+            });
+            const viajes = [];
+            try {
+                let total;
+                do {
+                    params.set("offset", String(viajes.length));
+                    const res = await authFetch(
+                        phpApiPath("despachos/obtener_viajes.php?" + params.toString()),
+                        { cache: "no-store", headers: getAuthHeaders() },
+                    );
+                    const pagina = await res.json();
+                    if (solicitud !== solicitudKpis) return;
+                    if (!res.ok || !pagina.success) {
+                        throw new Error(pagina.message || "Error cargando KPIs");
+                    }
+                    total = pagina.total;
+                    if (pagina.data.length === 0) break;
+                    viajes.push(...pagina.data);
+                } while (viajes.length < total);
+
+                viajesKpis = viajes;
+                mensajeKpis = "";
+            } catch (error) {
+                if (solicitud !== solicitudKpis) return;
+                console.error("No se pudieron cargar los KPIs:", error);
+                mensajeKpis = "No se pudieron cargar los viajes. Intenta abrir la pestaña nuevamente.";
+            }
+            actualizarUnidadesKpis();
+            renderKPIs();
+        }
+
+        function actualizarUnidadesKpis() {
+            const selector = document.getElementById("kpi-filtro-unidad");
+            const seleccion = selector.value;
+            const unidades = new Map();
+            viajesKpis.forEach((viaje) => {
+                unidades.set(String(viaje.unidad_id), {
+                    nombre: viaje.unidad,
+                    cliente: viaje.cliente,
+                });
+            });
+            const mostrarCliente = new Set(
+                viajesKpis.map((viaje) => viaje.cliente_id),
+            ).size > 1;
+            selector.replaceChildren(new Option("Todas las unidades", ""));
+            Array.from(unidades.entries())
+                .sort(([, a], [, b]) => a.nombre.localeCompare(b.nombre, "es", { numeric: true }))
+                .forEach(([id, unidad]) => {
+                    const label = mostrarCliente
+                        ? `${unidad.nombre} · ${unidad.cliente}`
+                        : unidad.nombre;
+                    selector.add(new Option(label, id));
+                });
+            if (unidades.has(seleccion)) selector.value = seleccion;
+        }
+
+        function getViajesKpisFiltrados() {
+            const unidad = document.getElementById("kpi-filtro-unidad").value;
+            const estado = document.getElementById("kpi-filtro-estado").value;
+            return viajesKpis.filter((viaje) =>
+                (!unidad || String(viaje.unidad_id) === unidad) &&
+                (!estado || viaje.estado === estado),
+            );
+        }
+
         function renderKPIs() {
-            // Fuente: allViajesData (viajes + tramos) — tabla despachos ya no se usa
-            const tramos = allViajesData.flatMap((v) =>
+            const viajes = getViajesKpisFiltrados();
+            const filas = document.getElementById("kpi-viajes-resultados");
+            filas.innerHTML = viajes.length
+                ? viajes.map((viaje) => `
+                    <tr>
+                        <td class="px-3 py-2">${escapeHtml(viaje.unidad || "—")}</td>
+                        <td class="px-3 py-2">${escapeHtml(viaje.folio || "—")}</td>
+                        <td class="px-3 py-2">${escapeHtml(_viajeEstadoLabel(viaje.estado))}</td>
+                        <td class="px-3 py-2">${escapeHtml(viaje.cliente || "—")}</td>
+                    </tr>
+                `).join("")
+                : `<tr><td class="px-3 py-3 text-gray-600" colspan="4">
+                    ${escapeHtml(mensajeKpis || "No hay viajes para los filtros seleccionados.")}
+                   </td></tr>`;
+
+            const tramos = viajes.flatMap((v) =>
                 (v.tramos || []).map((t) => ({ v, t })),
             );
 
@@ -14424,13 +14578,16 @@
             const completados = tramos.filter(
                 ({ t }) => t.estado === "completado",
             );
-            const enCurso = tramos.filter(({ t }) => t.estado === "en_curso");
+            const enCurso = tramos.filter(
+                ({ v, t }) => v.estado !== "cancelado" && t.estado === "en_curso",
+            );
             const pendientes = tramos.filter(
-                ({ t }) => t.estado === "pendiente",
+                ({ v, t }) => v.estado !== "cancelado" && t.estado === "pendiente",
             );
             const cancelados = tramos.filter(
                 ({ v, t }) =>
-                    t.estado === "cancelado" || v.estado === "cancelado",
+                    t.estado === "cancelado" ||
+                    (v.estado === "cancelado" && t.estado !== "completado"),
             );
 
             const aTiempo = completados.filter(
@@ -14461,7 +14618,8 @@
                 "kpi-accessible-summary",
             );
             if (kpiSummary) {
-                kpiSummary.textContent = `KPIs de cumplimiento: ${total} tramos totales, ${aTiempo.length} a tiempo, ${conRetraso} con retraso, ${enCurso.length} en curso, ${pendientes.length} pendientes y ${cancelados.length} cancelados.`;
+                kpiSummary.textContent = mensajeKpis ||
+                    `${viajes.length} viajes. KPIs de cumplimiento: ${total} tramos totales, ${aTiempo.length} a tiempo, ${conRetraso} con retraso, ${enCurso.length} en curso, ${pendientes.length} pendientes y ${cancelados.length} cancelados.`;
             }
 
             updateCumplimientoChart([
@@ -14705,7 +14863,7 @@
                             <div class="flex items-start justify-between gap-3 border-b px-4 py-3">
                               <div>
                                 <h3 class="font-semibold text-gray-800">Detalle</h3>
-                                <p class="mt-0.5 text-xs text-gray-500">Unidades, ruta, estatus y descarga.</p>
+                                <p class="mt-0.5 text-xs text-gray-500">Unidades, ruta, estatus, descarga y validación GPS.</p>
                               </div>
                             </div>
                             <div class="executive-detail-table-wrap">
@@ -14719,6 +14877,7 @@
                                     <th scope="col" class="px-4 py-2 text-left">Prog. Descarga</th>
                                     <th scope="col" class="px-4 py-2 text-left">Arribo a Descarga</th>
                                     <th scope="col" class="px-4 py-2 text-left">Vacío</th>
+                                    <th scope="col" class="px-4 py-2 text-left">Validación GPS</th>
                                     <th scope="col" class="px-4 py-2 text-left min-w-[200px]">Observaciones</th>
                                   </tr>
                                 </thead>
@@ -14734,6 +14893,7 @@
                                    <td class="px-4 py-2">${renderExecutiveDateTime(t.descarga_programada)}</td>
                                    <td class="px-4 py-2 font-semibold">${renderExecutiveDateTime(t.descarga_real)}</td>
                                    <td class="px-4 py-2 font-semibold">${renderExecutiveDateTime(t.vacio_real)}</td>
+                                   <td class="px-4 py-2">${renderInformeGps(t)}</td>
                                    <td class="px-4 py-2 text-gray-600 text-xs">${escapeHtml(t.instrucciones || "-")}</td>
                                 </tr>
                                 `,
@@ -14748,7 +14908,7 @@
                               <strong class="text-gray-900">${total}</strong> tramos
                             </p>
                             <div class="flex flex-wrap items-center gap-2">
-                              <label class="text-sm text-gray-700">
+                              <label class="text-sm text-gray-700" data-pdf-exclude="true">
                                 <span class="mr-2">Filas:</span>
                                 <select
                                   class="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -14799,6 +14959,33 @@
             </span>`;
         }
 
+        function getInformeGps(tramo) {
+            const resumen = _getGpsResumen(tramo.gps_estado);
+            let estado = "Pendiente de validación";
+            if (resumen.completo) estado = "Validado";
+            else if (resumen.conValidacion) estado = "Validación parcial";
+            else if (!resumen.sinDatos && resumen.aplicables === 0) estado = "No aplica";
+
+            const fecha = formatDateTime(tramo.gps_timestamp);
+            return {
+                estado,
+                fecha: fecha !== "-" ? fecha : "",
+                nota: fecha === "-" && !resumen.sinDatos
+                    ? "Sin fecha de validación"
+                    : "",
+            };
+        }
+
+        function renderInformeGps(tramo) {
+            const { estado, fecha, nota } = getInformeGps(tramo);
+            const detalle = fecha
+                ? renderExecutiveDateTime(tramo.gps_timestamp)
+                : escapeHtml(nota);
+            return `<strong>${escapeHtml(estado)}</strong>${detalle
+                ? `<span class="executive-gps-date">${detalle}</span>`
+                : ""}`;
+        }
+
         function establecerInformeEjecutivoPagina(pagina) {
             const totalPaginas = Math.max(
                 1,
@@ -14834,33 +15021,40 @@
         function downloadReportAsExcel() {
             if (!lastInformeData.length)
                 return alert("No hay datos para exportar.");
-            const rows = lastInformeData.map(({ v, t }) => ({
-                Folio: v.folio || "",
-                Unidad: v.unidad || "",
-                Placas: v.placas || "",
-                Operador: v.operador || "",
-                Tramo: t.tramo_numero || "",
-                Origen: t.origen || "",
-                Destino: t.destino || "",
-                Ruta: t.ruta || "",
-                Estatus: _viajeEstadoLabel(t.estado),
-                "Prog. Descarga": formatDateTime(t.descarga_programada),
-                "Arribo a Descarga": formatDateTime(t.descarga_real),
-                Vacío: formatDateTime(t.vacio_real),
-                "Req. Regreso": isRegresoOrigenRequired(t) ? "Si" : "No",
-                "Regreso Prog.": formatDateTime(t.regreso_origen_programado),
-                "Regreso Real": formatDateTime(t.regreso_origen_real),
-                Observaciones: t.instrucciones || "",
-                Incidencias: (t.incidencias || [])
-                    .map(
-                        (i) =>
-                            `T${i.tramo_numero || t.tramo_numero || ""}: ${i.tipo} (${formatDateTime(i.fecha)})`,
-                    )
-                    .join("; "),
-                "Dirección Incidencias": (t.incidencias || [])
-                    .map((i) => i.direccion || "Sin dato")
-                    .join("; "),
-            }));
+            const rows = lastInformeData.map(({ v, t }) => {
+                const gps = getInformeGps(t);
+                const detalleGps = gps.fecha || gps.nota;
+                return {
+                    Folio: v.folio || "",
+                    Unidad: v.unidad || "",
+                    Placas: v.placas || "",
+                    Operador: v.operador || "",
+                    Tramo: t.tramo_numero || "",
+                    Origen: t.origen || "",
+                    Destino: t.destino || "",
+                    Ruta: t.ruta || "",
+                    Estatus: _viajeEstadoLabel(t.estado),
+                    "Prog. Descarga": formatDateTime(t.descarga_programada),
+                    "Arribo a Descarga": formatDateTime(t.descarga_real),
+                    Vacío: formatDateTime(t.vacio_real),
+                    "Validación GPS": detalleGps
+                        ? `${gps.estado} · ${detalleGps}`
+                        : gps.estado,
+                    "Req. Regreso": isRegresoOrigenRequired(t) ? "Si" : "No",
+                    "Regreso Prog.": formatDateTime(t.regreso_origen_programado),
+                    "Regreso Real": formatDateTime(t.regreso_origen_real),
+                    Observaciones: t.instrucciones || "",
+                    Incidencias: (t.incidencias || [])
+                        .map(
+                            (i) =>
+                                `T${i.tramo_numero || t.tramo_numero || ""}: ${i.tipo} (${formatDateTime(i.fecha)})`,
+                        )
+                        .join("; "),
+                    "Dirección Incidencias": (t.incidencias || [])
+                        .map((i) => i.direccion || "Sin dato")
+                        .join("; "),
+                };
+            });
             const ws = XLSX.utils.json_to_sheet(rows);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Informe");
@@ -17010,6 +17204,15 @@
                     });
                     return map;
                 }
+                if (arr && typeof arr === "object") {
+                    const map = {};
+                    Object.entries(arr).forEach(([key, status]) => {
+                        if (Object.values(GPS_STATUS).includes(status)) {
+                            map[_normalizeGpsKey(key)] = status;
+                        }
+                    });
+                    return map;
+                }
             } catch (e) {}
             return {};
         }
@@ -17430,17 +17633,11 @@
                 return;
             }
 
-            const desde = dayjs().subtract(30, "day").format("YYYY-MM-DD");
-            const hasta = dayjs().add(15, "day").format("YYYY-MM-DD");
-
-            const filtroDesdEl = document.getElementById("viajes-fecha-desde");
-            const filtroHastaEl = document.getElementById("viajes-fecha-hasta");
+            const { desde: fechaDesde, hasta: fechaHasta } = getViajesFechaRango();
             const filtroEstadoEl = document.getElementById(
                 "viajes-filtro-estado",
             );
 
-            const fechaDesde = filtroDesdEl?.value || desde;
-            const fechaHasta = filtroHastaEl?.value || hasta;
             const estadoF = filtroEstadoEl?.value || "";
 
             const params = new URLSearchParams({
@@ -17601,10 +17798,7 @@
             allDespachosData = rows;
             filteredDespachosData = filterDataByCliente(rows.slice());
 
-            // Actualizar KPIs e Informe con los datos nuevos
-            try {
-                renderKPIs();
-            } catch (e) {}
+            // Actualizar el informe con los datos nuevos.
             try {
                 renderInforme();
                 renderIncidenciasExecutiveReport();
@@ -24817,6 +25011,39 @@
                         .pdf-export-root tr { page-break-inside: avoid; break-inside: avoid; }
                         .pdf-export-root th, .pdf-export-root td { padding: 7px 8px !important; }
                         .pdf-export-root .grid { gap: 12px !important; }
+                        .pdf-export-root .executive-metrics {
+                            grid-template-columns: repeat(7, minmax(0, 1fr));
+                        }
+                        .pdf-export-root .executive-metric {
+                            padding: 7px;
+                            border: 1px solid #e5e7eb;
+                            border-radius: 6px;
+                            font-size: 10px;
+                        }
+                        .pdf-export-root .executive-metric p { margin: 0 0 3px; }
+                        .pdf-export-root .executive-metric-label { min-height: 2.8em; }
+                        .pdf-export-root .executive-metric-value { font-weight: 700; }
+                        .pdf-export-root .executive-detail-table--tramos {
+                            table-layout: fixed !important;
+                            font-size: 10px;
+                            line-height: 1.25;
+                        }
+                        .pdf-export-root .executive-detail-table--tramos th,
+                        .pdf-export-root .executive-detail-table--tramos td {
+                            padding: 6px 4px !important;
+                            overflow-wrap: break-word;
+                        }
+                        .pdf-export-root .executive-detail-table--tramos th:nth-child(1) { width: 9%; }
+                        .pdf-export-root .executive-detail-table--tramos th:nth-child(2) { width: 6%; }
+                        .pdf-export-root .executive-detail-table--tramos th:nth-child(3) { width: 12%; }
+                        .pdf-export-root .executive-detail-table--tramos th:nth-child(4) { width: 10%; }
+                        .pdf-export-root .executive-detail-table--tramos th:nth-child(5),
+                        .pdf-export-root .executive-detail-table--tramos th:nth-child(6) { width: 12%; }
+                        .pdf-export-root .executive-detail-table--tramos th:nth-child(7) { width: 11%; }
+                        .pdf-export-root .executive-detail-table--tramos th:nth-child(8) { width: 15%; }
+                        .pdf-export-root .executive-detail-table--tramos th:nth-child(9) { width: 13%; }
+                        .pdf-export-root .executive-gps-date,
+                        .pdf-export-root .executive-date-time > span { display: block; }
                     `;
 
             const sheet = document.createElement("div");
@@ -24868,13 +25095,21 @@
                 });
 
             let canvas;
+            let filas;
+            let anchoContenido;
             try {
+                anchoContenido = element.scrollWidth;
+                const inicio = element.getBoundingClientRect().top;
+                filas = Array.from(element.querySelectorAll("tr"), (fila) => {
+                    const { top, bottom } = fila.getBoundingClientRect();
+                    return { inicio: top - inicio, fin: bottom - inicio };
+                });
                 canvas = await html2canvas(element, {
                     backgroundColor: "#f9fafb",
                     scale: 2,
                     useCORS: true,
                     logging: false,
-                    windowWidth: element.scrollWidth,
+                    windowWidth: anchoContenido,
                     windowHeight: element.scrollHeight,
                     onclone: (clonedDocument) => {
                         clonedDocument
@@ -24899,28 +25134,34 @@
             const pageHeight = pdf.internal.pageSize.getHeight();
             const margin = 10;
             const imgWidth = pageWidth - margin * 2;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            const pageContentHeight = pageHeight - margin * 2;
-            const imageData = canvas.toDataURL("image/png");
-
-            let remainingHeight = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imageData, "PNG", margin, margin, imgWidth, imgHeight);
-            remainingHeight -= pageContentHeight;
-
-            while (remainingHeight > 0) {
-                position += pageContentHeight;
-                pdf.addPage();
-                pdf.addImage(
-                    imageData,
-                    "PNG",
-                    margin,
-                    margin - position,
-                    imgWidth,
-                    imgHeight,
+            const pixelesPorPagina = Math.floor(
+                ((pageHeight - margin * 2) * canvas.width) / imgWidth,
+            );
+            const escala = canvas.width / anchoContenido;
+            const rangosFilas = filas.map(({ inicio, fin }) => ({
+                inicio: Math.floor(inicio * escala),
+                fin: Math.ceil(fin * escala),
+            }));
+            const pagina = document.createElement("canvas");
+            pagina.width = canvas.width;
+            const contexto = pagina.getContext("2d");
+            for (let inicio = 0; inicio < canvas.height;) {
+                const limite = Math.min(inicio + pixelesPorPagina, canvas.height);
+                const filaCortada = rangosFilas.find((fila) =>
+                    fila.inicio > inicio && fila.inicio < limite && fila.fin > limite,
                 );
-                remainingHeight -= pageContentHeight;
+                const fin = filaCortada?.inicio ?? limite;
+                const altura = fin - inicio;
+                pagina.height = altura;
+                contexto.drawImage(
+                    canvas, 0, inicio, canvas.width, altura, 0, 0, canvas.width, altura,
+                );
+                if (inicio > 0) pdf.addPage();
+                const alturaImagen = (altura * imgWidth) / canvas.width;
+                pdf.addImage(
+                    pagina, "PNG", margin, margin, imgWidth, alturaImagen, undefined, "FAST",
+                );
+                inicio = fin;
             }
 
             pdf.save(filename);
@@ -24970,14 +25211,11 @@
             await downloadTabAsPDF({
                 tabId: "tab-2",
                 title: "KPIs de Cumplimiento",
-                subtitle: `Fecha: ${safeDate}`,
+                subtitle: getKpisExportSubtitle(),
                 filename: `KPIs_${safeDate}.pdf`,
                 button,
                 emptyMessage: "No hay datos para exportar en KPIs.",
-                hasData:
-                    (Array.isArray(filteredDespachosData) &&
-                        filteredDespachosData.length > 0) ||
-                    (Array.isArray(allViajesData) && allViajesData.length > 0),
+                hasData: getViajesKpisFiltrados().length > 0,
             });
         }
 
@@ -24986,14 +25224,18 @@
             downloadTabAsHTML({
                 tabId: "tab-2",
                 title: "KPIs de Cumplimiento",
-                subtitle: `Fecha: ${safeDate}`,
+                subtitle: getKpisExportSubtitle(),
                 filename: `KPIs_${safeDate}.html`,
                 emptyMessage: "No hay datos para exportar en KPIs.",
-                hasData:
-                    (Array.isArray(filteredDespachosData) &&
-                        filteredDespachosData.length > 0) ||
-                    (Array.isArray(allViajesData) && allViajesData.length > 0),
+                hasData: getViajesKpisFiltrados().length > 0,
             });
+        }
+
+        function getKpisExportSubtitle() {
+            const periodo = document.getElementById("kpi-periodo").textContent;
+            const unidad = document.getElementById("kpi-filtro-unidad").selectedOptions[0].text;
+            const estado = document.getElementById("kpi-filtro-estado").selectedOptions[0].text;
+            return `${periodo} · ${unidad} · ${estado}`;
         }
 
         async function downloadInformeTabAsPDF(button) {
