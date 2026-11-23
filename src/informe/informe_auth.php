@@ -68,6 +68,14 @@ function informes_get_auth_user($conn, $required = true) {
     ];
 }
 
+function informes_get_write_user($conn) {
+    $user = informes_get_auth_user($conn);
+    if ($user['role'] === 'lector') {
+        throw new Exception('Sin permisos de escritura.', 403);
+    }
+    return $user;
+}
+
 function informes_get_user_cliente_ids($conn, $usuario_id, $role) {
     if (strtolower((string)$role) === 'admin') {
         return [];

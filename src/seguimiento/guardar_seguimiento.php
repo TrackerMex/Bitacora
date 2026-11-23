@@ -201,7 +201,7 @@ try {
 
     require_once __DIR__ . "/../db/db.php";
 
-    $user = informes_get_auth_user($conn);
+    $user = informes_get_write_user($conn);
 
     $raw = file_get_contents("php://input");
     $data = json_decode($raw, true);

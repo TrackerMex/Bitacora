@@ -22,7 +22,7 @@ try {
   }
 
   require_once __DIR__ . '/../db/db.php';
-  informes_get_auth_user($conn);
+  informes_get_write_user($conn);
   $conn->close();
 
   $raw = file_get_contents('php://input');
