@@ -6253,6 +6253,18 @@
                             >
                                 Resumen visual de incidencias por tipo.
                             </canvas>
+                            <section id="kpi-incidencias-otro" class="hidden mt-4 border-t border-gray-200 pt-4" aria-labelledby="kpi-incidencias-otro-titulo">
+                                <h4 id="kpi-incidencias-otro-titulo" class="mb-2 font-semibold">Desglose de «Otro»</h4>
+                                <table class="w-full table-fixed text-sm">
+                                    <thead class="text-gray-600">
+                                        <tr>
+                                            <th scope="col" class="py-1 text-left">Descripción</th>
+                                            <th scope="col" class="w-24 py-1 text-right">Incidencias</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="kpi-incidencias-otro-filas" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </section>
                         </div>
                     </div>
                     <div
@@ -9023,6 +9035,8 @@
             },
             { value: "otro", label: "Otro", sev: "media", custom: true },
         ];
+        const PREFIJO_INCIDENCIA_OTRO = "Otro: ";
+        const MAX_DESCRIPCION_INCIDENCIA_OTRO = 120 - PREFIJO_INCIDENCIA_OTRO.length;
 
         const SEV_CONFIG = {
             alta: {
@@ -14595,12 +14609,7 @@
             );
             const conRetraso = completados.length - aTiempo.length;
 
-            const incCount = {};
-            tramos.forEach(({ t }) =>
-                (t.incidencias || []).forEach((i) => {
-                    incCount[i.tipo] = (incCount[i.tipo] || 0) + 1;
-                }),
-            );
+            const { conteos, otros } = agruparIncidenciasKpis(tramos);
 
             document.getElementById("kpi-total-despachos").textContent = total;
             document.getElementById("kpi-despachos-a-tiempo").textContent =
@@ -14629,7 +14638,57 @@
                 pendientes.length,
                 cancelados.length,
             ]);
-            updateIncidenciasChart(incCount);
+            updateIncidenciasChart(conteos);
+            renderDesgloseIncidenciasOtro(otros);
+        }
+
+        function agruparIncidenciasKpis(tramos) {
+            const catalogo = new Map();
+            TIPOS_INCIDENCIA.filter(({ custom }) => !custom).forEach(({ value, label }) => {
+                catalogo.set(value, label);
+                catalogo.set(label.toLocaleLowerCase("es-MX"), label);
+            });
+            catalogo.set("accidente vehicular propio", "Accidente vehicular");
+            catalogo.set("robo o asalto", "Robo / Asalto");
+
+            const conteos = new Map();
+            const otros = new Map();
+            for (const { t } of tramos) {
+                for (const incidencia of t.incidencias || []) {
+                    const tipo = String(incidencia.tipo ?? "").trim().replace(/\s+/g, " ");
+                    const otro = tipo.match(/^otro(?:\s*:\s*(.*))?$/i);
+                    const categoria = otro ? "Otro" :
+                        catalogo.get(tipo.toLocaleLowerCase("es-MX")) || (tipo ? "Otro" : "Sin tipo");
+                    conteos.set(categoria, (conteos.get(categoria) || 0) + 1);
+                    if (categoria !== "Otro") continue;
+
+                    // Antes se guardaba la descripción como tipo; algunos registros solo dicen «Otro».
+                    const texto = otro
+                        ? otro[1] || String(incidencia.notas ?? "").trim().replace(/\s+/g, " ")
+                        : tipo;
+                    const descripcion = texto || "Sin descripción";
+                    const clave = descripcion.toLocaleLowerCase("es-MX");
+                    const grupo = otros.get(clave) || { descripcion, cantidad: 0 };
+                    grupo.cantidad += 1;
+                    otros.set(clave, grupo);
+                }
+            }
+            return { conteos, otros };
+        }
+
+        function renderDesgloseIncidenciasOtro(otros) {
+            const seccion = document.getElementById("kpi-incidencias-otro");
+            const filas = document.getElementById("kpi-incidencias-otro-filas");
+            seccion.classList.toggle("hidden", otros.size === 0);
+            filas.innerHTML = [...otros.values()]
+                .sort((a, b) => b.cantidad - a.cantidad ||
+                    a.descripcion.localeCompare(b.descripcion, "es-MX"))
+                .map(({ descripcion, cantidad }) => `
+                    <tr>
+                        <td class="py-1 pr-2 break-words">${escapeHtml(descripcion)}</td>
+                        <td class="py-1 text-right tabular-nums">${cantidad}</td>
+                    </tr>
+                `).join("");
         }
 
         function updateCumplimientoChart(vals) {
@@ -14684,8 +14743,8 @@
                 .getElementById("kpi-incidencias-chart")
                 .getContext("2d");
             if (charts.incidencias) charts.incidencias.destroy();
-            const labels = Object.keys(map);
-            const values = Object.values(map);
+            const labels = [...map.keys()];
+            const values = [...map.values()];
             if (!labels.length) {
                 charts.incidencias = new Chart(ctx, {
                     type: "doughnut",
@@ -22652,7 +22711,8 @@
                                 </div>
                                 <div class="flex items-center gap-1 flex-shrink-0">
                                     <button type="button"
-                                            onclick="showProtocoloPorTipo(TIPOS_INCIDENCIA.find(t=>t.label==='${escapeHtml(inc.tipo)}')?.value ?? '${escapeHtml(inc.tipo)}')"
+                                            data-tipo-incidencia="${escapeHtml(inc.tipo)}"
+                                            onclick="showProtocoloPorTipo(TIPOS_INCIDENCIA.find(t => t.label === this.dataset.tipoIncidencia)?.value ?? this.dataset.tipoIncidencia)"
                                             title="Ver protocolo"
                                             aria-label="Ver protocolo de esta incidencia"
                                             class="tramo-touch-button text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors">${appIcon("clipboard-list", "app-icon h-4 w-4")}</button>
@@ -22705,7 +22765,7 @@
                                   </div>
                                  <div id="${formId}-otro-wrap" class="hidden">
                                      <label for="${formId}-otro" class="block text-sm font-semibold text-gray-700 mb-1">Describe la incidencia *</label>
-                                     <input type="text" id="${formId}-otro" placeholder="Ej. Retén de seguridad, espera por documentación"
+                                     <input type="text" id="${formId}-otro" maxlength="${MAX_DESCRIPCION_INCIDENCIA_OTRO}" placeholder="Ej. Retén de seguridad, espera por documentación"
                                             class="tramo-control w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
                                  </div>
                                  <div>
@@ -22858,7 +22918,7 @@
             ).trim();
             const tipoFinal =
                 tipo === "otro"
-                    ? tipoOtro
+                    ? PREFIJO_INCIDENCIA_OTRO + tipoOtro
                     : TIPOS_INCIDENCIA.find((t) => t.value === tipo)?.label ||
                       tipo;
 
