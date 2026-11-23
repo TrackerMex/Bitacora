@@ -964,7 +964,9 @@ try {
     }
     $stmt->close();
 
-    $gps_timestamp = date('Y-m-d H:i:s');
+    // Hora de la BD (-06:00); date() de PHP corre en UTC.
+    $res = $conn->query('SELECT gps_timestamp FROM viaje_tramos WHERE id = ' . $tramo_id);
+    $gps_timestamp = $res ? ($res->fetch_row()[0] ?? null) : null;
 
     resp_ok([
       'tramo_id' => $tramo_id,

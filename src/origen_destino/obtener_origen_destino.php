@@ -6,6 +6,8 @@ ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
+require_once __DIR__ . '/../informe/informe_auth.php';
+
 $response = [
   'success' => false,
   'message' => '',
@@ -39,13 +41,24 @@ function db_column_exists_od($conn, $table, $column) {
 
 try {
   require_once __DIR__ . '/../db/db.php';
+  $user = informes_get_auth_user($conn);
+  $where = $user['role'] === 'admin' ? '' : "WHERE EXISTS (
+            SELECT 1
+              FROM despachos d
+              INNER JOIN unidades u ON u.id = d.unidad_id
+             WHERE d.folio = o.folio
+               AND u.economico = o.unidad
+               AND d.fecha_programada = o.fecha_programada
+               AND " . informes_sql_clientes($conn, $user, 'd.cliente_id') . "
+          )";
 
   $lugarCargaSelect = db_column_exists_od($conn, 'despacho_origen_destino', 'lugar_carga')
     ? 'lugar_carga'
     : "'' AS lugar_carga";
 
   $sql = "SELECT folio, unidad, fecha_programada, origen, $lugarCargaSelect, destino
-          FROM despacho_origen_destino
+          FROM despacho_origen_destino o
+          $where
           ORDER BY fecha_programada DESC, unidad ASC";
 
   $result = $conn->query($sql);
@@ -65,7 +78,7 @@ try {
   $response['count']   = count($rows);
 
 } catch (Exception $e) {
-  http_response_code(500);
+  http_response_code(informes_exception_code($e));
   $response['message'] = 'Error: ' . $e->getMessage();
 } finally {
   if (isset($conn) && $conn) {

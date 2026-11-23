@@ -9,6 +9,8 @@ ini_set("max_execution_time", 30);
 header("Content-Type: application/json; charset=utf-8");
 header("Access-Control-Allow-Origin: *");
 
+require_once __DIR__ . "/../informe/informe_auth.php";
+
 $response = [
     "success" => false,
     "message" => "",
@@ -199,6 +201,8 @@ try {
 
     require_once __DIR__ . "/../db/db.php";
 
+    $user = informes_get_write_user($conn);
+
     $raw = file_get_contents("php://input");
     $data = json_decode($raw, true);
     if (!is_array($data)) {
@@ -285,6 +289,12 @@ try {
     );
     $despachoId = $despacho["despacho_id"];
     $clienteId = $despacho["cliente_id"];
+    if ($user["role"] !== "admin") {
+        $permitidos = informes_get_user_cliente_ids($conn, $user["id"], $user["role"]);
+        if (!$clienteId || !in_array($clienteId, $permitidos, true)) {
+            throw new Exception("Sin acceso a este despacho.", 403);
+        }
+    }
     $hasRegresoOrigen = db_column_exists(
         $conn,
         "seguimiento_despacho",
@@ -506,7 +516,7 @@ try {
         } catch (Exception $ignored) {
         }
     }
-    http_response_code(500);
+    http_response_code(informes_exception_code($e));
     $response["success"] = false;
     $response["message"] = "Error: " . $e->getMessage();
 } finally {

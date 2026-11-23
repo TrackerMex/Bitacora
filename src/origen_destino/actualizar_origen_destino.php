@@ -6,6 +6,8 @@ ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
+require_once __DIR__ . '/../informe/informe_auth.php';
+
 $response = [
   'success' => false,
   'message' => '',
@@ -56,6 +58,7 @@ try {
   }
 
   require_once __DIR__ . '/../db/db.php';
+  $user = informes_get_write_user($conn);
 
   $raw  = file_get_contents('php://input');
   $data = json_decode($raw, true);
@@ -72,6 +75,27 @@ try {
 
   if ($folio === '' || $unidad === '' || $fechaProgramada === '') {
     throw new Exception('Faltan campos requeridos: folio, unidad, fechaProgramada.');
+  }
+
+  if ($user['role'] !== 'admin') {
+    $stmt = $conn->prepare(
+      "SELECT 1
+         FROM despachos d
+         INNER JOIN unidades u ON u.id = d.unidad_id
+        WHERE d.folio = ? AND u.economico = ? AND d.fecha_programada = ?
+          AND " . informes_sql_clientes($conn, $user, 'd.cliente_id') . "
+        LIMIT 1"
+    );
+    if (!$stmt) {
+      throw new Exception('Error preparando validación: ' . $conn->error);
+    }
+    $stmt->bind_param('sss', $folio, $unidad, $fechaProgramada);
+    $stmt->execute();
+    $permitido = (bool)$stmt->get_result()->fetch_row();
+    $stmt->close();
+    if (!$permitido) {
+      throw new Exception('Sin acceso a este despacho.', 403);
+    }
   }
 
   $hasLugarCarga = db_column_exists_od($conn, 'despacho_origen_destino', 'lugar_carga');
@@ -115,7 +139,7 @@ try {
   $response['id']      = $insertId ?: 0;
 
 } catch (Exception $e) {
-  http_response_code(500);
+  http_response_code(informes_exception_code($e));
   $response['message'] = 'Error: ' . $e->getMessage();
 } finally {
   if (isset($conn) && $conn) {

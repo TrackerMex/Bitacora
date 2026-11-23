@@ -6,6 +6,8 @@ ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
+require_once __DIR__ . '/../informe/informe_auth.php';
+
 $response = [
   'success' => false,
   'message' => '',
@@ -33,6 +35,7 @@ try {
   }
 
   require_once __DIR__ . '/../db/db.php';
+  $user = informes_get_write_user($conn);
 
   $raw = file_get_contents('php://input');
   $data = json_decode($raw, true);
@@ -59,9 +62,14 @@ try {
     exit();
   }
 
-  // Verificar que el registro actual existe
+  // Verificar que el registro actual existe y es de un cliente del usuario
   $stmtCheck = $conn->prepare(
-    'SELECT id FROM seguimiento_despacho WHERE folio = ? AND unidad = ? AND fecha_programada = ? LIMIT 1'
+    'SELECT s.id
+       FROM seguimiento_despacho s
+       LEFT JOIN despachos d ON d.id = s.despacho_id
+      WHERE s.folio = ? AND s.unidad = ? AND s.fecha_programada = ?
+        AND ' . informes_sql_clientes($conn, $user, 'COALESCE(s.cliente_id, d.cliente_id)') . '
+      LIMIT 1'
   );
   if (!$stmtCheck) {
     throw new Exception('Error preparando consulta: ' . $conn->error);
@@ -121,7 +129,7 @@ try {
   $response['message'] = "Fecha programada actualizada de {$fechaActual} a {$fechaNueva}";
 
 } catch (Exception $e) {
-  http_response_code(500);
+  http_response_code(informes_exception_code($e));
   $response['success'] = false;
   $response['message'] = 'Error: ' . $e->getMessage();
 } finally {

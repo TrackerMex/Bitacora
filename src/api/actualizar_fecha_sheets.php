@@ -7,6 +7,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
 require_once __DIR__ . '/../../config/environment.php';
+require_once __DIR__ . '/../informe/informe_auth.php';
 
 $response = [
   'success' => true,
@@ -19,6 +20,10 @@ try {
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     throw new Exception('Metodo no permitido. Use POST.');
   }
+
+  require_once __DIR__ . '/../db/db.php';
+  informes_get_write_user($conn);
+  $conn->close();
 
   $raw = file_get_contents('php://input');
   $data = json_decode($raw, true);
@@ -89,7 +94,7 @@ try {
   $response['apps_script_response'] = $json;
 
 } catch (Exception $e) {
-  http_response_code(500);
+  http_response_code(informes_exception_code($e));
   $response['success'] = false;
   $response['message'] = 'Error: ' . $e->getMessage();
 }

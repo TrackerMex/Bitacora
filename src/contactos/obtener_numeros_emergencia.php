@@ -5,6 +5,8 @@ ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
+require_once __DIR__ . '/../informe/informe_auth.php';
+
 $response = [
     'success' => false,
     'message' => '',
@@ -42,6 +44,7 @@ try {
     }
 
     require_once $dbFile;
+    informes_get_auth_user($conn);
 
     $tableCheck = $conn->query("SHOW TABLES LIKE 'numeros_emergencia_estado'");
     if (!$tableCheck || $tableCheck->num_rows === 0) {
@@ -87,7 +90,7 @@ try {
     $response['count'] = count($rows);
 
 } catch (Exception $e) {
-    http_response_code(500);
+    http_response_code(informes_exception_code($e));
     $response['success'] = false;
     $response['message'] = 'Error: ' . $e->getMessage();
 } finally {

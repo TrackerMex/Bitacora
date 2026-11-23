@@ -1,5 +1,11 @@
 <?php
 
+// Solo por consola: php crear_usuario_cliente.php --email=... (crea admins sin sesión).
+if (PHP_SAPI !== 'cli') {
+  http_response_code(404);
+  exit();
+}
+
 error_reporting(0);
 ini_set('display_errors', 0);
 

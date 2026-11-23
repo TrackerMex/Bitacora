@@ -4,6 +4,8 @@ ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
+require_once __DIR__ . '/../informe/informe_auth.php';
+
 $response = [
     'success' => false,
     'message' => '',
@@ -24,11 +26,12 @@ function split_contact_values($value) {
 
 try {
     require_once __DIR__ . '/../db/db.php';
+    $user = informes_get_auth_user($conn);
 
     $cliente_id = isset($_GET['cliente_id']) ? intval($_GET['cliente_id']) : 0;
     $cliente_nombre = isset($_GET['cliente']) ? trim((string)$_GET['cliente']) : '';
 
-    $where = 'dm.activo = 1';
+    $where = 'dm.activo = 1 AND ' . informes_sql_clientes($conn, $user, 'dm.cliente_id');
     $types = '';
     $params = [];
 
@@ -98,7 +101,7 @@ try {
     $response['data'] = $items;
 } catch (Exception $e) {
     $response['message'] = $e->getMessage();
-    http_response_code(400);
+    http_response_code(informes_exception_code($e, 400));
 } finally {
     if (isset($conn) && $conn) {
         $conn->close();

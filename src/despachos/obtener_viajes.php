@@ -8,7 +8,7 @@ ini_set("max_execution_time", 30);
 header("Content-Type: application/json; charset=utf-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
@@ -17,6 +17,8 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     http_response_code(200);
     exit();
 }
+
+require_once __DIR__ . "/../informe/informe_auth.php";
 
 $response = [
     "success" => false,
@@ -97,7 +99,17 @@ try {
 
     require_once __DIR__ . "/../db/db.php";
 
+    $user = informes_get_auth_user($conn);
+    $es_admin = $user["role"] === "admin";
+
     $cliente_ids = parse_id_list_v($_GET["cliente_ids"] ?? "");
+    if (!$es_admin) {
+        $permitidos = informes_get_user_cliente_ids($conn, $user["id"], $user["role"]);
+        $cliente_ids = count($cliente_ids) > 0
+            ? array_values(array_intersect($cliente_ids, $permitidos))
+            : $permitidos;
+    }
+    $vista_kpis = ($_GET["vista"] ?? "") === "kpis";
     $fecha_desde = to_date_v($_GET["fecha_desde"] ?? "");
     $fecha_hasta = to_date_v($_GET["fecha_hasta"] ?? "");
     $unidad_id = isset($_GET["unidad_id"]) ? intval($_GET["unidad_id"]) : null;
@@ -119,7 +131,7 @@ try {
         foreach ($cliente_ids as $id) {
             $params[] = $id;
         }
-    } elseif (isset($_GET["cliente_ids"])) {
+    } elseif ($vista_kpis || isset($_GET["cliente_ids"]) || !$es_admin) {
         $where[] = "1 = 0";
     }
 
@@ -148,19 +160,24 @@ try {
         $params[] = $estado_f;
     }
 
-    // Los cancelados operativos siguen disponibles al filtrar por ese estado.
+    // El listado de viajes conserva su visibilidad. Los KPIs incluyen cancelaciones operativas.
     // El listado normal solo muestra viajes con al menos un tramo activo.
+    $estado_tramo_activo = $vista_kpis ? "" : "AND vt_activos.estado <> 'cancelado'";
     if ($estado_f !== "cancelado") {
-        $where[] = "EXISTS (
+        $tiene_tramo_visible = "EXISTS (
             SELECT 1
               FROM viaje_tramos vt_activos
              WHERE vt_activos.viaje_id = v.id
-               AND vt_activos.estado <> 'cancelado'
+               $estado_tramo_activo
                AND vt_activos.eliminado_at IS NULL
         )";
+        $where[] = $vista_kpis
+            ? "(v.estado = 'cancelado' OR $tiene_tramo_visible)"
+            : $tiene_tramo_visible;
     }
 
     $where_sql = implode(" AND ", $where);
+    $estado_tramo_visible = $vista_kpis ? "" : "AND vt.estado <> 'cancelado'";
 
     $sql_viajes = "
         SELECT
@@ -198,11 +215,11 @@ try {
         INNER JOIN unidades u ON u.id = v.unidad_id
         LEFT JOIN viaje_tramos vt
           ON vt.viaje_id = v.id
-         AND vt.estado <> 'cancelado'
+         $estado_tramo_visible
          AND vt.eliminado_at IS NULL
         WHERE $where_sql
         GROUP BY v.id
-        ORDER BY v.fecha_inicio DESC, v.created_at DESC
+        ORDER BY v.fecha_inicio DESC, v.created_at DESC, v.id DESC
         LIMIT ? OFFSET ?
     ";
 
@@ -314,7 +331,7 @@ try {
                COALESCE(vt.salida_patio, v_match.fecha_inicio)
              )
             WHERE vt.viaje_id IN ($ph_v)
-              AND vt.estado <> 'cancelado'
+              $estado_tramo_visible
               AND vt.eliminado_at IS NULL
             ORDER BY vt.viaje_id ASC, vt.tramo_numero ASC
         ";
@@ -566,7 +583,7 @@ try {
     $response["limit"] = $limit;
     $response["offset"] = $offset;
 } catch (Exception $e) {
-    http_response_code(500);
+    http_response_code(informes_exception_code($e));
     $response["success"] = false;
     $response["message"] = "Error: " . $e->getMessage();
 } finally {

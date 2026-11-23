@@ -9,6 +9,8 @@ ini_set('max_execution_time', 30);
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
+require_once __DIR__ . '/../informe/informe_auth.php';
+
 $response = [
   'success' => false,
   'message' => '',
@@ -64,10 +66,11 @@ function db_column_exists($conn, $table, $column) {
 
 try {
   require_once __DIR__ . '/../db/db.php';
+  $user = informes_get_auth_user($conn);
 
   $cliente_ids = parse_id_list($_GET['cliente_ids'] ?? '');
   $despacho_ids = parse_id_list($_GET['despacho_ids'] ?? '');
-  $where = [];
+  $where = [informes_sql_clientes($conn, $user, 'COALESCE(s.cliente_id, d_match.cliente_id)')];
   $types = '';
   $params = [];
 
@@ -156,7 +159,7 @@ try {
   $response['count'] = count($rows);
 
 } catch (Exception $e) {
-  http_response_code(500);
+  http_response_code(informes_exception_code($e));
   $response['success'] = false;
   $response['message'] = 'Error: ' . $e->getMessage();
 } finally {
